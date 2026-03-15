@@ -76,23 +76,15 @@ function getTimeBucketLabel(months) {
   return '> 3 years';
 }
 
-// ============================================================
-// Math
-// ============================================================
+// calcBED, calcEQD2, isoeffDose, fmt provided by math.js
 
-function physicalToEqd2(D, n, ab) {
-  const d = D / n;
-  return D * (d + ab) / (2 + ab);
-}
+// Aliases for readability in reirradiation context
+function physicalToEqd2(D, n, ab) { return calcEQD2(D, n, ab); }
 
 function eqd2ToPhysical(eqd2, n, ab) {
   if (eqd2 <= 0 || n < 1 || ab <= 0) return null;
-  const bed  = eqd2 * (2 + ab) / ab;
-  const disc = ab * ab + 4 * bed * ab / n;
-  if (disc < 0) return null;
-  const d = 0.5 * (-ab + Math.sqrt(disc));
-  if (d < 0) return null;
-  return d * n;
+  var bed = eqd2 * (2 + ab) / ab;
+  return isoeffDose(bed, n, ab);
 }
 
 // ============================================================
@@ -100,11 +92,6 @@ function eqd2ToPhysical(eqd2, n, ab) {
 // ============================================================
 
 const $ = id => document.getElementById(id);
-
-function fmt(v) {
-  if (v === null || v === undefined || isNaN(v) || !isFinite(v)) return '—';
-  return v.toFixed(2);
-}
 
 // ============================================================
 // Build checkbox list
@@ -229,6 +216,32 @@ function toggleEmptyRow() {
 }
 
 // ============================================================
+// Row-building helpers
+// ============================================================
+
+function buildNameCell(name, subtext, subClass) {
+  return '<td class="bed-row-label">' + name +
+         '<span class="' + subClass + '">' + subtext + '</span></td>';
+}
+
+function buildDataCells(remVal, fxVals, cellClass) {
+  return [
+    '<td class="' + cellClass + '">' + remVal + '</td>',
+    '<td class="' + cellClass + ' col-1fx">' + (fxVals[0] || '—') + '</td>',
+    '<td class="' + cellClass + ' col-3fx">' + (fxVals[1] || '—') + '</td>',
+    '<td class="' + cellClass + ' col-5fx">' + (fxVals[2] || '—') + '</td>',
+    '<td class="' + cellClass + ' col-cfx">' + (fxVals[3] || '—') + '</td>',
+  ];
+}
+
+function renderResultRow(row, name, sub, subClass, remVal, fxVals, cellClass, titleAttr) {
+  var nameHtml = buildNameCell(name, sub, subClass);
+  var dataCells = buildDataCells(remVal, fxVals, cellClass);
+  if (titleAttr) dataCells[0] = dataCells[0].replace('class="', 'title="' + titleAttr + '" class="');
+  row.innerHTML = nameHtml + dataCells.join('');
+}
+
+// ============================================================
 // Main update
 // ============================================================
 
@@ -278,30 +291,13 @@ function updateAll() {
       if (!row) return;
       const sub = oar.constraintText;
       const exceeded = remCc !== null && remCc <= 0;
-      let nameHtml, dataCells;
       if (exceeded) {
-        nameHtml  = '<td class="bed-row-label">' + oar.name +
-                    '<span class="rert-oar-subtext">' + sub + '</span></td>';
-        dataCells = [
-          '<td class="rert-exceeded" title="Volume constraint exceeded">' +
-            remCc.toFixed(1) + ' cc \u26a0</td>',
-          '<td class="rert-exceeded col-1fx">—</td>',
-          '<td class="rert-exceeded col-3fx">—</td>',
-          '<td class="rert-exceeded col-5fx">—</td>',
-          '<td class="rert-exceeded col-cfx">—</td>',
-        ];
+        renderResultRow(row, oar.name, sub, 'rert-oar-subtext',
+          remCc.toFixed(1) + ' cc \u26a0', [], 'rert-exceeded', 'Volume constraint exceeded');
       } else {
-        nameHtml  = '<td class="bed-row-label">' + oar.name +
-                    '<span class="rert-oar-subtext">' + sub + '</span></td>';
-        dataCells = [
-          '<td class="bed-result-cell">' + (remCc !== null ? remCc.toFixed(1) + ' cc' : '—') + '</td>',
-          '<td class="rert-report col-1fx">—</td>',
-          '<td class="rert-report col-3fx">—</td>',
-          '<td class="rert-report col-5fx">—</td>',
-          '<td class="rert-report col-cfx">—</td>',
-        ];
+        renderResultRow(row, oar.name, sub, 'rert-oar-subtext',
+          remCc !== null ? remCc.toFixed(1) + ' cc' : '—', [], 'rert-report');
       }
-      row.innerHTML = nameHtml + dataCells.join('');
       return;
     }
 
@@ -321,57 +317,30 @@ function updateAll() {
       remEqd2 = oar.constraint - eqd2Prior * (1 - trf);
     }
 
-    // Build result row
     const row = $('rert-row-' + id);
     if (!row) return;
 
-    const exceeded     = remEqd2 !== null && remEqd2 <= 0;
     const noConstraint = oar.constraint === null;
-
-    let nameHtml, dataCells;
+    const exceeded     = remEqd2 !== null && remEqd2 <= 0;
 
     if (noConstraint) {
       const effPrior = eqd2Prior !== null ? eqd2Prior * (1 - trf) : null;
-      nameHtml  = '<td class="bed-row-label">' + oar.name +
-                  '<span class="rert-report-only-note">no numeric constraint</span></td>';
-      dataCells = [
-        '<td class="rert-report" title="Time-discounted effective prior EQD2">' +
-          fmt(effPrior) + '<span class="rert-report-only-note">eff. prior EQD2</span></td>',
-        '<td class="rert-report col-1fx">—</td>',
-        '<td class="rert-report col-3fx">—</td>',
-        '<td class="rert-report col-5fx">—</td>',
-        '<td class="rert-report col-cfx">—</td>',
-      ];
+      renderResultRow(row, oar.name, 'no numeric constraint', 'rert-report-only-note',
+        fmt(effPrior) + '<span class="rert-report-only-note">eff. prior EQD2</span>',
+        [], 'rert-report', 'Time-discounted effective prior EQD2');
     } else if (exceeded) {
       const sub = oar.constraintText || ('\u2264 ' + oar.constraint + ' Gy EQD2');
-      nameHtml  = '<td class="bed-row-label">' + oar.name +
-                  '<span class="rert-oar-subtext">' + sub + '</span></td>';
-      dataCells = [
-        '<td class="rert-exceeded" title="Prior dose exceeds or meets constraint">' +
-          fmt(remEqd2) + ' \u26a0</td>',
-        '<td class="rert-exceeded col-1fx">—</td>',
-        '<td class="rert-exceeded col-3fx">—</td>',
-        '<td class="rert-exceeded col-5fx">—</td>',
-        '<td class="rert-exceeded col-cfx">—</td>',
-      ];
+      renderResultRow(row, oar.name, sub, 'rert-oar-subtext',
+        fmt(remEqd2) + ' \u26a0', [], 'rert-exceeded', 'Prior dose exceeds or meets constraint');
     } else {
       const d1 = remEqd2 !== null ? eqd2ToPhysical(remEqd2, 1,      prAb) : null;
       const d3 = remEqd2 !== null ? eqd2ToPhysical(remEqd2, 3,      prAb) : null;
       const d5 = remEqd2 !== null ? eqd2ToPhysical(remEqd2, 5,      prAb) : null;
       const dN = (remEqd2 !== null && custOk) ? eqd2ToPhysical(remEqd2, custFx, prAb) : null;
       const sub = oar.constraintText || ('\u2264 ' + oar.constraint + ' Gy EQD2');
-      nameHtml  = '<td class="bed-row-label">' + oar.name +
-                  '<span class="rert-oar-subtext">' + sub + '</span></td>';
-      dataCells = [
-        '<td class="bed-result-cell">' + fmt(remEqd2) + '</td>',
-        '<td class="bed-result-cell col-1fx">' + fmt(d1) + '</td>',
-        '<td class="bed-result-cell col-3fx">' + fmt(d3) + '</td>',
-        '<td class="bed-result-cell col-5fx">' + fmt(d5) + '</td>',
-        '<td class="bed-result-cell col-cfx">' + fmt(dN) + '</td>',
-      ];
+      renderResultRow(row, oar.name, sub, 'rert-oar-subtext',
+        fmt(remEqd2), [fmt(d1), fmt(d3), fmt(d5), fmt(dN)], 'bed-result-cell');
     }
-
-    row.innerHTML = nameHtml + dataCells.join('');
   });
 
   applyColumnVisibility();

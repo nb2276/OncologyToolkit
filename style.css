@@ -1846,6 +1846,14 @@ details[open].rert-oar-picker .rert-picker-chevron {
   to { transform: rotate(360deg); }
 }
 
+.loading-error {
+  color: var(--danger);
+}
+
+.loading-error::after {
+  display: none;
+}
+
 /* Site-wide disclaimer footer */
 .site-disclaimer {
   margin-top: 40px;
