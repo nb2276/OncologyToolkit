@@ -6,24 +6,48 @@ const ICD_10_CODES = new Array();
 
 // Define a callback function to handle the response loading ICD 10 codes
 xhr_ICD.onreadystatechange = function() {
-  if (xhr_ICD.readyState === XMLHttpRequest.DONE && xhr_ICD.status === 200) {
-
-    // Parse the XML response
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xhr_ICD.responseText, "text/xml");
-    const diag = xmlDoc.getElementsByTagName("diag");
-
-    // Loop over the codes and add them to the array
-    for (let i = 0; i < diag.length; i++) {
-      const code = diag[i];
-      const id = code.getElementsByTagName("name")[0].textContent;
-      const desc = code.getElementsByTagName("desc")[0].textContent;
-      ICD_10_CODES.push([id, desc]);
-    }
-
-    // Hide loading indicator
+  if (xhr_ICD.readyState === XMLHttpRequest.DONE) {
     const loadingEl = document.getElementById('loadingIndicator');
-    if (loadingEl) loadingEl.style.display = 'none';
+
+    if (xhr_ICD.status === 200) {
+      // Parse the XML response
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xhr_ICD.responseText, "text/xml");
+      const diag = xmlDoc.getElementsByTagName("diag");
+
+      // Loop over the codes and add them to the array
+      for (let i = 0; i < diag.length; i++) {
+        const code = diag[i];
+        const id = code.getElementsByTagName("name")[0].textContent;
+        const desc = code.getElementsByTagName("desc")[0].textContent;
+        ICD_10_CODES.push([id, desc]);
+      }
+
+      // Hide loading indicator
+      if (loadingEl) loadingEl.style.display = 'none';
+    } else {
+      if (loadingEl) {
+        loadingEl.textContent = 'Failed to load diagnosis codes. Please refresh the page.';
+        loadingEl.classList.add('loading-error');
+      }
+    }
+  }
+};
+
+xhr_ICD.onerror = function() {
+  const loadingEl = document.getElementById('loadingIndicator');
+  if (loadingEl) {
+    loadingEl.textContent = 'Failed to load diagnosis codes. Please refresh the page.';
+    loadingEl.classList.add('loading-error');
+  }
+};
+
+xhr_ICD.timeout = 30000;
+xhr_ICD.ontimeout = function() {
+  const loadingEl = document.getElementById('loadingIndicator');
+  if (loadingEl) {
+    loadingEl.textContent = 'Loading timed out. Please refresh the page.';
+    loadingEl.classList.add('loading-error');
   }
 };
 
@@ -41,24 +65,8 @@ const selectInSituchecked = document.getElementById('selectInSitu');
 const selectBenignchecked = document.getElementById('selectBenign');
 const selectZchecked = document.getElementById('selectZ');
 
-document.getElementById('all').addEventListener("change", function() {
-  performSearch();
-});
-
-selectMalignantchecked.addEventListener("change", function() {
-  performSearch();
-});
-
-selectInSituchecked.addEventListener("change", function() {
-  performSearch();
-});
-
-selectBenignchecked.addEventListener("change", function() {
-  performSearch();
-});
-
-selectZchecked.addEventListener("change", function() {
-  performSearch();
+['all', 'selectMalignant', 'selectInSitu', 'selectBenign', 'selectZ'].forEach(function(id) {
+  document.getElementById(id).addEventListener('change', performSearch);
 });
 
 function performSearch(){
@@ -138,4 +146,8 @@ function performSearch(){
     }
 };
 
-searchTerm.addEventListener("input", performSearch);
+let searchTimer = null;
+searchTerm.addEventListener("input", function() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(performSearch, 150);
+});
