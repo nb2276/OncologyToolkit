@@ -1,21 +1,4 @@
-function fmt(val, decimals) {
-  if (val === null || val === undefined || isNaN(val) || !isFinite(val)) return '—';
-  return val.toFixed(decimals !== undefined ? decimals : 2);
-}
-
-function calcBED(D, n, ab) {
-  return D * (1 + (D / n) / ab);
-}
-
-// Given a remaining BED and target fractions, solve for total dose.
-// Solves BED = n * d * (1 + d/ab) for d, then returns n * d.
-function solveRemainingDose(remBed, n, ab) {
-  const disc = ab * ab + 4 * remBed * ab / n;
-  if (disc < 0) return null;
-  const d = 0.5 * (-ab + Math.sqrt(disc));
-  if (d < 0) return null;
-  return d * n;
-}
+// calcBED, calcEQD2, isoeffDose, fmt provided by math.js
 
 function update() {
   const stDose = parseFloat(document.getElementById('st-dose').value);
@@ -35,7 +18,7 @@ function update() {
 
   // Previous dose BED (uses same α/β as structure)
   const pvBedValid = stBedValid && !isNaN(pvDose) && !isNaN(pvFx) && !isNaN(pvTdf) &&
-                     pvDose > 0 && pvFx >= 1 && pvTdf >= 0;
+                     pvDose > 0 && pvFx >= 1 && pvTdf >= 0 && pvTdf <= 1;
   const pvBedRaw    = pvBedValid ? calcBED(pvDose, pvFx, stAb) : null;
   const pvBedAdj    = (pvBedRaw !== null) ? pvBedRaw * pvTdf : null;
 
@@ -79,7 +62,7 @@ function update() {
     return;
   }
 
-  const remDose = solveRemainingDose(remBed, remFx, stAb);
+  const remDose = isoeffDose(remBed, remFx, stAb);
   if (remDose === null || remDose <= 0) {
     resultEl.innerHTML =
       '<div class="comp-error-box">Unable to compute remaining dose for these parameters.</div>';
