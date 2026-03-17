@@ -32,6 +32,7 @@
         <a href="bed.html" class="nav-link">BED</a>
         <a href="composite.html" class="nav-link active">Composite Dose</a>
         <a href="rert.html" class="nav-link">Reirradiation</a>
+        <a href="constraints.html" class="nav-link">Dose Constraints</a>
         <a href="about.html" class="nav-link">About</a>
       </div>
       <button class="theme-toggle" id="theme-toggle" aria-label="Switch to light mode">
@@ -50,14 +51,17 @@
           <div class="comp-field">
             <label for="st-dose">Dose (Gy)</label>
             <input type="number" id="st-dose" value="45" min="0" step="0.1">
+            <span class="input-range-warning" id="warn-st-dose"></span>
           </div>
           <div class="comp-field">
             <label for="st-fx">Fractions</label>
             <input type="number" id="st-fx" value="25" min="1" step="1">
+            <span class="input-range-warning" id="warn-st-fx"></span>
           </div>
           <div class="comp-field">
             <label for="st-ab">α/β (Gy)</label>
             <input type="number" id="st-ab" value="3" min="0.1" step="0.1">
+            <span class="input-range-warning" id="warn-st-ab"></span>
           </div>
         </div>
         <div class="comp-bed-row">
@@ -74,14 +78,17 @@
           <div class="comp-field">
             <label for="pv-dose">Dose (Gy)</label>
             <input type="number" id="pv-dose" value="15" min="0" step="0.1">
+            <span class="input-range-warning" id="warn-pv-dose"></span>
           </div>
           <div class="comp-field">
             <label for="pv-fx">Fractions</label>
             <input type="number" id="pv-fx" value="10" min="1" step="1">
+            <span class="input-range-warning" id="warn-pv-fx"></span>
           </div>
           <div class="comp-field">
             <label for="pv-tdf">Time Discount Factor</label>
             <input type="number" id="pv-tdf" value="1" min="0" max="1" step="0.05">
+            <span class="input-range-warning" id="warn-pv-tdf"></span>
           </div>
         </div>
         <div class="comp-bed-row">
@@ -108,11 +115,27 @@
         <div id="rem-result"></div>
       </div>
 
+      </div>
+
+      <div class="copy-link-row">
+        <button class="psa-action-btn" id="copy-link-btn">Copy Link</button>
+      </div>
+
+      <details class="bed-card history-section" id="history-section" style="display:none;">
+        <summary class="history-summary">Recent Calculations</summary>
+        <div class="history-list"></div>
+        <button class="history-clear">Clear History</button>
+      </details>
+
     </div>
 
     <p class="bed-attribution">BED / EQD2 calculations based on a spreadsheet by Dr. Mike Wahl.</p>
+    <script src="clipboard.js"></script>
+    <script src="url-state.js"></script>
+    <script src="history.js"></script>
     <script src="math.js"></script>
     <script src="composite.js"></script>
+    <script src="shortcuts.js"></script>
     <script src="theme.js"></script>
     <footer class="site-disclaimer">
       These tools are for educational purposes only and are not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.

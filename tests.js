@@ -100,13 +100,38 @@ var sandbox = {
     querySelectorAll: function() { return []; },
     body: { appendChild: function() {} }
   },
-  window: { addEventListener: function() {}, open: function() {} },
+  window: {
+    addEventListener: function() {},
+    open: function() {},
+    location: { search: '', pathname: '/bed.html', origin: 'http://localhost' },
+    history: { replaceState: function() {} }
+  },
+  URLSearchParams: URLSearchParams,
+  localStorage: (function() {
+    var store = {};
+    return {
+      getItem: function(k) { return store.hasOwnProperty(k) ? store[k] : null; },
+      setItem: function(k, v) { store[k] = String(v); },
+      removeItem: function(k) { delete store[k]; },
+      clear: function() { store = {}; },
+      _store: store
+    };
+  })(),
   navigator: { clipboard: { write: function() { return Promise.resolve(); }, writeText: function() { return Promise.resolve(); } } },
   Chart: { helpers: { getRelativePosition: function() {} }, defaults: { plugins: { legend: { onClick: function() {} } } } },
   ClipboardItem: function() {}
 };
 
 vm.createContext(sandbox);
+
+// Load clipboard.js — uses function declarations
+vm.runInContext(loadFile('clipboard.js'), sandbox);
+
+// Load url-state.js — uses function declarations
+vm.runInContext(loadFile('url-state.js'), sandbox);
+
+// Load history.js — uses var/function declarations
+vm.runInContext(loadFile('history.js'), sandbox);
 
 // Load math.js — uses var/function declarations so they go on sandbox global
 vm.runInContext(loadFile('math.js'), sandbox);
@@ -156,6 +181,13 @@ var parseInput = sandbox.parseInput;
 var fitExponential = sandbox.fitExponential;
 var tValue95 = sandbox.tValue95;
 var fmtDoublingTime = sandbox.fmtDoublingTime;
+var parseUrlParams = sandbox.parseUrlParams;
+var serializeToUrl = sandbox.serializeToUrl;
+var saveToHistory = sandbox.saveToHistory;
+var loadHistory = sandbox.loadHistory;
+var clearHistory = sandbox.clearHistory;
+var copyToClipboard = sandbox.copyToClipboard;
+var HISTORY_MAX = sandbox.HISTORY_MAX;
 
 
 // ============================================================
@@ -576,6 +608,126 @@ assertEqual(isoeffDose(0, 10, 3), 0, 'isoeffDose: 0 BED returns 0 dose');
 // Very small remaining BED
 var smallDose = isoeffDose(0.001, 5, 3);
 assert(smallDose !== null && smallDose >= 0, 'isoeffDose: very small BED produces non-negative dose');
+
+// ============================================================
+// TESTS: url-state.js — parseUrlParams / serializeToUrl
+// ============================================================
+
+section('=== url-state.js: parseUrlParams ===');
+
+// Simulate URL search string by temporarily setting window.location.search
+sandbox.window.location.search = '?bd-dose=60&bd-fx=30&ab1=10';
+var parsed = parseUrlParams.call(sandbox, ['bd-dose', 'bd-fx', 'ab1', 'ab2']);
+assertEqual(parsed['bd-dose'], 60, 'parseUrlParams: parses bd-dose=60');
+assertEqual(parsed['bd-fx'], 30, 'parseUrlParams: parses bd-fx=30');
+assertEqual(parsed['ab1'], 10, 'parseUrlParams: parses ab1=10');
+assert(parsed['ab2'] === undefined, 'parseUrlParams: missing param returns undefined');
+
+// Empty search string
+sandbox.window.location.search = '';
+var emptyParsed = parseUrlParams.call(sandbox, ['bd-dose']);
+assertEqual(Object.keys(emptyParsed).length, 0, 'parseUrlParams: empty string returns empty object');
+
+// Invalid values (NaN, text)
+sandbox.window.location.search = '?bd-dose=abc&bd-fx=-5&ab1=Infinity';
+var invalidParsed = parseUrlParams.call(sandbox, ['bd-dose', 'bd-fx', 'ab1']);
+assert(invalidParsed['bd-dose'] === undefined, 'parseUrlParams: NaN value is filtered out');
+assertEqual(invalidParsed['bd-fx'], -5, 'parseUrlParams: negative values are kept (validation is caller responsibility)');
+assert(invalidParsed['ab1'] === undefined, 'parseUrlParams: Infinity is filtered out');
+
+// Reset
+sandbox.window.location.search = '';
+
+section('=== url-state.js: serializeToUrl ===');
+
+// Set up DOM elements for serialization
+var doseEl = makeDomElement(); doseEl.value = '60';
+var fxEl = makeDomElement(); fxEl.value = '30';
+var emptyEl = makeDomElement(); emptyEl.value = '';
+sandbox.document.getElementById = function(id) {
+  if (id === 'bd-dose') return doseEl;
+  if (id === 'bd-fx') return fxEl;
+  if (id === 'empty') return emptyEl;
+  return makeDomElement();
+};
+
+var url = serializeToUrl.call(sandbox, ['bd-dose', 'bd-fx', 'empty']);
+assert(url.indexOf('bd-dose=60') !== -1, 'serializeToUrl: includes bd-dose=60');
+assert(url.indexOf('bd-fx=30') !== -1, 'serializeToUrl: includes bd-fx=30');
+assert(url.indexOf('empty') === -1, 'serializeToUrl: excludes empty values');
+
+// Restore generic getElementById
+sandbox.document.getElementById = function() { return makeDomElement(); };
+
+// ============================================================
+// TESTS: history.js — saveToHistory / loadHistory / clearHistory
+// ============================================================
+
+section('=== history.js: saveToHistory / loadHistory ===');
+
+// Clear any prior state
+sandbox.localStorage.clear();
+
+// Save a history entry
+var histDoseEl = makeDomElement(); histDoseEl.value = '60';
+var histFxEl = makeDomElement(); histFxEl.value = '30';
+sandbox.document.getElementById = function(id) {
+  if (id === 'bd-dose') return histDoseEl;
+  if (id === 'bd-fx') return histFxEl;
+  return makeDomElement();
+};
+
+saveToHistory.call(sandbox, 'bed', ['bd-dose', 'bd-fx']);
+var hist = loadHistory.call(sandbox, 'bed');
+assertEqual(hist.length, 1, 'history: 1 entry after first save');
+assertEqual(hist[0].params['bd-dose'], '60', 'history: saved bd-dose value');
+assertEqual(hist[0].params['bd-fx'], '30', 'history: saved bd-fx value');
+
+// Save a second entry (different values)
+histDoseEl.value = '50';
+histFxEl.value = '25';
+saveToHistory.call(sandbox, 'bed', ['bd-dose', 'bd-fx']);
+hist = loadHistory.call(sandbox, 'bed');
+assertEqual(hist.length, 2, 'history: 2 entries after second save');
+assertEqual(hist[0].params['bd-dose'], '50', 'history: newest entry first');
+
+// Deduplication — save same as first entry again
+histDoseEl.value = '60';
+histFxEl.value = '30';
+saveToHistory.call(sandbox, 'bed', ['bd-dose', 'bd-fx']);
+hist = loadHistory.call(sandbox, 'bed');
+assertEqual(hist.length, 2, 'history: deduplicate keeps count at 2');
+assertEqual(hist[0].params['bd-dose'], '60', 'history: deduped entry moved to top');
+
+// Cap at HISTORY_MAX
+for (var h = 0; h < 15; h++) {
+  histDoseEl.value = String(h);
+  histFxEl.value = '1';
+  saveToHistory.call(sandbox, 'bed', ['bd-dose', 'bd-fx']);
+}
+hist = loadHistory.call(sandbox, 'bed');
+assert(hist.length <= 10, 'history: capped at 10 entries, got ' + hist.length);
+
+// Clear history
+clearHistory.call(sandbox, 'bed');
+hist = loadHistory.call(sandbox, 'bed');
+assertEqual(hist.length, 0, 'history: cleared');
+
+// Corrupted JSON
+sandbox.localStorage.setItem('history_bed', 'not valid json{{{');
+hist = loadHistory.call(sandbox, 'bed');
+assertEqual(hist.length, 0, 'history: corrupted JSON returns empty array');
+
+// Restore
+sandbox.localStorage.clear();
+sandbox.document.getElementById = function() { return makeDomElement(); };
+
+// ============================================================
+// TESTS: clipboard.js — copyToClipboard exists
+// ============================================================
+
+section('=== clipboard.js ===');
+assert(typeof copyToClipboard === 'function', 'copyToClipboard is a function');
 
 // ============================================================
 // Summary

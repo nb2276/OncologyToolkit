@@ -1,7 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
+/* =======================================================================
+   TABLE OF CONTENTS
+   =======================================================================
+   1.  Design Tokens ............... CSS custom properties (dark/light)
+   2.  Global Resets ............... Box model, body, scrollbar
+   3.  Layout ...................... Page title, fadeInUp animation
+   4.  Navigation .................. Nav bar, links, mobile hamburger
+   5.  Forms & Inputs .............. Search box, checkboxes, radio buttons
+   6.  Tables ...................... ICD-10 results, code cells
+   7.  Cards ....................... Shared card component
+   8.  PSA Calculator .............. PSA page-specific styles
+   9.  About Page .................. About page-specific styles
+   10. BED / Composite ............ Calculator cards, inputs, tables
+   11. Composite Dose ............. Composite-specific grid, result box
+   12. Reirradiation .............. ReRT layout, OAR cards, TRF chips
+   13. Copy Link .................. Shareable URL button
+   14. History .................... Calculation history sidebar
+   15. Input Validation ........... Range warnings
+   16. Presets .................... Regimen preset dropdown
+   17. Dose Constraints ........... Constraint search page
+   18. Loading & Errors ........... Spinners, error states
+   19. Footer ..................... Site disclaimer
+   20. Print ...................... @media print styles
+   ======================================================================= */
+
 /* -----------------------------------------------------------------------
-   Design Tokens
+   1. Design Tokens
 ----------------------------------------------------------------------- */
 :root {
   --bg-root: #1c1c1e;
@@ -1866,4 +1891,276 @@ details[open].rert-oar-picker .rert-picker-chevron {
   color: var(--text-muted);
   line-height: 1.7;
   letter-spacing: 0.01em;
+}
+
+/* -----------------------------------------------------------------------
+   Copy Link button row
+----------------------------------------------------------------------- */
+.copy-link-row {
+  text-align: center;
+  margin: 8px 0 12px;
+}
+
+/* -----------------------------------------------------------------------
+   Calculation History (collapsible section)
+----------------------------------------------------------------------- */
+.history-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+.history-summary {
+  display: flex;
+  align-items: center;
+  padding: 12px 22px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-display);
+  user-select: none;
+  transition: background-color var(--transition-fast);
+}
+
+.history-summary:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.history-summary::-webkit-details-marker { display: none; }
+
+.history-list {
+  border-top: 1px solid var(--border-subtle);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 8px 22px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.history-item:hover {
+  background-color: rgba(79, 195, 247, 0.04);
+  color: var(--accent);
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-clear {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color var(--transition-fast);
+}
+
+.history-clear:hover {
+  color: var(--danger);
+}
+
+/* -----------------------------------------------------------------------
+   Input validation warnings
+----------------------------------------------------------------------- */
+.input-range-warning {
+  display: none;
+  font-size: 10px;
+  color: #f0ad4e;
+  margin-top: 2px;
+}
+
+/* -----------------------------------------------------------------------
+   Regimen preset dropdown (BED page)
+----------------------------------------------------------------------- */
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.preset-row label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.preset-select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 13px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.preset-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* -----------------------------------------------------------------------
+   Dose Constraint Reference page
+----------------------------------------------------------------------- */
+.constraint-search-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.constraint-search-row input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.constraint-search-row input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.constraint-source-select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.constraint-source-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.constraint-meta-row {
+  margin-top: 8px;
+}
+
+.constraint-result-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.constraints-table {
+  table-layout: auto;
+  font-size: 13px;
+}
+
+.constraints-table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.constraints-table td {
+  font-size: 13px;
+  padding: 8px 12px;
+  vertical-align: top;
+}
+
+.constraint-source-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.constraint-source-quantec {
+  color: var(--accent);
+  background: rgba(79, 195, 247, 0.1);
+  border: 1px solid rgba(79, 195, 247, 0.2);
+}
+
+.constraint-source-hytec {
+  color: #81c784;
+  background: rgba(129, 199, 132, 0.1);
+  border: 1px solid rgba(129, 199, 132, 0.2);
+}
+
+/* -----------------------------------------------------------------------
+   Print styles
+----------------------------------------------------------------------- */
+@media print {
+  nav,
+  .theme-toggle,
+  .nav-toggle,
+  .copy-link-row,
+  .history-section,
+  .preset-row,
+  .psa-action-btn,
+  .rert-btn-bar,
+  .site-disclaimer {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #222;
+    font-size: 12px;
+  }
+
+  .bed-container,
+  .psa-container,
+  .rert-container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .bed-card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+  }
+
+  .bed-table th,
+  .bed-table td {
+    border: 1px solid #ccc;
+  }
+
+  .bed-result-cell {
+    color: #222;
+  }
+
+  /* Show page URL for reference */
+  .page-title::after {
+    content: ' — ' attr(data-url);
+    font-size: 10px;
+    color: #888;
+    font-weight: normal;
+  }
 }

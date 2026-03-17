@@ -31,6 +31,7 @@
         <a href="bed.html" class="nav-link">BED</a>
         <a href="composite.html" class="nav-link">Composite Dose</a>
         <a href="rert.html" class="nav-link">Reirradiation</a>
+        <a href="constraints.html" class="nav-link">Dose Constraints</a>
         <a href="about.html" class="nav-link active">About</a>
       </div>
       <button class="theme-toggle" id="theme-toggle" aria-label="Switch to light mode">
@@ -81,6 +82,12 @@
             fraction. Based on a spreadsheet by Dr. Mike Wahl.
           </li>
           <li>
+            <strong>Dose Constraint Reference</strong> &mdash; Searchable database of
+            normal tissue dose constraints from QUANTEC and HyTEC guidelines. Filter by
+            organ, endpoint, fractionation scheme, or data source. Includes constraint
+            values, complication rates, and literature citations.
+          </li>
+          <li>
             <strong>Reirradiation Dose Calculator</strong> &mdash; Estimates remaining
             organ-at-risk dose tolerance for reirradiation cases using UMich ReRT guidelines.
             Accepts prior plan fractionation, &alpha;/&beta;, and time since prior RT.
@@ -107,6 +114,7 @@
 
       </div>
     </div>
+    <script src="shortcuts.js"></script>
     <script src="theme.js"></script>
     <footer class="site-disclaimer">
       These tools are for educational purposes only and are not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.

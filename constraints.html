@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ICD-10 Code Search</title>
+    <title>Dose Constraints – Oncology Toolkit</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -27,12 +27,12 @@
         <span></span><span></span><span></span>
       </button>
       <div class="nav-links">
-        <a href="index.html" class="nav-link active">ICD-10 Search</a>
+        <a href="index.html" class="nav-link">ICD-10 Search</a>
         <a href="psa.html" class="nav-link">PSA Doubling Time</a>
         <a href="bed.html" class="nav-link">BED</a>
         <a href="composite.html" class="nav-link">Composite Dose</a>
         <a href="rert.html" class="nav-link">Reirradiation</a>
-        <a href="constraints.html" class="nav-link">Dose Constraints</a>
+        <a href="constraints.html" class="nav-link active">Dose Constraints</a>
         <a href="about.html" class="nav-link">About</a>
       </div>
       <button class="theme-toggle" id="theme-toggle" aria-label="Switch to light mode">
@@ -42,37 +42,45 @@
     </nav>
 
     <div class="bed-container">
-      <h3 class="page-title">ICD-10 Code Search</h3>
+      <h3 class="page-title">Dose Constraint Reference</h3>
 
       <div class="bed-card">
-        <input type="text" id="searchTerm" placeholder="Search diagnoses…" autocomplete="off">
-        <div class="checkbox-container">
-          <input type="radio" name="type" id="all">
-          <label for="all">All</label>
-          <input type="radio" name="type" id="selectMalignant" checked>
-          <label for="selectMalignant">Malignancy</label>
-          <input type="radio" name="type" id="selectInSitu">
-          <label for="selectInSitu">In Situ</label>
-          <input type="radio" name="type" id="selectBenign">
-          <label for="selectBenign">Benign Neoplasm</label>
-          <input type="radio" name="type" id="selectZ">
-          <label for="selectZ">Z Code</label>
+        <div class="constraint-search-row">
+          <input type="text" id="constraintSearch" placeholder="Search by organ, endpoint, or keyword…" autocomplete="off">
+          <select id="sourceFilter" class="constraint-source-select">
+            <option value="all">All Sources</option>
+            <option value="quantec">QUANTEC</option>
+            <option value="hytec">HyTEC</option>
+          </select>
+        </div>
+        <div class="constraint-meta-row">
+          <span id="resultCount" class="constraint-result-count"></span>
         </div>
       </div>
 
-      <div id="loadingIndicator" class="loading-indicator">Loading diagnosis codes</div>
+      <div id="constraintLoading" class="loading-indicator">Loading constraint data</div>
 
-      <div id="results">
-        <table id="codesTable">
-          <tr>
-            <th>Code</th>
-            <th>Diagnosis</th>
-          </tr>
-        </table>
+      <div id="constraintResults">
+        <div class="bed-table-wrap">
+          <table id="constraintsTable" class="bed-table constraints-table">
+            <thead>
+              <tr>
+                <th>Organ</th>
+                <th>Constraint</th>
+                <th>Endpoint</th>
+                <th>Rate</th>
+                <th>Fractionation</th>
+                <th>Source</th>
+                <th>Citation</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
-    <script src="clipboard.js"></script>
-    <script src="script.js"></script>
+
+    <script src="constraints.js"></script>
     <script src="shortcuts.js"></script>
     <script src="theme.js"></script>
     <footer class="site-disclaimer">

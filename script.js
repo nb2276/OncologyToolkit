@@ -115,8 +115,8 @@ function performSearch(){
       codeCell.className = 'code-cell';
       codeCell.title = 'Click to copy';
       codeCell.addEventListener('click', function () {
-        navigator.clipboard.writeText(code).then(function () {
-          codeCell.textContent = '✓ Copied';
+        copyToClipboard(code, function () {
+          codeCell.textContent = '\u2713 Copied';
           codeCell.classList.add('code-cell-copied');
           setTimeout(function () {
             codeCell.textContent = code;
@@ -129,8 +129,8 @@ function performSearch(){
         '<button class="diag-copy-btn" title="Copy diagnosis">\u29c9</button>';
       diagnosisCell.querySelector('.diag-copy-btn').addEventListener('click', function (e) {
         e.stopPropagation();
-        const btn2 = e.currentTarget;
-        navigator.clipboard.writeText(diagnosis).then(function () {
+        var btn2 = e.currentTarget;
+        copyToClipboard(diagnosis, function () {
           btn2.textContent = '\u2713';
           setTimeout(function () { btn2.textContent = '\u29c9'; }, 1200);
         });

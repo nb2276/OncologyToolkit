@@ -438,23 +438,12 @@ function buildReportText() {
 // ============================================================
 
 function copyRertResults() {
-  const text = buildReportText();
-  const btn = $('rert-copy-btn');
-  navigator.clipboard.writeText(text).then(function() {
-    const orig = btn.textContent;
+  var text = buildReportText();
+  var btn = $('rert-copy-btn');
+  copyToClipboard(text, function () {
+    var orig = btn.textContent;
     btn.textContent = '\u2713 Copied!';
-    setTimeout(function() { btn.textContent = orig; }, 1500);
-  }).catch(function() {
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    const orig = btn.textContent;
-    btn.textContent = '\u2713 Copied!';
-    setTimeout(function() { btn.textContent = orig; }, 1500);
+    setTimeout(function () { btn.textContent = orig; }, 1500);
   });
 }
 
@@ -560,11 +549,16 @@ function buildPrintHtml() {
 // Init
 // ============================================================
 
+var RERT_INPUT_IDS = ['pr-fx', 'pr-ab', 'pr-mo', 'custom-fx'];
+
 buildCheckboxList();
 
-['pr-fx', 'pr-ab', 'pr-mo', 'custom-fx'].forEach(id => {
+RERT_INPUT_IDS.forEach(function (id) {
   $(id).addEventListener('input', updateAll);
 });
+
+// URL params — apply plan-level inputs from URL
+initUrlParams(RERT_INPUT_IDS, null);
 
 toggleEmptyRow();
 updateAll();
