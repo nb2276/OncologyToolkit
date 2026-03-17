@@ -2071,6 +2071,11 @@ details[open].rert-oar-picker .rert-picker-chevron {
   color: var(--text-muted);
 }
 
+/* Widen the container on the constraints page to reduce table wrapping */
+.constraints-container {
+  max-width: 1100px;
+}
+
 .constraints-table {
   table-layout: auto;
   font-size: 13px;

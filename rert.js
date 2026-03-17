@@ -559,6 +559,7 @@ RERT_INPUT_IDS.forEach(function (id) {
 
 // URL params — apply plan-level inputs from URL
 initUrlParams(RERT_INPUT_IDS, null);
+setupCopyLinkButton('copy-link-btn', RERT_INPUT_IDS);
 
 toggleEmptyRow();
 updateAll();
