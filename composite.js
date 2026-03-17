@@ -23,7 +23,7 @@ function validateInputs() {
     var r = COMP_RANGES[id];
     if (!isNaN(val) && (val < r.min || val > r.max)) {
       warn.textContent = r.label;
-      warn.style.display = '';
+      warn.style.display = 'block';
     } else {
       warn.textContent = '';
       warn.style.display = 'none';
