@@ -1139,6 +1139,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   border-collapse: collapse;
   font-size: 14px;
   min-width: 420px;
+  table-layout: fixed;
 }
 
 .bed-table th {
@@ -1151,6 +1152,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 .bed-table th:first-child,
 .bed-table td:first-child {
   text-align: left;
+  width: 25%;
 }
 
 .bed-table td {
