@@ -566,6 +566,17 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 
 .checkbox-container input[type="radio"] {
   accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  min-height: 44px;
 }
 
 #results {
