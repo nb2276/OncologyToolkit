@@ -64,12 +64,25 @@ function update() {
   }
 
   // Remaining dose calculation
-  var eqEl     = document.getElementById('rem-eq');
-  var resultEl = document.getElementById('rem-result');
+  var eqEl      = document.getElementById('rem-eq');
+  var resultEl  = document.getElementById('rem-result');
+  var tableWrap = document.getElementById('rem-table-wrap');
+  var defaultFx = [1, 3, 5, 10];
+
+  function clearRemTable() {
+    defaultFx.forEach(function (n) {
+      document.getElementById('rem-dose-' + n).textContent = '—';
+      document.getElementById('rem-dpf-' + n).textContent = '—';
+    });
+    document.getElementById('rem-dose-custom').textContent = '—';
+    document.getElementById('rem-dpf-custom').textContent = '—';
+  }
 
   if (stBed === null || pvBedAdj === null) {
     eqEl.innerHTML = '—';
     resultEl.innerHTML = '';
+    tableWrap.style.display = 'none';
+    clearRemTable();
     validateInputs();
     return;
   }
@@ -86,36 +99,41 @@ function update() {
   if (remBed <= 0) {
     resultEl.innerHTML =
       '<div class="comp-error-box">Previous dose exceeds or meets structure tolerance — no remaining dose available.</div>';
+    tableWrap.style.display = 'none';
+    clearRemTable();
     validateInputs();
     return;
   }
 
-  if (isNaN(remFx) || remFx < 1) {
-    resultEl.innerHTML = '';
-    validateInputs();
-    return;
-  }
+  resultEl.innerHTML = '';
+  tableWrap.style.display = 'block';
 
-  var remDose = isoeffDose(remBed, remFx, stAb);
-  if (remDose === null || remDose <= 0) {
-    resultEl.innerHTML =
-      '<div class="comp-error-box">Unable to compute remaining dose for these parameters.</div>';
-    validateInputs();
-    return;
-  }
+  // Fill default fraction rows
+  defaultFx.forEach(function (n) {
+    var dose = isoeffDose(remBed, n, stAb);
+    if (dose !== null && dose > 0) {
+      document.getElementById('rem-dose-' + n).textContent = fmt(dose);
+      document.getElementById('rem-dpf-' + n).textContent = fmt(dose / n);
+    } else {
+      document.getElementById('rem-dose-' + n).textContent = '—';
+      document.getElementById('rem-dpf-' + n).textContent = '—';
+    }
+  });
 
-  var dpf = remDose / remFx;
-  resultEl.innerHTML =
-    '<div class="comp-dose-box">' +
-      '<div class="comp-dose-row">' +
-        '<span class="comp-dose-label">Remaining dose</span>' +
-        '<span class="comp-dose-val">' + fmt(remDose) + '</span>' +
-        '<span class="comp-dose-unit">Gy</span>' +
-      '</div>' +
-      '<div class="comp-dose-sub">in ' + remFx + ' fractions &mdash; ' +
-        '<span>' + fmt(dpf) + ' Gy / fraction</span>' +
-      '</div>' +
-    '</div>';
+  // Fill custom fraction row
+  if (!isNaN(remFx) && remFx >= 1) {
+    var customDose = isoeffDose(remBed, remFx, stAb);
+    if (customDose !== null && customDose > 0) {
+      document.getElementById('rem-dose-custom').textContent = fmt(customDose);
+      document.getElementById('rem-dpf-custom').textContent = fmt(customDose / remFx);
+    } else {
+      document.getElementById('rem-dose-custom').textContent = '—';
+      document.getElementById('rem-dpf-custom').textContent = '—';
+    }
+  } else {
+    document.getElementById('rem-dose-custom').textContent = '—';
+    document.getElementById('rem-dpf-custom').textContent = '—';
+  }
 
   validateInputs();
 

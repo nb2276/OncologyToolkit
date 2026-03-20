@@ -105,11 +105,45 @@
 
         <div class="comp-remaining-eq" id="rem-eq">—</div>
 
-        <div class="comp-grid" style="max-width:160px;">
-          <div class="comp-field">
-            <label for="rem-fx">Fractions</label>
-            <input type="number" id="rem-fx" value="10" min="1" step="1">
-          </div>
+        <div class="bed-table-wrap" id="rem-table-wrap" style="display:none;">
+          <table class="bed-table">
+            <thead>
+              <tr>
+                <th>Fractions</th>
+                <th>Total Dose (Gy)</th>
+                <th>Dose / Fraction (Gy)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="bed-row-label">1 fraction</td>
+                <td class="bed-result-cell" id="rem-dose-1">—</td>
+                <td class="bed-result-cell" id="rem-dpf-1">—</td>
+              </tr>
+              <tr>
+                <td class="bed-row-label">3 fractions</td>
+                <td class="bed-result-cell" id="rem-dose-3">—</td>
+                <td class="bed-result-cell" id="rem-dpf-3">—</td>
+              </tr>
+              <tr>
+                <td class="bed-row-label">5 fractions</td>
+                <td class="bed-result-cell" id="rem-dose-5">—</td>
+                <td class="bed-result-cell" id="rem-dpf-5">—</td>
+              </tr>
+              <tr>
+                <td class="bed-row-label">10 fractions</td>
+                <td class="bed-result-cell" id="rem-dose-10">—</td>
+                <td class="bed-result-cell" id="rem-dpf-10">—</td>
+              </tr>
+              <tr>
+                <td style="white-space:nowrap;">
+                  <input class="alt-fx-input" type="number" id="rem-fx" value="25" min="1" step="1"> fractions
+                </td>
+                <td class="bed-result-cell" id="rem-dose-custom">—</td>
+                <td class="bed-result-cell" id="rem-dpf-custom">—</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div id="rem-result"></div>
