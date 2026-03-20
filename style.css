@@ -1274,7 +1274,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 ----------------------------------------------------------------------- */
 .comp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   margin-bottom: 14px;
 }
