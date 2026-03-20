@@ -64,8 +64,19 @@ function performConstraintSearch() {
     row.insertCell(4).textContent = c.fractionation;
     var sourceCell = row.insertCell(5);
     sourceCell.innerHTML = '<span class="constraint-source-badge constraint-source-' +
-      c.source.toLowerCase() + '">' + c.source + '</span>';
-    row.insertCell(6).textContent = c.citation;
+      c.source.toLowerCase().replace(/[\s\/]/g, '-') + '">' + c.source + '</span>';
+    var citCell = row.insertCell(6);
+    if (c.pmid) {
+      var a = document.createElement('a');
+      a.href = 'https://pubmed.ncbi.nlm.nih.gov/' + c.pmid + '/';
+      a.textContent = c.citation;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.className = 'citation-link';
+      citCell.appendChild(a);
+    } else {
+      citCell.textContent = c.citation;
+    }
   }
 
   if (resultCount) {

@@ -1314,8 +1314,8 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -1328,7 +1328,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 }
 
 .comp-bed-val {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--accent);
   font-family: var(--font-display);
@@ -1349,7 +1349,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   font-size: 13px;
   color: var(--text-tertiary);
   line-height: 1.9;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .comp-remaining-eq strong {
@@ -1370,7 +1370,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   background: linear-gradient(135deg, rgba(79, 195, 247, 0.06), rgba(79, 195, 247, 0.02));
   border: 1px solid rgba(79, 195, 247, 0.15);
   border-radius: var(--radius-md);
-  padding: 16px 22px;
+  padding: 12px 22px;
 }
 
 .comp-dose-row {
@@ -1388,7 +1388,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 }
 
 .comp-dose-val {
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--accent);
   font-family: var(--font-display);
@@ -2116,6 +2116,42 @@ details[open].rert-oar-picker .rert-picker-chevron {
   color: #81c784;
   background: rgba(129, 199, 132, 0.1);
   border: 1px solid rgba(129, 199, 132, 0.2);
+}
+
+.constraint-source-nrg-gi011,
+.constraint-source-nrg-gu-005,
+.constraint-source-nrg-gu-009,
+.constraint-source-nrg-gu-010,
+.constraint-source-nrg-gu-013,
+.constraint-source-nrg-lu-008,
+.constraint-source-nrg-hn-009,
+.constraint-source-nrg-br-008 {
+  color: #ffb74d;
+  background: rgba(255, 183, 77, 0.1);
+  border: 1px solid rgba(255, 183, 77, 0.2);
+}
+
+.constraint-source-tailor-rt {
+  color: #ce93d8;
+  background: rgba(206, 147, 216, 0.1);
+  border: 1px solid rgba(206, 147, 216, 0.2);
+}
+
+.constraint-source-embrace-ii {
+  color: #f48fb1;
+  background: rgba(244, 143, 177, 0.1);
+  border: 1px solid rgba(244, 143, 177, 0.2);
+}
+
+.citation-link {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent);
+  transition: opacity var(--transition-fast);
+}
+
+.citation-link:hover {
+  opacity: 0.8;
 }
 
 /* -----------------------------------------------------------------------

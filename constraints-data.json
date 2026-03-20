@@ -8,7 +8,8 @@
     "rate": "< 1%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Kirkpatrick et al., IJROBP 2010"
+    "citation": "Kirkpatrick et al., IJROBP 2010",
+    "pmid": 20171517
   },
   {
     "organ": "Spinal Cord",
@@ -19,7 +20,8 @@
     "rate": "< 6%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Kirkpatrick et al., IJROBP 2010"
+    "citation": "Kirkpatrick et al., IJROBP 2010",
+    "pmid": 20171517
   },
   {
     "organ": "Spinal Cord",
@@ -30,7 +32,8 @@
     "rate": "< 1%",
     "fractionation": "SBRT (1 fx)",
     "source": "HyTEC",
-    "citation": "Sahgal et al., IJROBP 2021"
+    "citation": "Sahgal et al., IJROBP 2021",
+    "pmid": 31606528
   },
   {
     "organ": "Brainstem",
@@ -41,7 +44,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Mayo et al., IJROBP 2010"
+    "citation": "Mayo et al., IJROBP 2010",
+    "pmid": 20171514
   },
   {
     "organ": "Brainstem",
@@ -52,7 +56,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Mayo et al., IJROBP 2010"
+    "citation": "Mayo et al., IJROBP 2010",
+    "pmid": 20171514
   },
   {
     "organ": "Optic Nerve / Chiasm",
@@ -63,7 +68,8 @@
     "rate": "< 3%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Mayo et al., IJROBP 2010"
+    "citation": "Mayo et al., IJROBP 2010",
+    "pmid": 20171514
   },
   {
     "organ": "Optic Nerve / Chiasm",
@@ -74,7 +80,8 @@
     "rate": "3–7%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Mayo et al., IJROBP 2010"
+    "citation": "Mayo et al., IJROBP 2010",
+    "pmid": 20171514
   },
   {
     "organ": "Brain",
@@ -85,7 +92,8 @@
     "rate": "< 3%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Lawrence et al., IJROBP 2010"
+    "citation": "Lawrence et al., IJROBP 2010",
+    "pmid": 20171513
   },
   {
     "organ": "Brain",
@@ -96,7 +104,8 @@
     "rate": "< 10%",
     "fractionation": "SRS (1 fx)",
     "source": "QUANTEC",
-    "citation": "Lawrence et al., IJROBP 2010"
+    "citation": "Lawrence et al., IJROBP 2010",
+    "pmid": 20171513
   },
   {
     "organ": "Cochlea",
@@ -107,7 +116,8 @@
     "rate": "< 30%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Bhandare et al., IJROBP 2010"
+    "citation": "Bhandare et al., IJROBP 2010",
+    "pmid": 20171518
   },
   {
     "organ": "Retina",
@@ -118,7 +128,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Emami et al., IJROBP 1991; Parsons et al."
+    "citation": "Emami et al., IJROBP 1991; Parsons et al.",
+    "pmid": 2032882
   },
   {
     "organ": "Lens",
@@ -129,7 +140,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional",
     "source": "QUANTEC",
-    "citation": "Emami et al., IJROBP 1991"
+    "citation": "Emami et al., IJROBP 1991",
+    "pmid": 2032882
   },
   {
     "organ": "Parotid (bilateral)",
@@ -140,7 +152,8 @@
     "rate": "< 20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Deasy et al., IJROBP 2010"
+    "citation": "Deasy et al., IJROBP 2010",
+    "pmid": 20171519
   },
   {
     "organ": "Parotid (bilateral)",
@@ -151,7 +164,8 @@
     "rate": "< 20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Deasy et al., IJROBP 2010"
+    "citation": "Deasy et al., IJROBP 2010",
+    "pmid": 20171519
   },
   {
     "organ": "Larynx",
@@ -162,7 +176,8 @@
     "rate": "< 20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Rancati et al., IJROBP 2010"
+    "citation": "Rancati et al., IJROBP 2010",
+    "pmid": 20171520
   },
   {
     "organ": "Pharyngeal Constrictors",
@@ -173,7 +188,8 @@
     "rate": "< 20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Rancati et al., IJROBP 2010"
+    "citation": "Rancati et al., IJROBP 2010",
+    "pmid": 20171520
   },
   {
     "organ": "Lung (bilateral)",
@@ -184,7 +200,8 @@
     "rate": "< 20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Marks et al., IJROBP 2010"
+    "citation": "Marks et al., IJROBP 2010",
+    "pmid": 20171521
   },
   {
     "organ": "Lung (bilateral)",
@@ -195,7 +212,8 @@
     "rate": "< 20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Marks et al., IJROBP 2010"
+    "citation": "Marks et al., IJROBP 2010",
+    "pmid": 20171521
   },
   {
     "organ": "Lung (bilateral)",
@@ -206,7 +224,8 @@
     "rate": "< 20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Marks et al., IJROBP 2010"
+    "citation": "Marks et al., IJROBP 2010",
+    "pmid": 20171521
   },
   {
     "organ": "Heart",
@@ -217,7 +236,8 @@
     "rate": "< 15%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Gagliardi et al., IJROBP 2010"
+    "citation": "Gagliardi et al., IJROBP 2010",
+    "pmid": 20171522
   },
   {
     "organ": "Heart",
@@ -228,7 +248,8 @@
     "rate": "< 15%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Gagliardi et al., IJROBP 2010"
+    "citation": "Gagliardi et al., IJROBP 2010",
+    "pmid": 20171522
   },
   {
     "organ": "Esophagus",
@@ -239,7 +260,8 @@
     "rate": "5–20%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Werner-Wasik et al., IJROBP 2010"
+    "citation": "Werner-Wasik et al., IJROBP 2010",
+    "pmid": 20171523
   },
   {
     "organ": "Esophagus",
@@ -250,7 +272,8 @@
     "rate": "< 30%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Werner-Wasik et al., IJROBP 2010"
+    "citation": "Werner-Wasik et al., IJROBP 2010",
+    "pmid": 20171523
   },
   {
     "organ": "Liver",
@@ -261,7 +284,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Pan et al., IJROBP 2010"
+    "citation": "Pan et al., IJROBP 2010",
+    "pmid": 20171524
   },
   {
     "organ": "Liver",
@@ -272,7 +296,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Pan et al., IJROBP 2010"
+    "citation": "Pan et al., IJROBP 2010",
+    "pmid": 20171524
   },
   {
     "organ": "Liver",
@@ -283,7 +308,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional",
     "source": "QUANTEC",
-    "citation": "Pan et al., IJROBP 2010"
+    "citation": "Pan et al., IJROBP 2010",
+    "pmid": 20171524
   },
   {
     "organ": "Kidney (bilateral)",
@@ -294,7 +320,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Dawson et al., IJROBP 2010"
+    "citation": "Dawson et al., IJROBP 2010",
+    "pmid": 20171504
   },
   {
     "organ": "Kidney (bilateral)",
@@ -305,7 +332,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Dawson et al., IJROBP 2010"
+    "citation": "Dawson et al., IJROBP 2010",
+    "pmid": 20171504
   },
   {
     "organ": "Kidney (bilateral)",
@@ -316,7 +344,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Dawson et al., IJROBP 2010"
+    "citation": "Dawson et al., IJROBP 2010",
+    "pmid": 20171504
   },
   {
     "organ": "Small Bowel",
@@ -327,7 +356,8 @@
     "rate": "< 10%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Kavanagh et al., IJROBP 2010"
+    "citation": "Kavanagh et al., IJROBP 2010",
+    "pmid": 20171503
   },
   {
     "organ": "Small Bowel",
@@ -338,7 +368,8 @@
     "rate": "< 10%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Kavanagh et al., IJROBP 2010"
+    "citation": "Kavanagh et al., IJROBP 2010",
+    "pmid": 20171503
   },
   {
     "organ": "Rectum",
@@ -349,7 +380,8 @@
     "rate": "< 15%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Michalski et al., IJROBP 2010"
+    "citation": "Michalski et al., IJROBP 2010",
+    "pmid": 20171506
   },
   {
     "organ": "Rectum",
@@ -360,7 +392,8 @@
     "rate": "< 15%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Michalski et al., IJROBP 2010"
+    "citation": "Michalski et al., IJROBP 2010",
+    "pmid": 20171506
   },
   {
     "organ": "Rectum",
@@ -371,7 +404,8 @@
     "rate": "< 15%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Michalski et al., IJROBP 2010"
+    "citation": "Michalski et al., IJROBP 2010",
+    "pmid": 20171506
   },
   {
     "organ": "Rectum",
@@ -382,7 +416,8 @@
     "rate": "< 15%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Michalski et al., IJROBP 2010"
+    "citation": "Michalski et al., IJROBP 2010",
+    "pmid": 20171506
   },
   {
     "organ": "Rectum",
@@ -393,7 +428,8 @@
     "rate": "< 15%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Michalski et al., IJROBP 2010"
+    "citation": "Michalski et al., IJROBP 2010",
+    "pmid": 20171506
   },
   {
     "organ": "Bladder",
@@ -404,7 +440,8 @@
     "rate": "< 6%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Viswanathan et al., IJROBP 2010"
+    "citation": "Viswanathan et al., IJROBP 2010",
+    "pmid": 20171505
   },
   {
     "organ": "Bladder",
@@ -415,7 +452,8 @@
     "rate": "< 6%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Viswanathan et al., IJROBP 2010"
+    "citation": "Viswanathan et al., IJROBP 2010",
+    "pmid": 20171505
   },
   {
     "organ": "Femoral Heads",
@@ -426,7 +464,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Emami et al., IJROBP 1991"
+    "citation": "Emami et al., IJROBP 1991",
+    "pmid": 2032882
   },
   {
     "organ": "Brachial Plexus",
@@ -437,7 +476,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Emami et al., IJROBP 1991"
+    "citation": "Emami et al., IJROBP 1991",
+    "pmid": 2032882
   },
   {
     "organ": "Brachial Plexus",
@@ -448,7 +488,8 @@
     "rate": "< 5%",
     "fractionation": "SBRT (1 fx)",
     "source": "HyTEC",
-    "citation": "Forquer et al., IJROBP 2009"
+    "citation": "Forquer et al., IJROBP 2009",
+    "pmid": 19454366
   },
   {
     "organ": "Penile Bulb",
@@ -459,7 +500,8 @@
     "rate": "< 35%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Roach et al., IJROBP 2010"
+    "citation": "Roach et al., IJROBP 2010",
+    "pmid": 20171507
   },
   {
     "organ": "Penile Bulb",
@@ -470,7 +512,8 @@
     "rate": "< 35%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Roach et al., IJROBP 2010"
+    "citation": "Roach et al., IJROBP 2010",
+    "pmid": 20171507
   },
   {
     "organ": "Stomach",
@@ -481,7 +524,8 @@
     "rate": "< 7%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Kavanagh et al., IJROBP 2010"
+    "citation": "Kavanagh et al., IJROBP 2010",
+    "pmid": 20171503
   },
   {
     "organ": "Duodenum",
@@ -492,7 +536,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Kavanagh et al., IJROBP 2010"
+    "citation": "Kavanagh et al., IJROBP 2010",
+    "pmid": 20171503
   },
   {
     "organ": "Chest Wall / Ribs",
@@ -503,7 +548,8 @@
     "rate": "< 5%",
     "fractionation": "SBRT (5 fx)",
     "source": "HyTEC",
-    "citation": "Dunlap et al., IJROBP 2010"
+    "citation": "Dunlap et al., IJROBP 2010",
+    "pmid": 19427740
   },
   {
     "organ": "Chest Wall / Ribs",
@@ -514,7 +560,8 @@
     "rate": "< 10%",
     "fractionation": "SBRT (5 fx)",
     "source": "HyTEC",
-    "citation": "Dunlap et al., IJROBP 2010"
+    "citation": "Dunlap et al., IJROBP 2010",
+    "pmid": 19427740
   },
   {
     "organ": "Great Vessels / Aorta",
@@ -525,7 +572,8 @@
     "rate": "< 1%",
     "fractionation": "Various",
     "source": "QUANTEC",
-    "citation": "Emami et al., IJROBP 1991"
+    "citation": "Emami et al., IJROBP 1991",
+    "pmid": 2032882
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -536,7 +584,8 @@
     "rate": "< 5%",
     "fractionation": "Conventional (1.8–2 Gy/fx)",
     "source": "QUANTEC",
-    "citation": "Emami et al., IJROBP 1991"
+    "citation": "Emami et al., IJROBP 1991",
+    "pmid": 2032882
   },
   {
     "organ": "Proximal Bronchial Tree",
@@ -547,7 +596,8 @@
     "rate": "< 5%",
     "fractionation": "SBRT (1 fx)",
     "source": "HyTEC",
-    "citation": "Lindberg et al., IJROBP 2021"
+    "citation": "Lindberg et al., IJROBP 2021",
+    "pmid": 33823286
   },
   {
     "organ": "Proximal Bronchial Tree",
@@ -558,6 +608,643 @@
     "rate": "< 5%",
     "fractionation": "SBRT (3 fx)",
     "source": "HyTEC",
-    "citation": "Lindberg et al., IJROBP 2021"
+    "citation": "Lindberg et al., IJROBP 2021",
+    "pmid": 33823286
+  },
+  {
+    "organ": "Duodenum",
+    "endpoint": "Ulceration / perforation",
+    "constraint": "V33 < 0.5 cc",
+    "dose": 33,
+    "metric": "V33",
+    "rate": "",
+    "fractionation": "SBRT (50 Gy / 5 fx)",
+    "source": "NRG-GI011",
+    "citation": "NRG-GI011 Protocol (LAP100)",
+    "pmid": 39510320
+  },
+  {
+    "organ": "Duodenum",
+    "endpoint": "Ulceration / perforation",
+    "constraint": "V30 < 3 cc",
+    "dose": 30,
+    "metric": "V30",
+    "rate": "",
+    "fractionation": "SBRT (50 Gy / 5 fx)",
+    "source": "NRG-GI011",
+    "citation": "NRG-GI011 Protocol (LAP100)",
+    "pmid": 39510320
+  },
+  {
+    "organ": "Duodenum",
+    "endpoint": "Ulceration / perforation",
+    "constraint": "V20 < 30 cc",
+    "dose": 20,
+    "metric": "V20",
+    "rate": "",
+    "fractionation": "SBRT (50 Gy / 5 fx)",
+    "source": "NRG-GI011",
+    "citation": "NRG-GI011 Protocol (LAP100)",
+    "pmid": 39510320
+  },
+  {
+    "organ": "Small Bowel",
+    "endpoint": "Grade ≥ 3 late toxicity",
+    "constraint": "V30 < 1 cc",
+    "dose": 30,
+    "metric": "V30",
+    "rate": "",
+    "fractionation": "SBRT (50 Gy / 5 fx)",
+    "source": "NRG-GI011",
+    "citation": "NRG-GI011 Protocol (LAP100)",
+    "pmid": 39510320
+  },
+  {
+    "organ": "Small Bowel",
+    "endpoint": "Grade ≥ 3 late toxicity",
+    "constraint": "V20 < 15 cc",
+    "dose": 20,
+    "metric": "V20",
+    "rate": "",
+    "fractionation": "SBRT (50 Gy / 5 fx)",
+    "source": "NRG-GI011",
+    "citation": "NRG-GI011 Protocol (LAP100)",
+    "pmid": 39510320
+  },
+  {
+    "organ": "Stomach",
+    "endpoint": "Ulceration",
+    "constraint": "V30 < 2 cc",
+    "dose": 30,
+    "metric": "V30",
+    "rate": "",
+    "fractionation": "SBRT (50 Gy / 5 fx)",
+    "source": "NRG-GI011",
+    "citation": "NRG-GI011 Protocol (LAP100)",
+    "pmid": 39510320
+  },
+  {
+    "organ": "Stomach",
+    "endpoint": "Ulceration",
+    "constraint": "V20 < 20 cc",
+    "dose": 20,
+    "metric": "V20",
+    "rate": "",
+    "fractionation": "SBRT (50 Gy / 5 fx)",
+    "source": "NRG-GI011",
+    "citation": "NRG-GI011 Protocol (LAP100)",
+    "pmid": 39510320
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D0.03cc ≤ 38.06 Gy",
+    "dose": 38.06,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D3cc ≤ 34.4 Gy",
+    "dose": 34.4,
+    "metric": "D3cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D10% ≤ 32.63 Gy",
+    "dose": 32.63,
+    "metric": "D10%",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D20% ≤ 29 Gy",
+    "dose": 29,
+    "metric": "D20%",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D50% ≤ 18.13 Gy",
+    "dose": 18.13,
+    "metric": "D50%",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Bladder",
+    "endpoint": "Late bladder toxicity",
+    "constraint": "D0.03cc ≤ 38.06 Gy",
+    "dose": 38.06,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Bladder",
+    "endpoint": "Late bladder toxicity",
+    "constraint": "D10% ≤ 18.12 Gy",
+    "dose": 18.12,
+    "metric": "D10%",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Prostatic Urethra",
+    "endpoint": "Urethral stricture",
+    "constraint": "D0.03cc ≤ 38.78 Gy",
+    "dose": 38.78,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Penile Bulb",
+    "endpoint": "Erectile dysfunction",
+    "constraint": "D0.03cc ≤ 36.25 Gy",
+    "dose": 36.25,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Penile Bulb",
+    "endpoint": "Erectile dysfunction",
+    "constraint": "D3cc ≤ 19.9 Gy",
+    "dose": 19.9,
+    "metric": "D3cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Femoral Heads",
+    "endpoint": "Necrosis",
+    "constraint": "V14.5 ≤ 5%",
+    "dose": 14.5,
+    "metric": "V14.5",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-005",
+    "citation": "NRG GU-005 Protocol"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D0.03cc ≤ 38.06 Gy",
+    "dose": 38.06,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25–40 Gy / 5 fx)",
+    "source": "NRG GU-009",
+    "citation": "NRG GU-009 Protocol (PREDICT-RT)"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "V75 < 15%",
+    "dose": 75,
+    "metric": "V75",
+    "rate": "< 15%",
+    "fractionation": "Conventional (78 Gy / 39 fx)",
+    "source": "NRG GU-009",
+    "citation": "NRG GU-009 Protocol (PREDICT-RT)"
+  },
+  {
+    "organ": "Bladder",
+    "endpoint": "Late bladder toxicity",
+    "constraint": "V80 < 15%",
+    "dose": 80,
+    "metric": "V80",
+    "rate": "",
+    "fractionation": "Conventional (78 Gy / 39 fx)",
+    "source": "NRG GU-009",
+    "citation": "NRG GU-009 Protocol (PREDICT-RT)"
+  },
+  {
+    "organ": "Femoral Heads",
+    "endpoint": "Necrosis",
+    "constraint": "V50 < 5%",
+    "dose": 50,
+    "metric": "V50",
+    "rate": "",
+    "fractionation": "Conventional (78 Gy / 39 fx)",
+    "source": "NRG GU-009",
+    "citation": "NRG GU-009 Protocol (PREDICT-RT)"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D0.03cc ≤ 38.06 Gy",
+    "dose": 38.06,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-010",
+    "citation": "NRG GU-010 Protocol"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D3cc ≤ 34.4 Gy",
+    "dose": 34.4,
+    "metric": "D3cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-010",
+    "citation": "NRG GU-010 Protocol"
+  },
+  {
+    "organ": "Bladder",
+    "endpoint": "Late bladder toxicity",
+    "constraint": "D0.03cc ≤ 38.06 Gy",
+    "dose": 38.06,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-010",
+    "citation": "NRG GU-010 Protocol"
+  },
+  {
+    "organ": "Penile Bulb",
+    "endpoint": "Erectile dysfunction",
+    "constraint": "D0.03cc ≤ 36.25 Gy",
+    "dose": 36.25,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-010",
+    "citation": "NRG GU-010 Protocol"
+  },
+  {
+    "organ": "Femoral Heads",
+    "endpoint": "Necrosis",
+    "constraint": "V14.5 ≤ 5%",
+    "dose": 14.5,
+    "metric": "V14.5",
+    "rate": "",
+    "fractionation": "SBRT (36.25 Gy / 5 fx)",
+    "source": "NRG GU-010",
+    "citation": "NRG GU-010 Protocol"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D0.03cc ≤ 38.06 Gy",
+    "dose": 38.06,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25–40 Gy / 5 fx)",
+    "source": "NRG GU-013",
+    "citation": "NRG GU-013 Protocol (HIGH FIVE)"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D3cc ≤ 34.4 Gy",
+    "dose": 34.4,
+    "metric": "D3cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25–40 Gy / 5 fx)",
+    "source": "NRG GU-013",
+    "citation": "NRG GU-013 Protocol (HIGH FIVE)"
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D50% ≤ 18.13 Gy",
+    "dose": 18.13,
+    "metric": "D50%",
+    "rate": "",
+    "fractionation": "SBRT (36.25–40 Gy / 5 fx)",
+    "source": "NRG GU-013",
+    "citation": "NRG GU-013 Protocol (HIGH FIVE)"
+  },
+  {
+    "organ": "Bladder",
+    "endpoint": "Late bladder toxicity",
+    "constraint": "D0.03cc ≤ 38.06 Gy",
+    "dose": 38.06,
+    "metric": "D0.03cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25–40 Gy / 5 fx)",
+    "source": "NRG GU-013",
+    "citation": "NRG GU-013 Protocol (HIGH FIVE)"
+  },
+  {
+    "organ": "Penile Bulb",
+    "endpoint": "Erectile dysfunction",
+    "constraint": "D3cc ≤ 19.9 Gy",
+    "dose": 19.9,
+    "metric": "D3cc",
+    "rate": "",
+    "fractionation": "SBRT (36.25–40 Gy / 5 fx)",
+    "source": "NRG GU-013",
+    "citation": "NRG GU-013 Protocol (HIGH FIVE)"
+  },
+  {
+    "organ": "Heart",
+    "endpoint": "Cardiac toxicity",
+    "constraint": "Dmean < 4 Gy",
+    "dose": 4,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "Conventional (40–50 Gy / 15–25 fx)",
+    "source": "TAILOR-RT",
+    "citation": "CCTG MA.39 (TAILOR-RT) Protocol"
+  },
+  {
+    "organ": "Heart",
+    "endpoint": "Cardiac toxicity",
+    "constraint": "V25 < 5%",
+    "dose": 25,
+    "metric": "V25",
+    "rate": "",
+    "fractionation": "Conventional (40–50 Gy / 15–25 fx)",
+    "source": "TAILOR-RT",
+    "citation": "CCTG MA.39 (TAILOR-RT) Protocol"
+  },
+  {
+    "organ": "Lung (ipsilateral)",
+    "endpoint": "Pneumonitis",
+    "constraint": "V20 < 35%",
+    "dose": 20,
+    "metric": "V20",
+    "rate": "",
+    "fractionation": "Conventional (40–50 Gy / 15–25 fx)",
+    "source": "TAILOR-RT",
+    "citation": "CCTG MA.39 (TAILOR-RT) Protocol"
+  },
+  {
+    "organ": "Lung (bilateral)",
+    "endpoint": "Symptomatic pneumonitis",
+    "constraint": "V20 < 35%",
+    "dose": 20,
+    "metric": "V20",
+    "rate": "",
+    "fractionation": "SBRT + chemoRT (50–54 Gy / 3–5 fx + 60 Gy / 30 fx)",
+    "source": "NRG LU-008",
+    "citation": "Higgins et al., Pract Radiat Oncol 2023",
+    "pmid": 37406774
+  },
+  {
+    "organ": "Lung (bilateral)",
+    "endpoint": "Symptomatic pneumonitis",
+    "constraint": "V5 < 70%",
+    "dose": 5,
+    "metric": "V5",
+    "rate": "",
+    "fractionation": "SBRT + chemoRT (50–54 Gy / 3–5 fx + 60 Gy / 30 fx)",
+    "source": "NRG LU-008",
+    "citation": "Higgins et al., Pract Radiat Oncol 2023",
+    "pmid": 37406774
+  },
+  {
+    "organ": "Lung (bilateral)",
+    "endpoint": "Symptomatic pneumonitis",
+    "constraint": "V10 < 50%",
+    "dose": 10,
+    "metric": "V10",
+    "rate": "",
+    "fractionation": "SBRT + chemoRT (50–54 Gy / 3–5 fx + 60 Gy / 30 fx)",
+    "source": "NRG LU-008",
+    "citation": "Higgins et al., Pract Radiat Oncol 2023",
+    "pmid": 37406774
+  },
+  {
+    "organ": "Esophagus",
+    "endpoint": "Grade ≥ 3 esophagitis",
+    "constraint": "Dmean < 20 Gy",
+    "dose": 20,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "SBRT + chemoRT (50–54 Gy / 3–5 fx + 60 Gy / 30 fx)",
+    "source": "NRG LU-008",
+    "citation": "Higgins et al., Pract Radiat Oncol 2023",
+    "pmid": 37406774
+  },
+  {
+    "organ": "Esophagus",
+    "endpoint": "Grade ≥ 3 esophagitis",
+    "constraint": "V60 < 7%",
+    "dose": 60,
+    "metric": "V60",
+    "rate": "",
+    "fractionation": "SBRT + chemoRT (50–54 Gy / 3–5 fx + 60 Gy / 30 fx)",
+    "source": "NRG LU-008",
+    "citation": "Higgins et al., Pract Radiat Oncol 2023",
+    "pmid": 37406774
+  },
+  {
+    "organ": "Spinal Cord",
+    "endpoint": "Myelopathy",
+    "constraint": "Dmax ≤ 45 Gy",
+    "dose": 45,
+    "metric": "Dmax",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Brainstem",
+    "endpoint": "Cranial neuropathy / necrosis",
+    "constraint": "Dmax ≤ 54 Gy",
+    "dose": 54,
+    "metric": "Dmax",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Parotid (bilateral)",
+    "endpoint": "Xerostomia",
+    "constraint": "Dmean ≤ 26 Gy (at least one)",
+    "dose": 26,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Mandible",
+    "endpoint": "Osteoradionecrosis",
+    "constraint": "Dmax ≤ 70 Gy",
+    "dose": 70,
+    "metric": "Dmax",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Pharyngeal Constrictors",
+    "endpoint": "Dysphagia / aspiration",
+    "constraint": "Dmean ≤ 50 Gy",
+    "dose": 50,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Oral Cavity",
+    "endpoint": "Mucositis",
+    "constraint": "Dmean ALARA",
+    "dose": 0,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Larynx (uninvolved)",
+    "endpoint": "Laryngeal edema",
+    "constraint": "Dmean ≤ 40 Gy",
+    "dose": 40,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Submandibular Glands",
+    "endpoint": "Xerostomia",
+    "constraint": "Dmean ≤ 39 Gy",
+    "dose": 39,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "Conventional (70 Gy / 35 fx)",
+    "source": "NRG HN-009",
+    "citation": "NRG HN-009 Protocol"
+  },
+  {
+    "organ": "Heart",
+    "endpoint": "Cardiac toxicity",
+    "constraint": "Dmean < 4 Gy (left-sided)",
+    "dose": 4,
+    "metric": "Dmean",
+    "rate": "",
+    "fractionation": "Conventional (40–50 Gy / 15–25 fx)",
+    "source": "NRG BR-008",
+    "citation": "Braunstein et al., Future Oncol 2025",
+    "pmid": 40574381
+  },
+  {
+    "organ": "Lung (ipsilateral)",
+    "endpoint": "Pneumonitis",
+    "constraint": "V20 < 35%",
+    "dose": 20,
+    "metric": "V20",
+    "rate": "",
+    "fractionation": "Conventional (40–50 Gy / 15–25 fx)",
+    "source": "NRG BR-008",
+    "citation": "Braunstein et al., Future Oncol 2025",
+    "pmid": 40574381
+  },
+  {
+    "organ": "Contralateral Breast",
+    "endpoint": "Secondary malignancy",
+    "constraint": "Dmax < 3% of Rx",
+    "dose": 0,
+    "metric": "Dmax",
+    "rate": "",
+    "fractionation": "Conventional (40–50 Gy / 15–25 fx)",
+    "source": "NRG BR-008",
+    "citation": "Braunstein et al., Future Oncol 2025",
+    "pmid": 40574381
+  },
+  {
+    "organ": "Bladder",
+    "endpoint": "Late bladder toxicity",
+    "constraint": "D2cc < 80 Gy EQD2 (aim) / < 90 Gy EQD2 (limit)",
+    "dose": 80,
+    "metric": "D2cc EQD2",
+    "rate": "",
+    "fractionation": "EBRT 45 Gy / 25 fx + MRI-guided BT",
+    "source": "EMBRACE-II",
+    "citation": "Pötter et al., Clin Transl Radiat Oncol 2018",
+    "pmid": 29594251
+  },
+  {
+    "organ": "Rectum",
+    "endpoint": "Late rectal toxicity",
+    "constraint": "D2cc < 65 Gy EQD2 (aim) / < 75 Gy EQD2 (limit)",
+    "dose": 65,
+    "metric": "D2cc EQD2",
+    "rate": "",
+    "fractionation": "EBRT 45 Gy / 25 fx + MRI-guided BT",
+    "source": "EMBRACE-II",
+    "citation": "Pötter et al., Clin Transl Radiat Oncol 2018",
+    "pmid": 29594251
+  },
+  {
+    "organ": "Recto-vaginal Point",
+    "endpoint": "Recto-vaginal fistula",
+    "constraint": "D2cc < 65 Gy EQD2 (aim) / < 75 Gy EQD2 (limit)",
+    "dose": 65,
+    "metric": "D2cc EQD2",
+    "rate": "",
+    "fractionation": "EBRT 45 Gy / 25 fx + MRI-guided BT",
+    "source": "EMBRACE-II",
+    "citation": "Pötter et al., Clin Transl Radiat Oncol 2018",
+    "pmid": 29594251
+  },
+  {
+    "organ": "Sigmoid",
+    "endpoint": "Late sigmoid toxicity",
+    "constraint": "D2cc < 70 Gy EQD2 (aim) / < 75 Gy EQD2 (limit)",
+    "dose": 70,
+    "metric": "D2cc EQD2",
+    "rate": "",
+    "fractionation": "EBRT 45 Gy / 25 fx + MRI-guided BT",
+    "source": "EMBRACE-II",
+    "citation": "Pötter et al., Clin Transl Radiat Oncol 2018",
+    "pmid": 29594251
+  },
+  {
+    "organ": "Bowel",
+    "endpoint": "Late bowel toxicity",
+    "constraint": "D2cc < 70 Gy EQD2 (aim) / < 75 Gy EQD2 (limit)",
+    "dose": 70,
+    "metric": "D2cc EQD2",
+    "rate": "",
+    "fractionation": "EBRT 45 Gy / 25 fx + MRI-guided BT",
+    "source": "EMBRACE-II",
+    "citation": "Pötter et al., Clin Transl Radiat Oncol 2018",
+    "pmid": 29594251
   }
 ]
