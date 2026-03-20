@@ -491,9 +491,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
     top: 54px;
     left: 0;
     right: 0;
-    background: var(--bg-nav);
-    backdrop-filter: blur(16px) saturate(1.6);
-    -webkit-backdrop-filter: blur(16px) saturate(1.6);
+    background: var(--bg-root);
     flex-direction: column;
     border-bottom: 1px solid var(--border-subtle);
     padding: 8px 0;
