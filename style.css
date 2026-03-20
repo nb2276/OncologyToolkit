@@ -1174,8 +1174,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  min-width: 420px;
-  table-layout: fixed;
+  min-width: 480px;
 }
 
 .bed-table th {
