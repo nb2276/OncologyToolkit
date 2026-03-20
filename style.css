@@ -1081,8 +1081,8 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 .bed-card {
   background-color: var(--bg-card);
   border-radius: var(--radius-md);
-  padding: 22px 26px;
-  margin-bottom: 20px;
+  padding: 18px 26px;
+  margin-bottom: 16px;
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
   transition: border-color var(--transition-med), box-shadow var(--transition-med);
@@ -1098,8 +1098,8 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin: 0 0 18px;
-  padding-bottom: 12px;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border-subtle);
   font-family: var(--font-display);
 }
@@ -1108,7 +1108,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   align-items: flex-end;
 }
 
@@ -1168,7 +1168,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 }
 
 .bed-table th {
-  padding: 8px 14px;
+  padding: 6px 14px;
   text-align: center;
   border-bottom: 1px solid var(--border-subtle);
   font-weight: 500;
@@ -1181,7 +1181,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 }
 
 .bed-table td {
-  padding: 10px 14px;
+  padding: 7px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   text-align: center;
 }
@@ -1991,7 +1991,9 @@ details[open].rert-oar-picker .rert-picker-chevron {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-left: auto;
+  padding-bottom: 9px;
+  align-self: flex-end;
 }
 
 .preset-row label {
