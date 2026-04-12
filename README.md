@@ -84,6 +84,12 @@ These tools are for educational purposes only and are not a substitute for profe
 
 ---
 
+## License
+
+Released under the [MIT License](LICENSE). Free to use, modify, fork, and embed in other projects (including commercial ones) with attribution.
+
+---
+
 ## Author
 
 Created by **Nick Boehling, MD** — Radiation Oncologist, Bend, OR
