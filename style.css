@@ -1181,6 +1181,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   text-align: center;
   border-bottom: 1px solid var(--border-subtle);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .bed-table th:first-child,
@@ -1242,7 +1243,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   border-radius: 4px;
   padding: 3px 4px;
   font-size: 12px;
-  width: 38px;
+  width: 58px;
   text-align: center;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
