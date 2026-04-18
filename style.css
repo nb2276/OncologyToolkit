@@ -2032,6 +2032,46 @@ details[open].rert-oar-picker .rert-picker-chevron {
 }
 
 /* -----------------------------------------------------------------------
+   Decimal-places selector (BED / Composite / ReRT)
+----------------------------------------------------------------------- */
+.calc-settings {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 4px 0 8px;
+}
+
+.decimals-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.decimals-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.decimals-select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 13px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.decimals-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* -----------------------------------------------------------------------
    Dose Constraint Reference page
 ----------------------------------------------------------------------- */
 .constraint-search-row {
@@ -2177,6 +2217,7 @@ details[open].rert-oar-picker .rert-picker-chevron {
   .preset-row,
   .psa-action-btn,
   .rert-btn-bar,
+  .calc-settings,
   .site-disclaimer {
     display: none !important;
   }

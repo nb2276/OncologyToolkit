@@ -561,5 +561,8 @@ RERT_INPUT_IDS.forEach(function (id) {
 initUrlParams(RERT_INPUT_IDS, null);
 setupCopyLinkButton('copy-link-btn', RERT_INPUT_IDS);
 
+// Re-render when the global decimal-places preference changes
+document.addEventListener('decimalschange', updateAll);
+
 toggleEmptyRow();
 updateAll();

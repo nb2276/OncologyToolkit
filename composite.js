@@ -154,5 +154,8 @@ COMP_INPUT_IDS.forEach(function (id) {
 initUrlParams(COMP_INPUT_IDS, update);
 setupCopyLinkButton('copy-link-btn', COMP_INPUT_IDS);
 
+// Re-render when the global decimal-places preference changes
+document.addEventListener('decimalschange', update);
+
 // Initial render
 update();

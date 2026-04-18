@@ -50,7 +50,7 @@ function update() {
   // Dose per fraction display
   var dpfEl = document.getElementById('dpf-val');
   if (dpfEl) {
-    dpfEl.textContent = (D > 0 && n >= 1) ? (D / n).toFixed(2) : '—';
+    dpfEl.textContent = (D > 0 && n >= 1) ? fmt(D / n) : '—';
   }
 
   var valid = !isNaN(D) && !isNaN(n) && D > 0 && n >= 1 && ab.every(function (a) { return !isNaN(a) && a > 0; });
@@ -115,6 +115,9 @@ BED_INPUT_IDS.forEach(function (id) {
 // URL params + Copy Link
 initUrlParams(BED_INPUT_IDS, update);
 setupCopyLinkButton('copy-link-btn', BED_INPUT_IDS);
+
+// Re-render when the global decimal-places preference changes
+document.addEventListener('decimalschange', update);
 
 // Initial render
 update();

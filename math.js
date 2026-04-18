@@ -2,7 +2,10 @@
 
 function fmt(val, decimals) {
   if (val === null || val === undefined || isNaN(val) || !isFinite(val)) return '—';
-  return val.toFixed(decimals !== undefined ? decimals : 2);
+  var d = (decimals !== undefined)
+    ? decimals
+    : (typeof getDecimals === 'function' ? getDecimals() : 2);
+  return val.toFixed(d);
 }
 
 function calcBED(D, n, ab) {
