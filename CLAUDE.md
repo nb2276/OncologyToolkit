@@ -10,7 +10,15 @@ MIT — see [LICENSE](LICENSE). New source files don't need per-file headers.
 
 Vanilla ES5 JS, single CSS file, XML/JSON data loaded client-side. No npm, no bundler, no CI. Push to `main` → GitHub Pages auto-deploys.
 
-CDN deps: Chart.js 4.4.0 + chartjs-adapter-date-fns 3.0.0 (PSA page only). Google Fonts: DM Sans (body), Outfit (display).
+Vendored deps: `vendor/chart.umd.min.js` (Chart.js 4.4.0) + `vendor/chartjs-adapter-date-fns.bundle.min.js` (3.0.0), used by PSA page only. Localized so the PWA works offline. Google Fonts (DM Sans body, Outfit display) still load from `fonts.googleapis.com` — they're not precached.
+
+## PWA
+
+The site is an installable PWA. Files: `manifest.webmanifest`, `sw.js`, `pwa.js`, plus generated icons (`favicon-192.png`, `favicon-512.png`, `favicon-maskable-512.png`). Every HTML page links the manifest, sets `viewport-fit=cover`, and defers `pwa.js` for SW registration.
+
+**Deploy discipline:** if you change any precached file (HTML/CSS/JS/manifest/vendor), bump `CACHE_VERSION` in `sw.js` (top of file). Browsers detect SW updates by byte-diff on `sw.js` — same bytes means no update. Forgetting this ships new HTML against stale cached JS until the next bump.
+
+The service worker uses an atomic `REQUIRED_PRECACHE` (install fails on any 404) plus best-effort `OPTIONAL_PRECACHE`. ICD-10/IMRT XML use stale-while-revalidate against a versionless `DATA_CACHE` so the 9 MB file isn't re-downloaded each deploy. No `skipWaiting` / `clients.claim` — updates land on next full close-and-reopen, which avoids mid-session DOM/state desync in calculators.
 
 Analytics: Google Analytics `G-PP2FRCMYS1` + Cloudflare Web Analytics beacon `9025e64d4fb24f0db5c38419fc44f7a2`.
 
