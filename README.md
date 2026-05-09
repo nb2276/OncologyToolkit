@@ -50,6 +50,8 @@ Estimates remaining organ-at-risk dose tolerance for reirradiation using Univers
 
 ## Features
 
+- **Installable PWA** — install to your home screen or desktop; runs in standalone mode with iOS safe-area handling for the iPhone notch
+- **Works offline** — service worker precaches the app shell, so calculators (BED, Composite, ReRT, Constraints, PSA) work without network. ICD-10 search caches lazily on first online use.
 - **Dark / Light mode** — toggle in the nav bar, preference saved per visitor via localStorage
 - **Responsive design** — works on desktop and mobile with collapsible hamburger navigation
 - **No account required** — all calculations run client-side in the browser
@@ -59,9 +61,10 @@ Estimates remaining organ-at-risk dose tolerance for reirradiation using Univers
 ## Tech Stack
 
 - **Vanilla HTML / CSS / JavaScript** — no frameworks, no build step
-- **Chart.js 4.4.0** + **chartjs-adapter-date-fns 3.0.0** (PSA page only, loaded via CDN)
-- **Google Fonts** — DM Sans (body) + Outfit (headings)
+- **Chart.js 4.4.0** + **chartjs-adapter-date-fns 3.0.0** — vendored under `vendor/` so the PSA page works offline
+- **Google Fonts** — DM Sans (body) + Outfit (headings), loaded from `fonts.googleapis.com`
 - **ICD-10 data** stored locally as XML (`icd10.xml`, `imrt_codes.xml`) — all search is client-side
+- **Service worker** (`sw.js`) + web app manifest (`manifest.webmanifest`) for PWA install and offline support
 - Hosted on **GitHub Pages** (static, no server)
 
 ---
