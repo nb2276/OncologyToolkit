@@ -1,0 +1,65 @@
+{
+  "name": "Oncology Toolkit",
+  "short_name": "Onc Toolkit",
+  "description": "Clinical calculators and references for radiation oncology: ICD-10 search, BED/EQD2, PSA doubling time, composite dose, reirradiation, and dose constraints.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a2a3a",
+  "theme_color": "#1a2a3a",
+  "categories": ["medical", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ICD-10 Search",
+      "url": "/index.html",
+      "icons": [{ "src": "favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "BED / EQD2",
+      "url": "/bed.html",
+      "icons": [{ "src": "favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "PSA Doubling Time",
+      "url": "/psa.html",
+      "icons": [{ "src": "favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Reirradiation",
+      "url": "/rert.html",
+      "icons": [{ "src": "favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dose Constraints",
+      "url": "/constraints.html",
+      "icons": [{ "src": "favicon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
