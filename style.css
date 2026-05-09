@@ -358,8 +358,10 @@ nav {
   -webkit-backdrop-filter: blur(16px) saturate(1.6);
   display: flex;
   align-items: center;
-  padding: 0 24px;
-  height: 54px;
+  padding-left: max(24px, env(safe-area-inset-left));
+  padding-right: max(24px, env(safe-area-inset-right));
+  padding-top: env(safe-area-inset-top);
+  height: calc(54px + env(safe-area-inset-top));
   border-bottom: 1px solid var(--border-subtle);
   position: sticky;
   top: 0;
@@ -1895,7 +1897,7 @@ details[open].rert-oar-picker .rert-picker-chevron {
 /* Site-wide disclaimer footer */
 .site-disclaimer {
   margin-top: 40px;
-  padding: 20px 24px;
+  padding: 20px max(24px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
   border-top: 1px solid var(--border-subtle);
   text-align: center;
   font-size: 12px;
