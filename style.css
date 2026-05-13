@@ -2171,6 +2171,12 @@ details[open].rert-oar-picker .rert-picker-chevron {
   border: 1px solid rgba(129, 199, 132, 0.2);
 }
 
+.constraint-source-astro-dvh {
+  color: #ffd54f;
+  background: rgba(255, 213, 79, 0.1);
+  border: 1px solid rgba(255, 213, 79, 0.25);
+}
+
 .constraint-source-nrg-gi011,
 .constraint-source-nrg-gu-005,
 .constraint-source-nrg-gu-009,

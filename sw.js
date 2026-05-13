@@ -4,7 +4,7 @@
 // The browser detects a new SW only if sw.js bytes differ. If you ship
 // new HTML/CSS/JS without bumping, users may serve new HTML against
 // stale precached JS until the next bump.
-var CACHE_VERSION = 'v2-2026-05-08';
+var CACHE_VERSION = 'v3-2026-05-12';
 var STATIC_CACHE = 'ot-static-' + CACHE_VERSION;
 // DATA_CACHE survives version bumps so the 9 MB ICD-10 XML doesn't
 // re-download on every deploy.
