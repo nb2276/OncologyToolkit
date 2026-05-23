@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# gstack local artifacts (browse logs, QA + design reports) — not site files
+.gstack/
+
+# local reference material (journal PDFs etc.) — not served by the site
+data/
