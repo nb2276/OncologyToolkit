@@ -97,7 +97,9 @@ var sandbox = {
   document: {
     getElementById: function() { return makeDomElement(); },
     createElement: function() { return makeDomElement(); },
+    querySelector: function() { return makeDomElement(); },
     querySelectorAll: function() { return []; },
+    addEventListener: function() {},
     body: { appendChild: function() {} }
   },
   window: {

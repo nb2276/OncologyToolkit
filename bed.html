@@ -90,23 +90,23 @@
         </div>
 
         <div class="bed-table-wrap">
-          <table class="bed-table">
-            <thead>
-              <tr>
-                <th></th>
-                <th>
+          <table class="bed-table bed-table--transpose bed-table--rx" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader"></th>
+                <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Tumor</span>
                     <div class="ab-edit-row">α/β =&nbsp;<input class="ab-input" id="ab1" type="number" value="10" min="0.1" step="0.1">&nbsp;Gy</div>
                   </div>
                 </th>
-                <th>
+                <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Late</span>
                     <div class="ab-edit-row">α/β =&nbsp;<input class="ab-input" id="ab2" type="number" value="3" min="0.1" step="0.1">&nbsp;Gy</div>
                   </div>
                 </th>
-                <th>
+                <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Prostate / Spine</span>
                     <div class="ab-edit-row">α/β =&nbsp;<input class="ab-input" id="ab3" type="number" value="2" min="0.1" step="0.1">&nbsp;Gy</div>
@@ -114,18 +114,18 @@
                 </th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td class="bed-row-label">BED (Gy)</td>
-                <td class="bed-result-cell" id="bed1">—</td>
-                <td class="bed-result-cell" id="bed2">—</td>
-                <td class="bed-result-cell" id="bed3">—</td>
+            <tbody role="rowgroup">
+              <tr role="row">
+                <td class="bed-row-label" role="rowheader" scope="row">BED (Gy)</td>
+                <td class="bed-result-cell" role="cell" id="bed1">—</td>
+                <td class="bed-result-cell" role="cell" id="bed2">—</td>
+                <td class="bed-result-cell" role="cell" id="bed3">—</td>
               </tr>
-              <tr>
-                <td class="bed-row-label">EQD2 (Gy)</td>
-                <td class="bed-result-cell" id="eqd1">—</td>
-                <td class="bed-result-cell" id="eqd2">—</td>
-                <td class="bed-result-cell" id="eqd3">—</td>
+              <tr role="row">
+                <td class="bed-row-label" role="rowheader" scope="row">EQD2 (Gy)</td>
+                <td class="bed-result-cell" role="cell" id="eqd1">—</td>
+                <td class="bed-result-cell" role="cell" id="eqd2">—</td>
+                <td class="bed-result-cell" role="cell" id="eqd3">—</td>
               </tr>
             </tbody>
           </table>
@@ -137,23 +137,23 @@
         <div class="bed-card-header">Alternative Fractionation</div>
         <p class="bed-section-hint">Isoeffective total dose (Gy) if the same BED were delivered in a different number of fractions.</p>
         <div class="bed-table-wrap">
-          <table class="bed-table">
-            <thead>
-              <tr>
-                <th>Fractions</th>
-                <th>
+          <table class="bed-table bed-table--transpose bed-table--alt" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader">Fractions</th>
+                <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Tumor</span>
                     <div class="ab-edit-row">α/β = <span id="ab1-disp">10</span> Gy</div>
                   </div>
                 </th>
-                <th>
+                <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Late</span>
                     <div class="ab-edit-row">α/β = <span id="ab2-disp">3</span> Gy</div>
                   </div>
                 </th>
-                <th>
+                <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Prostate / Spine</span>
                     <div class="ab-edit-row">α/β = <span id="ab3-disp">2</span> Gy</div>
@@ -161,32 +161,32 @@
                 </th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td class="bed-row-label">1 fraction</td>
-                <td class="bed-result-cell" id="alt1-1">—</td>
-                <td class="bed-result-cell" id="alt1-2">—</td>
-                <td class="bed-result-cell" id="alt1-3">—</td>
+            <tbody role="rowgroup">
+              <tr role="row">
+                <td class="bed-row-label" role="rowheader" scope="row">1 fraction</td>
+                <td class="bed-result-cell" role="cell" id="alt1-1">—</td>
+                <td class="bed-result-cell" role="cell" id="alt1-2">—</td>
+                <td class="bed-result-cell" role="cell" id="alt1-3">—</td>
               </tr>
-              <tr>
-                <td class="bed-row-label">3 fractions</td>
-                <td class="bed-result-cell" id="alt3-1">—</td>
-                <td class="bed-result-cell" id="alt3-2">—</td>
-                <td class="bed-result-cell" id="alt3-3">—</td>
+              <tr role="row">
+                <td class="bed-row-label" role="rowheader" scope="row">3 fractions</td>
+                <td class="bed-result-cell" role="cell" id="alt3-1">—</td>
+                <td class="bed-result-cell" role="cell" id="alt3-2">—</td>
+                <td class="bed-result-cell" role="cell" id="alt3-3">—</td>
               </tr>
-              <tr>
-                <td class="bed-row-label">5 fractions</td>
-                <td class="bed-result-cell" id="alt5-1">—</td>
-                <td class="bed-result-cell" id="alt5-2">—</td>
-                <td class="bed-result-cell" id="alt5-3">—</td>
+              <tr role="row">
+                <td class="bed-row-label" role="rowheader" scope="row">5 fractions</td>
+                <td class="bed-result-cell" role="cell" id="alt5-1">—</td>
+                <td class="bed-result-cell" role="cell" id="alt5-2">—</td>
+                <td class="bed-result-cell" role="cell" id="alt5-3">—</td>
               </tr>
-              <tr>
-                <td style="white-space:nowrap;">
+              <tr role="row">
+                <td class="alt-fx-cell" role="rowheader" scope="row">
                   <input class="alt-fx-input" type="number" id="arb-fx" value="25" min="1" step="1"> fractions
                 </td>
-                <td class="bed-result-cell" id="altA-1">—</td>
-                <td class="bed-result-cell" id="altA-2">—</td>
-                <td class="bed-result-cell" id="altA-3">—</td>
+                <td class="bed-result-cell" role="cell" id="altA-1">—</td>
+                <td class="bed-result-cell" role="cell" id="altA-2">—</td>
+                <td class="bed-result-cell" role="cell" id="altA-3">—</td>
               </tr>
             </tbody>
           </table>
