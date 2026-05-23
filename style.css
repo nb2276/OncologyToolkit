@@ -199,7 +199,7 @@
   background: rgba(198, 40, 40, 0.06);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   [data-theme="light"] .nav-link.active {
     border-left-color: var(--accent);
     background: var(--accent-dim);
@@ -240,7 +240,7 @@
 [data-theme="light"] .theme-toggle .icon-sun { display: inline; }
 [data-theme="light"] .theme-toggle .icon-moon { display: none; }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .theme-toggle {
     margin-left: auto;
     margin-right: 8px;
@@ -472,7 +472,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .nav-brand {
     font-size: 0;
     gap: 0;
