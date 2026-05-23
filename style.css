@@ -1275,6 +1275,10 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
+.alt-fx-cell {
+  white-space: nowrap;
+}
+
 .bed-section-hint {
   font-size: 12.5px;
   color: var(--text-muted);
@@ -2216,6 +2220,200 @@ details[open].rert-oar-picker .rert-picker-chevron {
 /* -----------------------------------------------------------------------
    Print styles
 ----------------------------------------------------------------------- */
+/* -----------------------------------------------------------------------
+   Mobile responsive tables (<=700px)
+   Calculator result tables are unreadable when shrunk into a horizontal
+   scroll box. Each page's table gets an intentional mobile layout:
+     - bed:         transpose (metric-rows x tissue-cols -> tissue-rows x metric-cols)
+     - composite:   3 cols, just drop the min-width so it fits
+     - rert/constraints: wide data tables -> card-stack each row
+   All changes are scoped (modifier/page classes) so the shared .bed-table
+   class does not cross-contaminate. No JS changes.
+----------------------------------------------------------------------- */
+@media (max-width: 700px) {
+
+  /* --- Shared: reclaim width, stop iOS focus-zoom (>=16px), bigger taps --- */
+  .bed-container { padding-left: 12px; padding-right: 12px; }
+  .bed-card { padding-left: 14px; padding-right: 14px; }
+  .bed-num-input,
+  .ab-input,
+  .alt-fx-input,
+  .preset-select,
+  .rert-dose-input,
+  #searchTerm,
+  #constraintSearch,
+  .constraint-source-select { font-size: 16px; }
+  .bed-num-input { min-height: 44px; }
+  .ab-input,
+  .alt-fx-input { min-height: 40px; padding-top: 8px; padding-bottom: 8px; }
+
+  /* =====================================================================
+     BED page transpose. DOM order is preserved, so screen-reader reading
+     (and the role=* attrs in bed.html) keep the logical table intact;
+     grid-area only moves visual position.
+
+       DESKTOP                          MOBILE (transposed)
+       --    Tum  Late Pros             Tissue    BED   EQD2
+       BED   b1   b2   b3      ===>      Tumor     b1    e1
+       EQD2  e1   e2   e3                Late      b2    e2
+                                         Prostate  b3    e3
+  ===================================================================== */
+  .bed-table--transpose { display: grid; min-width: 0; gap: 0 6px; }
+  .bed-table--transpose thead,
+  .bed-table--transpose tbody,
+  .bed-table--transpose tr { display: contents; }
+  .bed-table--transpose th,
+  .bed-table--transpose td {
+    white-space: normal;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 9px 4px;
+  }
+  .bed-table--transpose thead th { text-align: left; }
+  .bed-table--transpose .ab-th-inner { flex-direction: column; align-items: flex-start; gap: 2px; }
+  /* Base .bed-table tr:last-child td drops the border on the DOM-last row,
+     which is the rightmost column after transposing — restore it so every
+     visual cell has a consistent separator. */
+  .bed-table--transpose tr:last-child td { border-bottom: 1px solid var(--border-subtle); }
+
+  /* Prescription: 3 cols (tissue | BED | EQD2) x 4 rows */
+  .bed-table--rx { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); }
+  .bed-table--rx thead th:nth-child(1) { grid-area: 1 / 1; }   /* empty corner */
+  .bed-table--rx thead th:nth-child(2) { grid-area: 2 / 1; }   /* Tumor */
+  .bed-table--rx thead th:nth-child(3) { grid-area: 3 / 1; }   /* Late */
+  .bed-table--rx thead th:nth-child(4) { grid-area: 4 / 1; }   /* Prostate / Spine */
+  .bed-table--rx tbody tr:nth-child(1) .bed-row-label { grid-area: 1 / 2; }  /* "BED (Gy)" -> col header */
+  .bed-table--rx tbody tr:nth-child(2) .bed-row-label { grid-area: 1 / 3; }  /* "EQD2 (Gy)" -> col header */
+  #bed1 { grid-area: 2 / 2; } #bed2 { grid-area: 3 / 2; } #bed3 { grid-area: 4 / 2; }
+  #eqd1 { grid-area: 2 / 3; } #eqd2 { grid-area: 3 / 3; } #eqd3 { grid-area: 4 / 3; }
+
+  /* Alt fractionation: 5 cols (tissue | 1fx | 3fx | 5fx | Nfx) x 4 rows */
+  .bed-table--alt { grid-template-columns: minmax(0, 1.3fr) repeat(4, minmax(0, 1fr)); }
+  .bed-table--alt thead th:nth-child(1) { grid-area: 1 / 1; }   /* "Fractions" corner */
+  .bed-table--alt thead th:nth-child(2) { grid-area: 2 / 1; }   /* Tumor */
+  .bed-table--alt thead th:nth-child(3) { grid-area: 3 / 1; }   /* Late */
+  .bed-table--alt thead th:nth-child(4) { grid-area: 4 / 1; }   /* Prostate / Spine */
+  .bed-table--alt tbody tr:nth-child(1) > :first-child { grid-area: 1 / 2; }  /* "1 fraction" */
+  .bed-table--alt tbody tr:nth-child(2) > :first-child { grid-area: 1 / 3; }  /* "3 fractions" */
+  .bed-table--alt tbody tr:nth-child(3) > :first-child { grid-area: 1 / 4; }  /* "5 fractions" */
+  .bed-table--alt tbody tr:nth-child(4) > :first-child { grid-area: 1 / 5; white-space: normal; }  /* [N] fractions */
+  #alt1-1 { grid-area: 2 / 2; } #alt1-2 { grid-area: 3 / 2; } #alt1-3 { grid-area: 4 / 2; }
+  #alt3-1 { grid-area: 2 / 3; } #alt3-2 { grid-area: 3 / 3; } #alt3-3 { grid-area: 4 / 3; }
+  #alt5-1 { grid-area: 2 / 4; } #alt5-2 { grid-area: 3 / 4; } #alt5-3 { grid-area: 4 / 4; }
+  #altA-1 { grid-area: 2 / 5; } #altA-2 { grid-area: 3 / 5; } #altA-3 { grid-area: 4 / 5; }
+  .bed-table--alt .alt-fx-input { width: 40px; }
+
+  /* =====================================================================
+     composite — Remaining Dose is only 3 columns: drop min-width, let it fit
+  ===================================================================== */
+  .comp-result-table { min-width: 0; }
+  .comp-result-table th { white-space: normal; font-size: 11.5px; }
+  .comp-result-table th,
+  .comp-result-table td { padding: 7px 6px; }
+
+  /* =====================================================================
+     rert + constraints — wide data tables -> card-stack each row.
+     Section-agnostic via :has(): constraints.js inserts result rows with
+     insertRow(), which may place them in <thead> rather than <tbody>. So we
+     hide the pure-header row (th, no td) and card every row that has a <td>,
+     regardless of section. Each <td> prints its column label via ::before;
+     columns are fixed, so labels are hardcoded (by class for rert's
+     toggleable fx cols, by nth-child for constraints). rert's
+     applyColumnVisibility() sets inline display so its toggles still win.
+  ===================================================================== */
+  /* Gated on :has() support (iOS 16.4+/Chrome 105+). Browsers without :has()
+     skip this whole block and keep the original horizontal-scroll table
+     (min-width:480px stays), a clean fallback rather than a crushed layout. */
+  @supports selector(:has(*)) {
+    .rert-results-table,
+    .constraints-table { display: block; min-width: 0; }
+    .rert-results-table tr:has(th):not(:has(td)),
+    .constraints-table tr:has(th):not(:has(td)) {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    /* rert's header row holds the editable custom-fx COUNT input, so it can't
+       just be hidden like constraints' header — surface it as a compact
+       control strip above the cards (other header cells stay hidden). */
+    .rert-results-table tr:has(th):not(:has(td)) {
+      position: static;
+      width: auto; height: auto;
+      overflow: visible;
+      clip: auto;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 0;
+    }
+    .rert-results-table tr:has(th):not(:has(td)) > th { display: none; }
+    .rert-results-table tr:has(th):not(:has(td)) > th.col-cfx {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+    }
+    .rert-results-table tr:has(th):not(:has(td)) > th.col-cfx .rert-col-sub { display: none; }
+    .rert-results-table tr:has(td),
+    .constraints-table tr:has(td) {
+      display: block;
+      margin-bottom: 12px;
+      padding: 6px 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+    }
+    .rert-results-table tr:has(td) td,
+    .constraints-table tr:has(td) td {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      text-align: right;
+      border: none;
+      padding: 5px 0;
+    }
+    .rert-results-table tr:has(td) td::before,
+    .constraints-table tr:has(td) td::before {
+      content: attr(data-label);
+      flex: 0 0 auto;
+      text-align: left;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* constraints column labels (insertCell order 0..6) */
+    .constraints-table td:nth-child(1) { font-weight: 600; }
+    .constraints-table td:nth-child(1)::before { content: "Organ"; }
+    .constraints-table td:nth-child(2)::before { content: "Constraint"; }
+    .constraints-table td:nth-child(3)::before { content: "Endpoint"; }
+    .constraints-table td:nth-child(4)::before { content: "Rate"; }
+    .constraints-table td:nth-child(5)::before { content: "Fractionation"; }
+    .constraints-table td:nth-child(6)::before { content: "Source"; }
+    .constraints-table td:nth-child(7)::before { content: "Citation"; }
+
+    /* rert column labels — OAR name is the card title; rest get labels */
+    .rert-results-table td:nth-child(1) { justify-content: flex-start; font-weight: 600; }
+    .rert-results-table td:nth-child(1)::before { content: ""; }
+    .rert-results-table td:nth-child(2)::before { content: "Rem. EQD2 (Gy)"; }
+    .rert-results-table td.col-1fx::before { content: "1 fx (Gy)"; }
+    .rert-results-table td.col-3fx::before { content: "3 fx (Gy)"; }
+    .rert-results-table td.col-5fx::before { content: "5 fx (Gy)"; }
+    .rert-results-table td.col-cfx::before { content: "Custom fx (Gy)"; }
+
+    /* empty-state row renders as plain centered text, not a labeled card */
+    #rert-empty-row { border: none; background: none; margin: 0; padding: 0; }
+    #rert-empty-row td { display: block; text-align: center; }
+    #rert-empty-row td::before { content: ""; }
+  }
+}
+
 @media print {
   nav,
   .theme-toggle,

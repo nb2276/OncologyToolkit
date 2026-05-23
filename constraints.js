@@ -3,6 +3,12 @@
 
 var CONSTRAINTS = [];
 var constraintsTable = document.getElementById('constraintsTable');
+// Result rows live in <tbody> so they stay out of <thead> (semantics + the
+// mobile card-stack hides the header row). insertRow on the table can land
+// rows in <thead>, so target the tbody explicitly.
+var constraintsTbody = constraintsTable
+  ? (constraintsTable.tBodies[0] || constraintsTable.createTBody())
+  : null;
 var constraintSearch = document.getElementById('constraintSearch');
 var constraintResults = document.getElementById('constraintResults');
 var sourceFilter = document.getElementById('sourceFilter');
@@ -32,9 +38,9 @@ function performConstraintSearch() {
   var source = sourceFilter ? sourceFilter.value : 'all';
   var words = term.split(/\s+/).filter(function (w) { return w.length > 0; });
 
-  // Clear table (keep header)
-  while (constraintsTable.rows.length > 1) {
-    constraintsTable.deleteRow(-1);
+  // Clear previous results (header lives in <thead>, untouched)
+  while (constraintsTbody.rows.length) {
+    constraintsTbody.deleteRow(-1);
   }
 
   var count = 0;
@@ -56,7 +62,7 @@ function performConstraintSearch() {
     if (!match) continue;
 
     count++;
-    var row = constraintsTable.insertRow(-1);
+    var row = constraintsTbody.insertRow(-1);
     row.insertCell(0).textContent = c.organ;
     row.insertCell(1).textContent = c.constraint;
     row.insertCell(2).textContent = c.endpoint;
