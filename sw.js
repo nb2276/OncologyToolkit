@@ -4,7 +4,7 @@
 // The browser detects a new SW only if sw.js bytes differ. If you ship
 // new HTML/CSS/JS without bumping, users may serve new HTML against
 // stale precached JS until the next bump.
-var CACHE_VERSION = 'v8-2026-05-30';
+var CACHE_VERSION = 'v9-2026-05-30';
 var STATIC_CACHE = 'ot-static-' + CACHE_VERSION;
 // DATA_CACHE survives version bumps so the 9 MB ICD-10 XML doesn't
 // re-download on every deploy.
@@ -71,10 +71,18 @@ self.addEventListener('install', function (event) {
           });
         }));
       });
+    }).then(function () {
+      // Activate the new SW as soon as install succeeds. Without this,
+      // assets (style.css / *.js) were served cache-first from the OLD
+      // SW while index.html came network-first — so any structural change
+      // to precached files left existing-PWA users with mismatched
+      // HTML + old styles until they fully closed every tab.
+      // The mid-session DOM/state desync this used to protect against is
+      // theoretical for this site: a session is one calc load, and state
+      // lives in inputs + URL params, not in long-lived SW state. The
+      // stale-asset bug is concrete, so skipWaiting wins.
+      return self.skipWaiting();
     })
-    // No skipWaiting / clients.claim. New SW stays "waiting" until existing
-    // tabs close, so a calculator session can't get its DOM out of sync with
-    // a freshly-activated worker. Trade-off: updates land on next full reload.
   );
 });
 
@@ -84,6 +92,11 @@ self.addEventListener('activate', function (event) {
       return Promise.all(keys.map(function (k) {
         if (k !== STATIC_CACHE && k !== DATA_CACHE) return caches.delete(k);
       }));
+    }).then(function () {
+      // Take control of any open clients immediately so they start using
+      // the new SW (and the new cache) on their next fetch, without
+      // requiring a full close-and-reopen.
+      return self.clients.claim();
     })
   );
 });
