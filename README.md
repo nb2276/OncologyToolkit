@@ -8,33 +8,12 @@ A collection of clinical calculation and reference tools for radiation oncology,
 
 ## Tools
 
-### ICD-10 Code Search
-Fast full-text search of ICD-10 diagnostic codes with oncology-focused filters.
-- Filter by All, Malignancy, In Situ, Benign Neoplasm, or Z Code
-- Click any **code** to copy it to the clipboard
-- Click the **⧉ button** on any diagnosis to copy the full text
-- ICD-10 data stored locally — no API calls, instant results
-
-### PSA Doubling Time Calculator
-Calculates PSA doubling time from serial PSA measurements using weighted least-squares exponential fitting (weights w = y²).
-- Flexible date parsing — accepts most common date formats (MM/DD/YYYY, YYYY-MM-DD, DD.MM.YYYY, etc.)
-- Interactive Chart.js plot projected forward with configurable years
-- 95% confidence interval bands on the fit curve
-- Click anywhere on the chart to query the expected PSA at that date
-- White background toggle for pasting into documents
-- Copy Results button — composites the doubling time, chart, and measurement table as a PNG to the clipboard
-- Chart automatically adapts to light/dark mode
+The landing page is a **hub**: a 6-tile launcher (BED, ReRT, Composite, Constraints, PSA, ICD Search) above a "Recent calculations" row that one-click reopens your last calcs on BED, Composite, or ReRT. Six calculator tiles below it route to the tools described in this section.
 
 ### BED / EQD2 Calculator
 Computes Biologically Effective Dose (BED) and Equivalent Dose in 2 Gy fractions (EQD2) for a given prescription.
 - Configurable α/β values for Tumor (10), Late tissue (3), and Prostate/Spine (2)
 - Alternative fractionation section: converts the same BED to isoeffective total doses for 1, 3, 5, and an arbitrary number of fractions
-- Based on a spreadsheet by Dr. Mike Wahl
-
-### Composite Dose Calculator
-Estimates the remaining tolerable dose to a previously irradiated structure.
-- Inputs: structure tolerance dose/fractions/α/β, prior dose, time discount factor, planned fractions
-- Outputs: remaining BED and safe physical dose per fraction
 - Based on a spreadsheet by Dr. Mike Wahl
 
 ### Reirradiation Dose Calculator
@@ -46,12 +25,43 @@ Estimates remaining organ-at-risk dose tolerance for reirradiation using Univers
 - Parallel OARs (Lungs V16, Liver V32) use volumetric cc inputs with remaining cc output
 - All values update in real time as inputs change
 
+### Composite Dose Calculator
+Estimates the remaining tolerable dose to a previously irradiated structure.
+- Inputs: structure tolerance dose/fractions/α/β, prior dose, time discount factor, planned fractions
+- Outputs: remaining BED and safe physical dose per fraction
+- Based on a spreadsheet by Dr. Mike Wahl
+
+### Dose Constraint Reference
+QUANTEC, HyTEC, and ASTRO 2026 (Puckett) DVH constraints with PubMed-linked citations.
+- AND-match search across organ, endpoint, dose, and source
+- Filter by source compendium
+- Click any constraint to copy the full citation
+
+### PSA Doubling Time Calculator
+Calculates PSA doubling time from serial PSA measurements using weighted least-squares exponential fitting (weights w = y²).
+- Flexible date parsing — accepts most common date formats (MM/DD/YYYY, YYYY-MM-DD, DD.MM.YYYY, etc.)
+- Interactive Chart.js plot projected forward with configurable years
+- 95% confidence interval bands on the fit curve
+- Click anywhere on the chart to query the expected PSA at that date
+- White background toggle for pasting into documents
+- Copy Results button — composites the doubling time, chart, and measurement table as a PNG to the clipboard
+- Chart automatically adapts to light/dark mode
+
+### ICD-10 Code Search
+Fast full-text search of ICD-10 diagnostic codes with oncology-focused filters.
+- Filter by All, Malignancy, In Situ, Benign Neoplasm, or Z Code
+- Click any **code** to copy it to the clipboard
+- Click the **⧉ button** on any diagnosis to copy the full text
+- ICD-10 data stored locally — no API calls, instant results
+- Loads the 9 MB ICD-10 XML only when you open this page (not from the hub)
+
 ---
 
 ## Features
 
 - **Installable PWA** — install to your home screen or desktop; runs in standalone mode with iOS safe-area handling for the iPhone notch
-- **Works offline** — service worker precaches the app shell, so calculators (BED, Composite, ReRT, Constraints, PSA) work without network. ICD-10 search caches lazily on first online use.
+- **Works offline** — service worker precaches the app shell, so the hub and calculators (BED, Composite, ReRT, Constraints, PSA) work without network. ICD-10 search caches lazily on first online use.
+- **Recents on the hub** — returning users see their last 1–3 calculations on BED, Composite, or ReRT as one-click pills above the tile grid. Stored only in your browser's localStorage.
 - **Dark / Light mode** — toggle in the nav bar, preference saved per visitor via localStorage
 - **Responsive design** — works on desktop and mobile with collapsible hamburger navigation
 - **No account required** — all calculations run client-side in the browser

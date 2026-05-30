@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>ICD-10 Code Search – Oncology Toolkit</title>
+    <title>Oncology Toolkit</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -36,7 +36,7 @@
         <span></span><span></span><span></span>
       </button>
       <div class="nav-links">
-        <a href="index.html" class="nav-link active">ICD-10 Search</a>
+        <a href="icd.html" class="nav-link">ICD-10 Search</a>
         <a href="psa.html" class="nav-link">PSA Doubling Time</a>
         <a href="bed.html" class="nav-link">BED</a>
         <a href="composite.html" class="nav-link">Composite Dose</a>
@@ -51,38 +51,83 @@
       </button>
     </nav>
 
-    <div class="bed-container">
-      <div class="bed-card">
-        <input type="text" id="searchTerm" placeholder="Search diagnoses…" autocomplete="off">
-        <div class="checkbox-container">
-          <input type="radio" name="type" id="all">
-          <label for="all">All</label>
-          <input type="radio" name="type" id="selectMalignant" checked>
-          <label for="selectMalignant">Malignancy</label>
-          <input type="radio" name="type" id="selectInSitu">
-          <label for="selectInSitu">In Situ</label>
-          <input type="radio" name="type" id="selectBenign">
-          <label for="selectBenign">Benign Neoplasm</label>
-          <input type="radio" name="type" id="selectZ">
-          <label for="selectZ">Z Code</label>
-        </div>
-      </div>
+    <main class="hub-container">
 
-      <div id="loadingIndicator" class="loading-indicator">Loading diagnosis codes</div>
+      <!-- Recents row — populated by inline script below; entire <section>
+           is removed from the DOM if there are no entries. -->
+      <section class="hub-recents" id="hub-recents" hidden>
+        <h2 class="bed-card-header bed-card-header--standalone">Recent calculations</h2>
+        <div class="hub-recents-row" id="hub-recents-row"></div>
+      </section>
 
-      <div id="results">
-        <table id="codesTable">
-          <tr>
-            <th>Code</th>
-            <th>Diagnosis</th>
-          </tr>
-        </table>
-      </div>
-    </div>
-    <script src="clipboard.js"></script>
-    <script src="script.js"></script>
+      <!-- Tool tiles — class composition: .bed-card provides the card chrome,
+           .hub-tile adds the grid sizing + link styling deltas. -->
+      <section class="hub-grid">
+        <a class="bed-card hub-tile" href="bed.html">
+          <h3 class="hub-tile-name">BED</h3>
+          <p class="hub-tile-tagline">BED &amp; EQD2 conversion</p>
+        </a>
+        <a class="bed-card hub-tile" href="rert.html">
+          <h3 class="hub-tile-name">ReRT</h3>
+          <p class="hub-tile-tagline">Reirradiation OAR tolerance</p>
+        </a>
+        <a class="bed-card hub-tile" href="composite.html">
+          <h3 class="hub-tile-name">Composite</h3>
+          <p class="hub-tile-tagline">Composite dose, re-treatment</p>
+        </a>
+        <a class="bed-card hub-tile" href="constraints.html">
+          <h3 class="hub-tile-name">Constraints</h3>
+          <p class="hub-tile-tagline">QUANTEC / HyTEC / ASTRO 2026</p>
+        </a>
+        <a class="bed-card hub-tile" href="psa.html">
+          <h3 class="hub-tile-name">PSA</h3>
+          <p class="hub-tile-tagline">PSA doubling time</p>
+        </a>
+        <a class="bed-card hub-tile" href="icd.html">
+          <h3 class="hub-tile-name">ICD Search</h3>
+          <p class="hub-tile-tagline">ICD-10 code lookup</p>
+        </a>
+      </section>
+
+    </main>
+
+    <script src="url-state.js"></script>
+    <script src="history.js"></script>
     <script src="shortcuts.js"></script>
     <script src="theme.js"></script>
+    <script>
+      // Hub recents — render up to 3 most-recent calcs across BED + Composite + ReRT.
+      // typeof guard: if history.js somehow failed to load, recents stays hidden
+      // and the tile grid is unaffected (no console error).
+      (function () {
+        if (typeof getRecentAcrossTools !== 'function' || typeof buildToolUrl !== 'function') return;
+        var recents = getRecentAcrossTools(3);
+        if (!recents.length) return;
+        var section = document.getElementById('hub-recents');
+        var row = document.getElementById('hub-recents-row');
+        if (!section || !row) return;
+        recents.forEach(function (r) {
+          var a = document.createElement('a');
+          a.className = 'hub-recent-pill';
+          a.href = buildToolUrl(r.path, r.params);
+          var tool = document.createElement('span');
+          tool.className = 'hub-recent-tool';
+          tool.textContent = r.tool;
+          var dot = document.createElement('span');
+          dot.className = 'hub-recent-divider';
+          dot.textContent = '·';
+          var sum = document.createElement('span');
+          sum.className = 'hub-recent-summary';
+          sum.textContent = r.label;
+          a.appendChild(tool);
+          a.appendChild(dot);
+          a.appendChild(sum);
+          row.appendChild(a);
+        });
+        section.hidden = false;
+      })();
+    </script>
+
     <footer class="site-disclaimer">
       These tools are for educational purposes only and are not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.
     </footer>

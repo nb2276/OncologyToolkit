@@ -85,9 +85,9 @@ function update() {
   // Save to history on valid calculation
   if (valid) {
     saveToHistory('bed', BED_INPUT_IDS);
-    renderHistory('bed', BED_INPUT_IDS, update, function (params) {
-      return (params['bd-dose'] || '?') + ' Gy / ' + (params['bd-fx'] || '?') + ' fx';
-    });
+    // bedSummary is defined in history.js — single source of truth so the
+    // per-page history list and the hub's recents pill render identical text.
+    renderHistory('bed', BED_INPUT_IDS, update, bedSummary);
   }
 }
 

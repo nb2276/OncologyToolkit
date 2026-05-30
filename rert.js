@@ -566,3 +566,27 @@ document.addEventListener('decimalschange', updateAll);
 
 toggleEmptyRow();
 updateAll();
+
+// ============================================================
+// History — save plan inputs (Fractions / α/β / Months / Custom fx)
+// after every input change. saveToHistory dedupes identical entries,
+// so transient keystrokes coalesce into one row per distinct param set.
+// OAR selection is intentionally NOT in RERT_INPUT_IDS — see history.js
+// rertSummary comment and the design doc's Premises section.
+// ============================================================
+
+function saveAndRenderHistory() {
+  var prFx   = parseFloat($('pr-fx').value);
+  var prAb   = parseFloat($('pr-ab').value);
+  var prMo   = parseFloat($('pr-mo').value);
+  if (!isNaN(prFx) && !isNaN(prAb) && !isNaN(prMo)) {
+    saveToHistory('rert', RERT_INPUT_IDS);
+  }
+  // rertSummary is defined in history.js — single source of truth.
+  renderHistory('rert', RERT_INPUT_IDS, updateAll, rertSummary);
+}
+
+RERT_INPUT_IDS.forEach(function (id) {
+  $(id).addEventListener('change', saveAndRenderHistory);
+});
+saveAndRenderHistory();

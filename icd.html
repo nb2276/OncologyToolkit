@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Dose Constraints – Oncology Toolkit</title>
+    <title>ICD-10 Code Search – Oncology Toolkit</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -36,12 +36,12 @@
         <span></span><span></span><span></span>
       </button>
       <div class="nav-links">
-        <a href="icd.html" class="nav-link">ICD-10 Search</a>
+        <a href="icd.html" class="nav-link active">ICD-10 Search</a>
         <a href="psa.html" class="nav-link">PSA Doubling Time</a>
         <a href="bed.html" class="nav-link">BED</a>
         <a href="composite.html" class="nav-link">Composite Dose</a>
         <a href="rert.html" class="nav-link">Reirradiation</a>
-        <a href="constraints.html" class="nav-link active">Dose Constraints</a>
+        <a href="constraints.html" class="nav-link">Dose Constraints</a>
         <a href="https://oncbrain.oncologytoolkit.com" class="nav-link" target="_blank" rel="noopener noreferrer">OncBrain &#8599;</a>
         <a href="about.html" class="nav-link">About</a>
       </div>
@@ -51,59 +51,36 @@
       </button>
     </nav>
 
-    <div class="bed-container constraints-container">
+    <div class="bed-container">
       <div class="bed-card">
-        <div class="constraint-search-row">
-          <input type="text" id="constraintSearch" placeholder="Search by organ, endpoint, or keyword…" autocomplete="off">
-          <select id="sourceFilter" class="constraint-source-select">
-            <option value="all">All Sources</option>
-            <option value="quantec">QUANTEC</option>
-            <option value="hytec">HyTEC</option>
-            <option value="astro dvh">ASTRO DVH Compendium (Puckett 2026)</option>
-            <optgroup label="NRG Protocols">
-              <option value="nrg-gi011">NRG-GI011 (Pancreas)</option>
-              <option value="nrg gu-005">NRG GU-005 (Prostate)</option>
-              <option value="nrg gu-009">NRG GU-009 (Prostate)</option>
-              <option value="nrg gu-010">NRG GU-010 (Prostate)</option>
-              <option value="nrg gu-013">NRG GU-013 (Prostate)</option>
-              <option value="nrg lu-008">NRG LU-008 (Lung)</option>
-              <option value="nrg hn-009">NRG HN-009 (Head & Neck)</option>
-              <option value="nrg br-008">NRG BR-008 (Breast)</option>
-            </optgroup>
-            <optgroup label="Other Protocols">
-              <option value="tailor-rt">TAILOR-RT (Breast)</option>
-              <option value="embrace-ii">EMBRACE-II (Cervix)</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="constraint-meta-row">
-          <span id="resultCount" class="constraint-result-count"></span>
+        <input type="text" id="searchTerm" placeholder="Search diagnoses…" autocomplete="off">
+        <div class="checkbox-container">
+          <input type="radio" name="type" id="all">
+          <label for="all">All</label>
+          <input type="radio" name="type" id="selectMalignant" checked>
+          <label for="selectMalignant">Malignancy</label>
+          <input type="radio" name="type" id="selectInSitu">
+          <label for="selectInSitu">In Situ</label>
+          <input type="radio" name="type" id="selectBenign">
+          <label for="selectBenign">Benign Neoplasm</label>
+          <input type="radio" name="type" id="selectZ">
+          <label for="selectZ">Z Code</label>
         </div>
       </div>
 
-      <div id="constraintLoading" class="loading-indicator">Loading constraint data</div>
+      <div id="loadingIndicator" class="loading-indicator">Loading diagnosis codes</div>
 
-      <div id="constraintResults">
-        <div class="bed-table-wrap">
-          <table id="constraintsTable" class="bed-table constraints-table">
-            <thead>
-              <tr>
-                <th>Organ</th>
-                <th>Constraint</th>
-                <th>Endpoint</th>
-                <th>Rate</th>
-                <th>Fractionation</th>
-                <th>Source</th>
-                <th>Citation</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+      <div id="results">
+        <table id="codesTable">
+          <tr>
+            <th>Code</th>
+            <th>Diagnosis</th>
+          </tr>
+        </table>
       </div>
     </div>
-
-    <script src="constraints.js"></script>
+    <script src="clipboard.js"></script>
+    <script src="script.js"></script>
     <script src="shortcuts.js"></script>
     <script src="theme.js"></script>
     <footer class="site-disclaimer">
