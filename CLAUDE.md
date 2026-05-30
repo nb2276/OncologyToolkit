@@ -26,38 +26,39 @@ Analytics: Google Analytics `G-PP2FRCMYS1` + Cloudflare Web Analytics beacon `90
 
 | Page | Tool | Backing JS |
 |------|------|------------|
-| `index.html` | ICD-10 code search | `script.js` |
+| `index.html` | Hub landing — 2×3 / 3×2 tile grid + recents row (BED + Composite + ReRT) | inline `<script>` in the page; reads `history.js` + `url-state.js` |
 | `bed.html` | BED / EQD2 calculator | `bed.js` + `math.js` |
 | `psa.html` | PSA doubling time | `psa.js` (Chart.js) |
 | `composite.html` | Composite dose (re-tx tolerance) | `composite.js` + `math.js` |
 | `rert.html` | Reirradiation OAR tolerance (UMich ReRT) | `rert.js` + `math.js` |
 | `constraints.html` | QUANTEC/HyTEC/NRG dose constraints | `constraints.js` |
+| `icd.html` | ICD-10 code search | `script.js` (XHR-loads 9 MB `icd10.xml` only on this page) |
 | `about.html` | About / contact | `theme.js` only |
 
-All pages share: nav (hamburger on mobile), theme toggle, site disclaimer footer, both analytics scripts.
+All pages share: nav (hamburger on mobile at ≤900 px), theme toggle, site disclaimer footer, both analytics scripts. The hub doesn't show an `.active` nav link — the brand mark serves as the Home affordance. Six calculator tiles route to the six calc pages; the seven nav links (BED, PSA, Composite, ReRT, Constraints, OncBrain external, About) are reachable from every page including the hub.
 
 ## JS modules
 
 **Shared (loaded by multiple pages):**
 - `math.js` — single source of truth for `calcBED`, `calcEQD2`, `isoeffDose`, `fmt`. Used by bed/composite/rert. **No duplication** — do not re-implement these formulas.
-- `url-state.js` — `parseUrlParams` / `serializeToUrl` for shareable calculator links.
-- `history.js` — localStorage history (10-item dedupe) for calculators.
+- `url-state.js` — `parseUrlParams` / `applyUrlParams` / `serializeToUrl` for shareable calculator links, plus `buildToolUrl(toolPath, params)` for building hub recents URLs from a params object (since `serializeToUrl` reads from the current DOM and is unusable from the hub).
+- `history.js` — localStorage history (10-item dedupe) for calculators. Adds the shared summary functions `bedSummary` / `compositeSummary` / `rertSummary` (single source of truth — `bed.js` / `composite.js` / `rert.js` all call these instead of duplicating inline lambdas), plus `getRecentAcrossTools(limit)` for the hub recents (merges `history_bed` + `history_composite` + `history_rert`, defensively filters malformed entries, sorts ts desc).
 - `theme.js` — dark/light toggle, persists to `localStorage['theme']`, dispatches `'themechange'` event. Inlined in `<head>` to prevent flash.
 - `clipboard.js` — `navigator.clipboard` with `execCommand` fallback.
-- `shortcuts.js` — `/` or `Ctrl+K` to focus first input, `Esc` to blur.
+- `shortcuts.js` — `/` or `Ctrl+K` to focus first input, `Esc` to blur. No-ops gracefully on the hub (no inputs).
 
 **Page-specific:**
-- `script.js` — XHR-loads `icd10.xml`, AND-match search, 100-result cap, click-to-copy.
-- `bed.js` — preset regimens, validation ranges (`BED_RANGES`), update() pattern.
+- `script.js` — XHR-loads `icd10.xml`, AND-match search, 100-result cap, click-to-copy. Loaded **only** by `icd.html` (never by the hub at `/`).
+- `bed.js` — preset regimens, validation ranges (`BED_RANGES`), update() pattern. History label uses the shared `bedSummary` from `history.js`.
 - `psa.js` — weighted least-squares exponential fit (weights `w = y²`), 95% CI bands, click-to-query.
-- `composite.js` — tolerance BED − (prior BED × TDF), warns if prior > tolerance.
-- `rert.js` — biggest file (~500 lines). `OAR_DATA` const = 24 OARs (22 serial + 2 parallel). TRF auto-highlights based on months since prior RT.
+- `composite.js` — tolerance BED − (prior BED × TDF), warns if prior > tolerance. History label uses the shared `compositeSummary` from `history.js`.
+- `rert.js` — biggest file (~500 lines). `OAR_DATA` const = 24 OARs (22 serial + 2 parallel). TRF auto-highlights based on months since prior RT. Plan-level inputs (`pr-fx`, `pr-ab`, `pr-mo`, `custom-fx`) save to `history_rert` on `change` and render via shared `rertSummary`. OAR selection is not in `RERT_INPUT_IDS` — recents restore the numerics, user re-ticks OARs.
 - `constraints.js` — fetches `constraints-data.json`, AND-match search, source filter, PubMed links.
-- `tests.js` — test suite.
+- `tests.js` — test suite. Run with `node tests.js` (no test framework, no build — vanilla DOM-shimmed `node:vm` sandbox). Currently 271 assertions, 0 failures.
 
 ## CSS
 
-Single `style.css` (~47 KB) with numbered TOC at top (sections 1–20). Theming via CSS variables under `:root` and `[data-theme="light"]`. Dark is default. Accent: `#4fc3f7` (dark) / `#0288d1` (light).
+Single `style.css` (~50 KB) with numbered TOC at top (sections 1–21). Theming via CSS variables under `:root` and `[data-theme="light"]`. Dark is default. Accent: `#4fc3f7` (dark) / `#0288d1` (light). Section 21 is the hub landing (`.hub-container` / `.hub-grid` / `.hub-tile` / `.hub-recents` / `.hub-recent-pill`). `.hub-tile` uses class composition (`<a class="bed-card hub-tile">`) so it inherits `.bed-card` chrome and only contains hub-specific deltas. **Mobile breakpoint convention: `@media (max-width: 900px)`** to match the nav hamburger; new responsive sections must use this same breakpoint so nav and content switch to mobile mode together.
 
 When adding styles, find the right numbered section and add there — don't append to the bottom.
 
