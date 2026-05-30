@@ -4,19 +4,19 @@ Tracking open work and ideas for future improvement.
 
 ## Open
 
-### Test runner is broken
-**Priority:** P1
-**Component:** tests.js
-**Discovered:** 2026-05-08 (during PWA ship)
-
-`tests.js` runs source files inside a `node:vm` context that has no `document`. Three calculator files (`bed.js:120`, `composite.js:158`, `rert.js:565`) execute `document.addEventListener('decimalschange', ...)` at top level (added with the decimals feature in commit `14c25b6`), so the runner crashes with `TypeError: document.addEventListener is not a function` before any assertion runs. Fix: either provide a JSDOM-style `document` shim in `tests.js`, or wrap the top-level event bindings in a guard so they only run when `typeof document !== 'undefined'`.
-
 ### Automate CACHE_VERSION bump
 **Priority:** P2
 **Component:** sw.js, deploy workflow
 **Discovered:** 2026-05-08
 
 `sw.js` requires manual `CACHE_VERSION` bump on every deploy that changes a precached file. Forgetting it ships fresh HTML against stale cached JS until the next bump. Options: pre-commit hook that bumps if any precached file is staged; GitHub Actions step that derives the version from the latest git SHA; or a tiny build step that hashes precache file contents.
+
+### Formalize design system as DESIGN.md
+**Priority:** P2
+**Component:** docs, style.css
+**Discovered:** 2026-05-30 (during /plan-design-review for the tool-hub landing)
+
+The de facto design system lives implicitly in `style.css` (CSS variables under `:root` + `[data-theme="light"]`, DM Sans body / Outfit display, `.bed-card` token, radius scale, transition scale, accent `#4fc3f7` / `#0288d1`). Future `/plan-design-review` runs would calibrate more consistently against a real `DESIGN.md`. Run `/design-consultation` to inventory tokens, document the type scale, document component vocabulary, and add usage rules (e.g., "tile cards use class composition with `.bed-card`; new `.foo-*` class families should match the breakpoint convention of 900 px nav-hamburger + 700 px content stack").
 
 ## Completed (2026-03-16)
 

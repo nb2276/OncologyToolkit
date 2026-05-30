@@ -140,9 +140,8 @@ function update() {
   // Save to history
   if (stBedValid && pvBedValid) {
     saveToHistory('composite', COMP_INPUT_IDS);
-    renderHistory('composite', COMP_INPUT_IDS, update, function (params) {
-      return 'Tol ' + (params['st-dose'] || '?') + 'Gy, Prior ' + (params['pv-dose'] || '?') + 'Gy';
-    });
+    // compositeSummary is defined in history.js — single source of truth.
+    renderHistory('composite', COMP_INPUT_IDS, update, compositeSummary);
   }
 }
 

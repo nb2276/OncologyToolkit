@@ -185,9 +185,14 @@ var tValue95 = sandbox.tValue95;
 var fmtDoublingTime = sandbox.fmtDoublingTime;
 var parseUrlParams = sandbox.parseUrlParams;
 var serializeToUrl = sandbox.serializeToUrl;
+var buildToolUrl = sandbox.buildToolUrl;
 var saveToHistory = sandbox.saveToHistory;
 var loadHistory = sandbox.loadHistory;
 var clearHistory = sandbox.clearHistory;
+var getRecentAcrossTools = sandbox.getRecentAcrossTools;
+var bedSummary = sandbox.bedSummary;
+var compositeSummary = sandbox.compositeSummary;
+var rertSummary = sandbox.rertSummary;
 var copyToClipboard = sandbox.copyToClipboard;
 var HISTORY_MAX = sandbox.HISTORY_MAX;
 
@@ -723,6 +728,139 @@ assertEqual(hist.length, 0, 'history: corrupted JSON returns empty array');
 // Restore
 sandbox.localStorage.clear();
 sandbox.document.getElementById = function() { return makeDomElement(); };
+
+// ============================================================
+// TESTS: url-state.js — buildToolUrl (used by the hub recents)
+// ============================================================
+
+section('=== url-state.js: buildToolUrl ===');
+
+// Empty params → bare path (no trailing ?)
+assertEqual(buildToolUrl.call(sandbox, 'bed.html', {}), 'bed.html',
+  'buildToolUrl: empty params yields bare path');
+
+// Typical use
+var btUrl = buildToolUrl.call(sandbox, 'bed.html', { 'bd-dose': 60, 'bd-fx': 30 });
+assert(btUrl.indexOf('bd-dose=60') !== -1, 'buildToolUrl: bd-dose=60 present');
+assert(btUrl.indexOf('bd-fx=30') !== -1, 'buildToolUrl: bd-fx=30 present');
+assert(btUrl.indexOf('bed.html?') === 0, 'buildToolUrl: starts with toolPath?');
+
+// Empty-string / null / undefined values are skipped (matches serializeToUrl)
+var btSkip = buildToolUrl.call(sandbox, 'bed.html', {
+  'bd-dose': 60, 'bd-fx': '', 'ab1': null, 'ab2': undefined
+});
+assert(btSkip.indexOf('bd-dose=60') !== -1, 'buildToolUrl: kept bd-dose=60');
+assert(btSkip.indexOf('bd-fx') === -1, 'buildToolUrl: empty-string skipped');
+assert(btSkip.indexOf('ab1') === -1, 'buildToolUrl: null skipped');
+assert(btSkip.indexOf('ab2') === -1, 'buildToolUrl: undefined skipped');
+
+// Round-trip: build URL → parse it back → params match
+var rtParams = { 'bd-dose': 70, 'bd-fx': 35, 'ab1': 10, 'ab2': 3 };
+var rtUrl = buildToolUrl.call(sandbox, 'bed.html', rtParams);
+// parseUrlParams reads window.location.search, so we simulate it:
+sandbox.window.location.search = rtUrl.substring(rtUrl.indexOf('?'));
+var rtParsed = parseUrlParams.call(sandbox, ['bd-dose', 'bd-fx', 'ab1', 'ab2']);
+assertEqual(rtParsed['bd-dose'], 70, 'buildToolUrl round-trip: bd-dose=70 recovered');
+assertEqual(rtParsed['bd-fx'], 35,  'buildToolUrl round-trip: bd-fx=35 recovered');
+assertEqual(rtParsed['ab1'], 10,    'buildToolUrl round-trip: ab1=10 recovered');
+assertEqual(rtParsed['ab2'], 3,     'buildToolUrl round-trip: ab2=3 recovered');
+sandbox.window.location.search = ''; // restore
+
+// ============================================================
+// TESTS: history.js — per-tool summary functions
+// ============================================================
+
+section('=== history.js: bedSummary ===');
+assertEqual(bedSummary({ 'bd-dose': '60', 'bd-fx': '30' }), '60 Gy / 30 fx',
+  'bedSummary: both fields present');
+assertEqual(bedSummary({ 'bd-fx': '30' }), '? Gy / 30 fx',
+  'bedSummary: missing bd-dose → ?');
+assertEqual(bedSummary({ 'bd-dose': '60' }), '60 Gy / ? fx',
+  'bedSummary: missing bd-fx → ?');
+assertEqual(bedSummary({}), '? Gy / ? fx',
+  'bedSummary: empty params → ? / ?');
+
+section('=== history.js: compositeSummary ===');
+assertEqual(compositeSummary({ 'st-dose': '50', 'pv-dose': '60' }),
+  'Tol 50Gy, Prior 60Gy', 'compositeSummary: both fields present');
+assertEqual(compositeSummary({ 'pv-dose': '60' }),
+  'Tol ?Gy, Prior 60Gy', 'compositeSummary: missing st-dose');
+assertEqual(compositeSummary({ 'st-dose': '50' }),
+  'Tol 50Gy, Prior ?Gy', 'compositeSummary: missing pv-dose');
+assertEqual(compositeSummary({}),
+  'Tol ?Gy, Prior ?Gy', 'compositeSummary: empty params');
+
+section('=== history.js: rertSummary ===');
+assertEqual(rertSummary({ 'pr-fx': '25', 'pr-mo': '18' }),
+  'prior 25 fx, 18 mo ago', 'rertSummary: both fields present');
+assertEqual(rertSummary({ 'pr-mo': '18' }),
+  'prior ? fx, 18 mo ago', 'rertSummary: missing pr-fx');
+assertEqual(rertSummary({ 'pr-fx': '25' }),
+  'prior 25 fx, ? mo ago', 'rertSummary: missing pr-mo');
+assertEqual(rertSummary({}),
+  'prior ? fx, ? mo ago', 'rertSummary: empty params');
+
+// ============================================================
+// TESTS: history.js — getRecentAcrossTools (hub recents)
+// ============================================================
+
+section('=== history.js: getRecentAcrossTools ===');
+
+// Empty localStorage → empty array
+sandbox.localStorage.clear();
+var recents0 = getRecentAcrossTools.call(sandbox, 3);
+assertEqual(recents0.length, 0, 'getRecentAcrossTools: empty localStorage → []');
+
+// Only BED has entries — only BED returned, tagged correctly
+sandbox.localStorage.setItem('history_bed', JSON.stringify([
+  { ts: 2000, params: { 'bd-dose': '60', 'bd-fx': '30' } },
+  { ts: 1000, params: { 'bd-dose': '70', 'bd-fx': '35' } }
+]));
+var recentsBed = getRecentAcrossTools.call(sandbox, 3);
+assertEqual(recentsBed.length, 2, 'getRecentAcrossTools: BED-only → 2 entries');
+assertEqual(recentsBed[0].tool, 'bed', 'getRecentAcrossTools: entry tagged tool=bed');
+assertEqual(recentsBed[0].path, 'bed.html', 'getRecentAcrossTools: entry tagged path=bed.html');
+assertEqual(recentsBed[0].ts, 2000, 'getRecentAcrossTools: newest first (ts=2000)');
+assertEqual(recentsBed[0].label, '60 Gy / 30 fx', 'getRecentAcrossTools: label from bedSummary');
+
+// All three tools populated → merged + sorted by ts desc
+sandbox.localStorage.setItem('history_composite', JSON.stringify([
+  { ts: 3000, params: { 'st-dose': '50', 'pv-dose': '60' } }
+]));
+sandbox.localStorage.setItem('history_rert', JSON.stringify([
+  { ts: 1500, params: { 'pr-fx': '25', 'pr-mo': '18' } }
+]));
+var recentsAll = getRecentAcrossTools.call(sandbox, 3);
+assertEqual(recentsAll.length, 3, 'getRecentAcrossTools: three tools merged → 3');
+assertEqual(recentsAll[0].tool, 'composite', 'getRecentAcrossTools: composite ts=3000 is newest');
+assertEqual(recentsAll[1].tool, 'bed',       'getRecentAcrossTools: bed ts=2000 second');
+assertEqual(recentsAll[2].tool, 'rert',      'getRecentAcrossTools: rert ts=1500 third');
+
+// Default limit = 3 (slices when more entries exist)
+sandbox.localStorage.setItem('history_bed', JSON.stringify([
+  { ts: 2000, params: { 'bd-dose': '60', 'bd-fx': '30' } },
+  { ts: 1000, params: { 'bd-dose': '70', 'bd-fx': '35' } },
+  { ts: 500,  params: { 'bd-dose': '80', 'bd-fx': '40' } }
+]));
+var recentsDefault = getRecentAcrossTools.call(sandbox); // no limit arg
+assertEqual(recentsDefault.length, 3, 'getRecentAcrossTools: default limit = 3');
+
+// Defensive filter: entries missing ts or params are dropped, not rendered
+sandbox.localStorage.setItem('history_bed', JSON.stringify([
+  { ts: 2000, params: { 'bd-dose': '60', 'bd-fx': '30' } }, // good
+  { ts: 'not-a-number', params: { 'bd-dose': '99' } },      // bad ts
+  { ts: 1000 },                                             // missing params
+  { params: { 'bd-dose': '99' } }                           // missing ts
+]));
+sandbox.localStorage.removeItem('history_composite');
+sandbox.localStorage.removeItem('history_rert');
+var recentsFiltered = getRecentAcrossTools.call(sandbox, 5);
+assertEqual(recentsFiltered.length, 1,
+  'getRecentAcrossTools: malformed entries filtered, only the well-formed one kept');
+assertEqual(recentsFiltered[0].params['bd-dose'], '60',
+  'getRecentAcrossTools: kept entry has correct payload');
+
+sandbox.localStorage.clear();
 
 // ============================================================
 // TESTS: clipboard.js — copyToClipboard exists

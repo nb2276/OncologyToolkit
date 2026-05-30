@@ -96,3 +96,55 @@ function defaultHistorySummary(params) {
   });
   return parts.join(' / ');
 }
+
+// ------------------------------------------------------------------
+// Per-tool summary functions — single source of truth.
+// bed.js, composite.js, rert.js all call these (instead of inline lambdas)
+// so the per-page history list and the hub's recents pills render the
+// identical text for any given entry.
+// ------------------------------------------------------------------
+
+function bedSummary(p) {
+  return (p['bd-dose'] || '?') + ' Gy / ' + (p['bd-fx'] || '?') + ' fx';
+}
+
+function compositeSummary(p) {
+  return 'Tol ' + (p['st-dose'] || '?') + 'Gy, Prior ' + (p['pv-dose'] || '?') + 'Gy';
+}
+
+function rertSummary(p) {
+  // Note: OAR selection is not in RERT_INPUT_IDS, so the pill label can't
+  // include which organs were checked. Partial-state restore by design.
+  return 'prior ' + (p['pr-fx'] || '?') + ' fx, ' + (p['pr-mo'] || '?') + ' mo ago';
+}
+
+// ------------------------------------------------------------------
+// Cross-tool recents — used by the hub landing page (index.html).
+// Reads localStorage for each known tool, merges, sorts by ts desc,
+// slices to `limit`. Defensively filters entries missing `ts` or
+// `params` (hand-edited localStorage, future schema drift).
+// ------------------------------------------------------------------
+
+var KNOWN_TOOLS = [
+  { tool: 'bed',       path: 'bed.html',       label: bedSummary },
+  { tool: 'composite', path: 'composite.html', label: compositeSummary },
+  { tool: 'rert',      path: 'rert.html',      label: rertSummary }
+];
+
+function getRecentAcrossTools(limit) {
+  var all = [];
+  KNOWN_TOOLS.forEach(function (t) {
+    loadHistoryRaw('history_' + t.tool).forEach(function (entry) {
+      if (typeof entry.ts !== 'number' || !entry.params) return;
+      all.push({
+        tool: t.tool,
+        ts: entry.ts,
+        params: entry.params,
+        path: t.path,
+        label: t.label(entry.params)
+      });
+    });
+  });
+  all.sort(function (a, b) { return b.ts - a.ts; });
+  return all.slice(0, limit || 3);
+}

@@ -40,6 +40,25 @@ function serializeToUrl(inputIds) {
   return window.location.pathname + '?' + params.toString();
 }
 
+// Build a calculator URL from a target path + a params object.
+// Used by the hub's recents row: serializeToUrl reads from the current DOM,
+// which is unusable from the hub. buildToolUrl takes any { inputId: value }
+// shape and produces a URL the target page's parseUrlParams can consume.
+// Empty-string and null values are skipped, matching serializeToUrl behavior.
+function buildToolUrl(toolPath, params) {
+  var sp = new URLSearchParams();
+  if (params) {
+    Object.keys(params).forEach(function (k) {
+      var v = params[k];
+      if (v !== '' && v !== null && v !== undefined) {
+        sp.set(k, v);
+      }
+    });
+  }
+  var qs = sp.toString();
+  return qs ? toolPath + '?' + qs : toolPath;
+}
+
 function initUrlParams(inputIds, updateFn) {
   var params = parseUrlParams(inputIds);
   if (Object.keys(params).length > 0) {

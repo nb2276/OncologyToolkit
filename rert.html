@@ -36,7 +36,7 @@
         <span></span><span></span><span></span>
       </button>
       <div class="nav-links">
-        <a href="index.html" class="nav-link">ICD-10 Search</a>
+        <a href="icd.html" class="nav-link">ICD-10 Search</a>
         <a href="psa.html" class="nav-link">PSA Doubling Time</a>
         <a href="bed.html" class="nav-link">BED</a>
         <a href="composite.html" class="nav-link">Composite Dose</a>
@@ -155,6 +155,14 @@
           <div class="copy-link-row">
             <button class="psa-action-btn" id="copy-link-btn">Copy Link</button>
           </div>
+
+          <!-- History — plan-level inputs only; OAR selection isn't in RERT_INPUT_IDS,
+               so a recalled entry restores Fractions/α/β/Months but the user re-ticks OARs. -->
+          <details class="bed-card history-section" id="history-section" style="display:none;">
+            <summary class="history-summary">Recent Calculations</summary>
+            <div class="history-list"></div>
+            <button class="history-clear">Clear History</button>
+          </details>
         </div><!-- end .rert-right -->
 
       </div><!-- end .rert-layout -->
