@@ -2462,6 +2462,11 @@ details[open].rert-oar-picker .rert-picker-chevron {
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
   text-decoration: none;
+  /* Override the browser's default <a> color so any direct text in this
+     element inherits from the body instead of rendering as link blue.
+     The named child spans (.hub-recent-tool, -summary) set their own
+     colors regardless, but this keeps the element honest. */
+  color: inherit;
   transition: border-color var(--transition-med), background var(--transition-med);
   cursor: pointer;
 }
@@ -2500,6 +2505,10 @@ details[open].rert-oar-picker .rert-picker-chevron {
   padding: 22px 24px;
   min-height: 100px;
   text-decoration: none;
+  /* Override the browser's default <a> color. Children (.hub-tile-name,
+     .hub-tile-tagline) set their own colors, but this keeps the link
+     element from rendering any direct text as blue. */
+  color: inherit;
   /* class composition: background/border/radius/shadow from .bed-card */
 }
 .hub-tile:hover {
