@@ -5,15 +5,16 @@
 var COMP_INPUT_IDS = ['st-dose', 'st-fx', 'st-ab', 'pv-dose', 'pv-fx', 'pv-tdf', 'rem-fx'];
 
 // Fraction max bumped to 80 to match BED page — anything higher is essentially
-// always a fat-finger error. applyRangeWarning lives in validate.js.
+// always a fat-finger error. `integer: true` on fractions because you can't
+// deliver a fractional treatment session. applyRangeWarning lives in validate.js.
 var COMP_RANGES = {
   'st-dose': { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' },
-  'st-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' },
+  'st-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)', integer: true },
   'st-ab':   { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
   'pv-dose': { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' },
-  'pv-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' },
+  'pv-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)', integer: true },
   'pv-tdf':  { min: 0,   max: 1,   label: 'Range: 0–1' },
-  'rem-fx':  { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' }
+  'rem-fx':  { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)', integer: true }
 };
 
 function validateInputs() {

@@ -1,14 +1,17 @@
 // Shared input-range warning helper used by bed.js / composite.js / rert.js.
 // Goal: prevent fat-finger errors on dose / fraction inputs.
 //
-// Three states:
-//   - val < 0           → red "Cannot be negative" (.input-range-error)
-//   - val outside range → yellow typical-range hint (existing behavior)
-//   - val valid or NaN  → no warning
+// Four states:
+//   - val < 0                                → red "Cannot be negative"
+//   - range.integer && !Number.isInteger(val) → red "Must be a whole number"
+//   - val outside range                      → yellow typical-range hint
+//   - val valid or NaN                       → no warning
 //
-// `range` is { min, max, label }. `label` is shown for out-of-range
-// (non-negative) values. Negatives always show the same hard-stop message
-// because they're never clinically meaningful.
+// `range` is { min, max, label, integer? }. `label` is shown for out-of-range
+// (non-negative, integer-valid) values. Negatives and non-integer fractions
+// always show their hard-stop messages because they're physically impossible:
+// you can't deliver -5 sessions, and you can't deliver 25.5 sessions either —
+// fraction count is the number of times the patient comes to the linac.
 
 function applyRangeWarning(inputEl, warnEl, range) {
   if (!inputEl || !warnEl) return;
@@ -28,6 +31,13 @@ function applyRangeWarning(inputEl, warnEl, range) {
     return;
   }
 
+  if (range.integer && !Number.isInteger(val)) {
+    warnEl.textContent = '⚠ Must be a whole number';
+    warnEl.style.display = 'block';
+    warnEl.classList.add('input-range-error');
+    return;
+  }
+
   if (val < range.min || val > range.max) {
     warnEl.textContent = range.label;
     warnEl.style.display = 'block';
@@ -41,13 +51,15 @@ function applyRangeWarning(inputEl, warnEl, range) {
 }
 
 // Classify a value against a range. Returned for testability without DOM.
-//   'ok'       — in range or NaN
-//   'negative' — val < 0
-//   'low'      — 0 <= val < min
-//   'high'     — val > max
+//   'ok'           — in range or NaN
+//   'negative'     — val < 0
+//   'non-integer'  — range.integer && !Number.isInteger(val) (and val >= 0)
+//   'low'          — 0 <= val < min (and integer if required)
+//   'high'         — val > max (and integer if required)
 function classifyRange(val, range) {
   if (isNaN(val)) return 'ok';
   if (val < 0) return 'negative';
+  if (range.integer && !Number.isInteger(val)) return 'non-integer';
   if (val < range.min) return 'low';
   if (val > range.max) return 'high';
   return 'ok';

@@ -886,8 +886,9 @@ assert(typeof copyToClipboard === 'function', 'copyToClipboard is a function');
 
 section('=== validate.js: classifyRange ===');
 
-var fxRange   = { min: 1,   max: 80, label: 'Typical: 1–45 fx (>80 is rare)' };
-var doseRange = { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' };
+var fxRange      = { min: 1,   max: 80, label: 'Typical: 1–45 fx (>80 is rare)', integer: true };
+var fxRangeNoInt = { min: 1,   max: 80, label: 'Typical: 1–45 fx (>80 is rare)' };
+var doseRange    = { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' };
 
 assertEqual(classifyRange(NaN, fxRange),    'ok',        'NaN → ok (blank input, no warning)');
 assertEqual(classifyRange(-1,  fxRange),    'negative',  '-1 fx → negative');
@@ -902,6 +903,16 @@ assertEqual(classifyRange(0.1, doseRange),  'ok',        '0.1 Gy → ok (at min)
 assertEqual(classifyRange(80,  doseRange),  'ok',        '80 Gy → ok (typical max)');
 assertEqual(classifyRange(200, doseRange),  'ok',        '200 Gy → ok (at max)');
 assertEqual(classifyRange(201, doseRange),  'high',      '201 Gy → high');
+
+// Integer enforcement — fractions must be whole numbers
+assertEqual(classifyRange(25.5,  fxRange),      'non-integer', '25.5 fx → non-integer (decimal not allowed)');
+assertEqual(classifyRange(1.5,   fxRange),      'non-integer', '1.5 fx → non-integer');
+assertEqual(classifyRange(0.5,   fxRange),      'non-integer', '0.5 fx → non-integer (precedes the low check)');
+assertEqual(classifyRange(25,    fxRange),      'ok',          '25 fx → ok (clean integer)');
+assertEqual(classifyRange(25.0,  fxRange),      'ok',          '25.0 fx → ok (parseFloat treats as 25)');
+assertEqual(classifyRange(25.5,  fxRangeNoInt), 'ok',          '25.5 fx with no integer flag → ok');
+assertEqual(classifyRange(2.75,  doseRange),    'ok',          '2.75 Gy → ok (dose allows decimals)');
+assertEqual(classifyRange(-1.5,  fxRange),      'negative',    '-1.5 → negative wins over non-integer');
 
 section('=== validate.js: RERT_RANGES wiring ===');
 
@@ -946,6 +957,19 @@ var inputBlank = { value: '' };
 var warnBlank  = makeWarn();
 applyRangeWarning(inputBlank, warnBlank, fxRange);
 assertEqual(warnBlank.style.display, 'none', 'blank input → no warning');
+
+// Integer fraction enforcement at DOM level
+var inputDecimal = { value: '25.5' };
+var warnDecimal  = makeWarn();
+applyRangeWarning(inputDecimal, warnDecimal, fxRange);
+assertEqual(warnDecimal.style.display, 'block', '25.5 fx triggers warning');
+assert(warnDecimal.classList.contains('input-range-error'), '25.5 fx gets red error class');
+assert(warnDecimal.textContent.indexOf('whole number') !== -1, 'non-integer message mentions "whole number"');
+
+var inputDose = { value: '2.75' };
+var warnDose  = makeWarn();
+applyRangeWarning(inputDose, warnDose, doseRange);
+assertEqual(warnDose.style.display, 'none', '2.75 Gy (dose, no integer flag) → no warning');
 
 // ============================================================
 // Summary
