@@ -5,14 +5,15 @@
 
 var BED_INPUT_IDS = ['bd-dose', 'bd-fx', 'ab1', 'ab2', 'ab3', 'arb-fx'];
 
-// Input validation ranges
+// Input validation ranges. Max fractions is 80 — beyond that is essentially
+// always a fat-finger error (max real-world regimen we'd expect is ~45 fx).
 var BED_RANGES = {
   'bd-dose': { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' },
-  'bd-fx':   { min: 1,   max: 60,  label: 'Typical: 1–45 fx' },
+  'bd-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' },
   'ab1':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
   'ab2':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
   'ab3':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
-  'arb-fx':  { min: 1,   max: 60,  label: 'Typical: 1–45 fx' }
+  'arb-fx':  { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' }
 };
 
 function validateInputs() {
@@ -20,15 +21,7 @@ function validateInputs() {
     var el = document.getElementById(id);
     var warn = document.getElementById('warn-' + id);
     if (!el || !warn) return;
-    var val = parseFloat(el.value);
-    var r = BED_RANGES[id];
-    if (!isNaN(val) && (val < r.min || val > r.max)) {
-      warn.textContent = r.label;
-      warn.style.display = 'block';
-    } else {
-      warn.textContent = '';
-      warn.style.display = 'none';
-    }
+    applyRangeWarning(el, warn, BED_RANGES[id]);
   });
 }
 

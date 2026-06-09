@@ -138,6 +138,9 @@ vm.runInContext(loadFile('history.js'), sandbox);
 // Load math.js — uses var/function declarations so they go on sandbox global
 vm.runInContext(loadFile('math.js'), sandbox);
 
+// Load validate.js — must precede rert.js (rert.js calls applyRangeWarning)
+vm.runInContext(loadFile('validate.js'), sandbox);
+
 // Load rert.js — uses const, so we wrap to export via globalThis
 var rertSource = loadFile('rert.js');
 vm.runInContext(`
@@ -150,6 +153,9 @@ vm.runInContext(`
   globalThis.eqd2ToPhysical = eqd2ToPhysical;
   globalThis.SERIAL_LABELS = SERIAL_LABELS;
   globalThis.PARALLEL_LABELS = PARALLEL_LABELS;
+  globalThis.RERT_RANGES = RERT_RANGES;
+  globalThis.OAR_DOSE_RANGE_GY = OAR_DOSE_RANGE_GY;
+  globalThis.OAR_DOSE_RANGE_CC = OAR_DOSE_RANGE_CC;
 `, sandbox);
 
 // Load psa.js — strip 'use strict', wrap to export
@@ -195,6 +201,11 @@ var compositeSummary = sandbox.compositeSummary;
 var rertSummary = sandbox.rertSummary;
 var copyToClipboard = sandbox.copyToClipboard;
 var HISTORY_MAX = sandbox.HISTORY_MAX;
+var classifyRange = sandbox.classifyRange;
+var applyRangeWarning = sandbox.applyRangeWarning;
+var RERT_RANGES = sandbox.RERT_RANGES;
+var OAR_DOSE_RANGE_GY = sandbox.OAR_DOSE_RANGE_GY;
+var OAR_DOSE_RANGE_CC = sandbox.OAR_DOSE_RANGE_CC;
 
 
 // ============================================================
@@ -868,6 +879,73 @@ sandbox.localStorage.clear();
 
 section('=== clipboard.js ===');
 assert(typeof copyToClipboard === 'function', 'copyToClipboard is a function');
+
+// ============================================================
+// validate.js — fat-finger guardrails
+// ============================================================
+
+section('=== validate.js: classifyRange ===');
+
+var fxRange   = { min: 1,   max: 80, label: 'Typical: 1–45 fx (>80 is rare)' };
+var doseRange = { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' };
+
+assertEqual(classifyRange(NaN, fxRange),    'ok',        'NaN → ok (blank input, no warning)');
+assertEqual(classifyRange(-1,  fxRange),    'negative',  '-1 fx → negative');
+assertEqual(classifyRange(-0.5, doseRange), 'negative',  '-0.5 Gy → negative');
+assertEqual(classifyRange(0,   fxRange),    'low',       '0 fx → low (below min=1)');
+assertEqual(classifyRange(1,   fxRange),    'ok',        '1 fx → ok (at min)');
+assertEqual(classifyRange(45,  fxRange),    'ok',        '45 fx → ok (typical)');
+assertEqual(classifyRange(80,  fxRange),    'ok',        '80 fx → ok (at max)');
+assertEqual(classifyRange(81,  fxRange),    'high',      '81 fx → high (above 80)');
+assertEqual(classifyRange(120, fxRange),    'high',      '120 fx → high (fat-finger)');
+assertEqual(classifyRange(0.1, doseRange),  'ok',        '0.1 Gy → ok (at min)');
+assertEqual(classifyRange(80,  doseRange),  'ok',        '80 Gy → ok (typical max)');
+assertEqual(classifyRange(200, doseRange),  'ok',        '200 Gy → ok (at max)');
+assertEqual(classifyRange(201, doseRange),  'high',      '201 Gy → high');
+
+section('=== validate.js: RERT_RANGES wiring ===');
+
+assert(RERT_RANGES['pr-fx'].max === 80,        'pr-fx max is 80');
+assert(RERT_RANGES['pr-ab'].max === 30,        'pr-ab max is 30');
+assert(RERT_RANGES['pr-mo'].min === 0,         'pr-mo min is 0 (no negative months)');
+assert(RERT_RANGES['custom-fx'].max === 80,    'custom-fx max is 80');
+assert(OAR_DOSE_RANGE_GY.max === 200,          'OAR Gy dose max is 200');
+assert(OAR_DOSE_RANGE_CC.max === 5000,         'OAR cc volume max is 5000');
+
+section('=== validate.js: applyRangeWarning DOM behavior ===');
+
+function makeWarn() {
+  return { textContent: '', style: { display: 'none' },
+           classList: {
+             _set: {},
+             add: function(c) { this._set[c] = true; },
+             remove: function(c) { delete this._set[c]; },
+             contains: function(c) { return !!this._set[c]; }
+           } };
+}
+
+var input80 = { value: '80' };
+var warn80  = makeWarn();
+applyRangeWarning(input80, warn80, fxRange);
+assertEqual(warn80.style.display, 'none', '80 fx (at max) shows no warning');
+
+var input81 = { value: '81' };
+var warn81  = makeWarn();
+applyRangeWarning(input81, warn81, fxRange);
+assertEqual(warn81.style.display, 'block', '81 fx triggers warning');
+assert(!warn81.classList.contains('input-range-error'), '81 fx is soft warn, not error');
+
+var inputNeg = { value: '-5' };
+var warnNeg  = makeWarn();
+applyRangeWarning(inputNeg, warnNeg, fxRange);
+assertEqual(warnNeg.style.display, 'block', 'negative value triggers warning');
+assert(warnNeg.classList.contains('input-range-error'), 'negative gets red error class');
+assert(warnNeg.textContent.indexOf('negative') !== -1, 'negative message mentions "negative"');
+
+var inputBlank = { value: '' };
+var warnBlank  = makeWarn();
+applyRangeWarning(inputBlank, warnBlank, fxRange);
+assertEqual(warnBlank.style.display, 'none', 'blank input → no warning');
 
 // ============================================================
 // Summary

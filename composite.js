@@ -4,30 +4,23 @@
 
 var COMP_INPUT_IDS = ['st-dose', 'st-fx', 'st-ab', 'pv-dose', 'pv-fx', 'pv-tdf', 'rem-fx'];
 
+// Fraction max bumped to 80 to match BED page — anything higher is essentially
+// always a fat-finger error. applyRangeWarning lives in validate.js.
 var COMP_RANGES = {
   'st-dose': { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' },
-  'st-fx':   { min: 1,   max: 60,  label: 'Typical: 1–45 fx' },
+  'st-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' },
   'st-ab':   { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
   'pv-dose': { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' },
-  'pv-fx':   { min: 1,   max: 60,  label: 'Typical: 1–45 fx' },
+  'pv-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' },
   'pv-tdf':  { min: 0,   max: 1,   label: 'Range: 0–1' },
-  'rem-fx':  { min: 1,   max: 60,  label: 'Typical: 1–45 fx' }
+  'rem-fx':  { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' }
 };
 
 function validateInputs() {
   Object.keys(COMP_RANGES).forEach(function (id) {
     var el = document.getElementById(id);
     var warn = document.getElementById('warn-' + id);
-    if (!el || !warn) return;
-    var val = parseFloat(el.value);
-    var r = COMP_RANGES[id];
-    if (!isNaN(val) && (val < r.min || val > r.max)) {
-      warn.textContent = r.label;
-      warn.style.display = 'block';
-    } else {
-      warn.textContent = '';
-      warn.style.display = 'none';
-    }
+    applyRangeWarning(el, warn, COMP_RANGES[id]);
   });
 }
 
