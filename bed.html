@@ -99,18 +99,21 @@
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Tumor</span>
                     <div class="ab-edit-row">α/β =&nbsp;<input class="ab-input" id="ab1" type="number" value="10" min="0.1" step="0.1">&nbsp;Gy</div>
+                    <span class="input-range-warning" id="warn-ab1"></span>
                   </div>
                 </th>
                 <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Late</span>
                     <div class="ab-edit-row">α/β =&nbsp;<input class="ab-input" id="ab2" type="number" value="3" min="0.1" step="0.1">&nbsp;Gy</div>
+                    <span class="input-range-warning" id="warn-ab2"></span>
                   </div>
                 </th>
                 <th role="columnheader" scope="col">
                   <div class="ab-th-inner">
                     <span class="ab-tissue-name">Prostate / Spine</span>
                     <div class="ab-edit-row">α/β =&nbsp;<input class="ab-input" id="ab3" type="number" value="2" min="0.1" step="0.1">&nbsp;Gy</div>
+                    <span class="input-range-warning" id="warn-ab3"></span>
                   </div>
                 </th>
               </tr>
@@ -184,6 +187,7 @@
               <tr role="row">
                 <td class="alt-fx-cell" role="rowheader" scope="row">
                   <input class="alt-fx-input" type="number" id="arb-fx" value="25" min="1" step="1"> fractions
+                  <span class="input-range-warning" id="warn-arb-fx"></span>
                 </td>
                 <td class="bed-result-cell" role="cell" id="altA-1">—</td>
                 <td class="bed-result-cell" role="cell" id="altA-2">—</td>
@@ -215,6 +219,7 @@
     <script src="history.js"></script>
     <script src="decimals.js"></script>
     <script src="math.js"></script>
+    <script src="validate.js"></script>
     <script src="bed.js"></script>
     <script src="shortcuts.js"></script>
     <script src="theme.js"></script>

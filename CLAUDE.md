@@ -46,15 +46,16 @@ All pages share: nav (hamburger on mobile at ≤900 px), theme toggle, site disc
 - `theme.js` — dark/light toggle, persists to `localStorage['theme']`, dispatches `'themechange'` event. Inlined in `<head>` to prevent flash.
 - `clipboard.js` — `navigator.clipboard` with `execCommand` fallback.
 - `shortcuts.js` — `/` or `Ctrl+K` to focus first input, `Esc` to blur. No-ops gracefully on the hub (no inputs).
+- `validate.js` — `applyRangeWarning(inputEl, warnEl, range)` and `classifyRange(val, range)`. Single source of truth for fat-finger guardrails. Three states: blank (no warning), negative (red `.input-range-error` "Cannot be negative"), out-of-typical (yellow hint with `range.label`). Used by `bed.js` / `composite.js` / `rert.js` validation passes. Must load before its consumers in every HTML page that uses validation.
 
 **Page-specific:**
 - `script.js` — XHR-loads `icd10.xml`, AND-match search, 100-result cap, click-to-copy. Loaded **only** by `icd.html` (never by the hub at `/`).
-- `bed.js` — preset regimens, validation ranges (`BED_RANGES`), update() pattern. History label uses the shared `bedSummary` from `history.js`.
+- `bed.js` — preset regimens, validation ranges (`BED_RANGES`, max fx=80), update() pattern. Validation delegates to shared `applyRangeWarning` from `validate.js`. History label uses the shared `bedSummary` from `history.js`.
 - `psa.js` — weighted least-squares exponential fit (weights `w = y²`), 95% CI bands, click-to-query.
-- `composite.js` — tolerance BED − (prior BED × TDF), warns if prior > tolerance. History label uses the shared `compositeSummary` from `history.js`.
-- `rert.js` — biggest file (~500 lines). `OAR_DATA` const = 24 OARs (22 serial + 2 parallel). TRF auto-highlights based on months since prior RT. Plan-level inputs (`pr-fx`, `pr-ab`, `pr-mo`, `custom-fx`) save to `history_rert` on `change` and render via shared `rertSummary`. OAR selection is not in `RERT_INPUT_IDS` — recents restore the numerics, user re-ticks OARs.
+- `composite.js` — tolerance BED − (prior BED × TDF), warns if prior > tolerance. Validation via shared `applyRangeWarning` (`COMP_RANGES`, max fx=80). History label uses the shared `compositeSummary` from `history.js`.
+- `rert.js` — biggest file (~500 lines). `OAR_DATA` const = 24 OARs (22 serial + 2 parallel). TRF auto-highlights based on months since prior RT. Plan-level inputs (`pr-fx`, `pr-ab`, `pr-mo`, `custom-fx`) save to `history_rert` on `change` and render via shared `rertSummary`. `RERT_RANGES` + per-OAR `OAR_DOSE_RANGE_GY` / `OAR_DOSE_RANGE_CC` drive `validateRertInputs()` (called from `updateAll`) via shared `applyRangeWarning`. OAR selection is not in `RERT_INPUT_IDS` — recents restore the numerics, user re-ticks OARs.
 - `constraints.js` — fetches `constraints-data.json`, AND-match search, source filter, PubMed links.
-- `tests.js` — test suite. Run with `node tests.js` (no test framework, no build — vanilla DOM-shimmed `node:vm` sandbox). Currently 271 assertions, 0 failures.
+- `tests.js` — test suite. Run with `node tests.js` (no test framework, no build — vanilla DOM-shimmed `node:vm` sandbox). Currently 297 assertions, 0 failures.
 
 ## CSS
 
@@ -73,7 +74,7 @@ When adding styles, find the right numbered section and add there — don't appe
 ## Conventions
 
 - **Input IDs match URL params and history keys** — e.g. `bd-dose`, `bd-fx`, `st-dose`. Don't break this contract or you break shareable links + history restore.
-- **Validation warnings** — `warn-{inputId}` element pattern.
+- **Validation warnings** — `warn-{inputId}` element pattern. Add a `<span class="input-range-warning" id="warn-{id}">` next to every numeric input you want guarded, then add the input id + range to the page's `*_RANGES` map. `validate.js` does the rest. Negative values get a distinct red `.input-range-error` variant; non-negative out-of-typical values use the softer yellow hint.
 - **OAR DOM IDs** — `oar-card-{id}`, `dose-{id}`, `eqd2disp-{id}`, `trf-chip-{id}-{idx}`.
 - **Calculator pattern** — input → validate → `update()` → re-render results + push to history + sync URL.
 - **Nav active state** — set `.active` on the matching `.nav-link` in each page's nav block.

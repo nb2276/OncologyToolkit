@@ -2004,6 +2004,14 @@ details[open].rert-oar-picker .rert-picker-chevron {
   margin-top: 2px;
 }
 
+/* Hard-stop variant for impossible values (e.g. negative dose / fractions).
+   Stronger color + weight to clearly signal "this is wrong" vs the softer
+   yellow "above typical" hint. */
+.input-range-warning.input-range-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 /* -----------------------------------------------------------------------
    Regimen preset dropdown (BED page)
 ----------------------------------------------------------------------- */

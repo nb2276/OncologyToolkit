@@ -77,6 +77,39 @@ function getTimeBucketLabel(months) {
 }
 
 // calcBED, calcEQD2, isoeffDose, fmt provided by math.js
+// applyRangeWarning provided by validate.js
+
+// ============================================================
+// Input validation ranges — prevents fat-finger errors.
+// Plan inputs share the same fraction max (80) as bed.js / composite.js.
+// pr-mo upper bound is 600 (~50 yr) — generous but rules out typos.
+// Per-OAR dose inputs are validated dynamically below (different range
+// for Gy vs cc).
+// ============================================================
+var RERT_RANGES = {
+  'pr-fx':     { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' },
+  'pr-ab':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
+  'pr-mo':     { min: 0,   max: 600, label: 'Typical: 0–120 months' },
+  'custom-fx': { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' }
+};
+
+var OAR_DOSE_RANGE_GY = { min: 0, max: 200,  label: 'Typical: 1–80 Gy' };
+var OAR_DOSE_RANGE_CC = { min: 0, max: 5000, label: 'Typical: 0–1500 cc' };
+
+function validateRertInputs() {
+  Object.keys(RERT_RANGES).forEach(function (id) {
+    var el   = document.getElementById(id);
+    var warn = document.getElementById('warn-' + id);
+    applyRangeWarning(el, warn, RERT_RANGES[id]);
+  });
+  addedOarIds.forEach(function (id) {
+    var oar  = oarById[id];
+    var el   = document.getElementById('dose-' + id);
+    var warn = document.getElementById('warn-dose-' + id);
+    var range = oar.unit === 'cc' ? OAR_DOSE_RANGE_CC : OAR_DOSE_RANGE_GY;
+    applyRangeWarning(el, warn, range);
+  });
+}
 
 // Aliases for readability in reirradiation context
 function physicalToEqd2(D, n, ab) { return calcEQD2(D, n, ab); }
@@ -201,6 +234,7 @@ function buildOarCard(oar) {
       '<input type="number" class="bed-num-input rert-dose-input"' +
              ' id="dose-' + oar.id + '" placeholder="0.0" min="0" step="0.1">' +
       '<span class="rert-eqd2-display" id="eqd2disp-' + oar.id + '"></span>' +
+      '<span class="input-range-warning" id="warn-dose-' + oar.id + '"></span>' +
     '</div>' +
     '<div class="rert-trf-row">' + chips + '</div>';
   return card;
@@ -344,6 +378,7 @@ function updateAll() {
   });
 
   applyColumnVisibility();
+  validateRertInputs();
 }
 
 // ============================================================
