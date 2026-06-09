@@ -7,13 +7,14 @@ var BED_INPUT_IDS = ['bd-dose', 'bd-fx', 'ab1', 'ab2', 'ab3', 'arb-fx'];
 
 // Input validation ranges. Max fractions is 80 — beyond that is essentially
 // always a fat-finger error (max real-world regimen we'd expect is ~45 fx).
+// `integer: true` on fractions because you can't deliver 25.5 sessions.
 var BED_RANGES = {
   'bd-dose': { min: 0.1, max: 200, label: 'Typical: 1–80 Gy' },
-  'bd-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' },
+  'bd-fx':   { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)', integer: true },
   'ab1':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
   'ab2':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
   'ab3':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
-  'arb-fx':  { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)' }
+  'arb-fx':  { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)', integer: true }
 };
 
 function validateInputs() {
