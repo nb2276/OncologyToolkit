@@ -89,7 +89,7 @@ function getTimeBucketLabel(months) {
 var RERT_RANGES = {
   'pr-fx':     { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)', integer: true },
   'pr-ab':     { min: 0.1, max: 30,  label: 'Typical: 1–20 Gy' },
-  'pr-mo':     { min: 0,   max: 600, label: 'Typical: 0–120 months' },
+  'pr-mo':     { min: 0,   max: 600, label: 'Typical: 0–120 months', integer: true },
   'custom-fx': { min: 1,   max: 80,  label: 'Typical: 1–45 fx (>80 is rare)', integer: true }
 };
 

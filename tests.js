@@ -918,8 +918,13 @@ section('=== validate.js: RERT_RANGES wiring ===');
 
 assert(RERT_RANGES['pr-fx'].max === 80,        'pr-fx max is 80');
 assert(RERT_RANGES['pr-ab'].max === 30,        'pr-ab max is 30');
+assert(!RERT_RANGES['pr-ab'].integer,          'pr-ab is NOT integer (α/β commonly 1.5, 2.5)');
 assert(RERT_RANGES['pr-mo'].min === 0,         'pr-mo min is 0 (no negative months)');
+assert(RERT_RANGES['pr-mo'].integer === true,  'pr-mo is integer (clinical months are whole)');
 assert(RERT_RANGES['custom-fx'].max === 80,    'custom-fx max is 80');
+assertEqual(classifyRange(6.5, RERT_RANGES['pr-mo']), 'non-integer', '6.5 months → non-integer');
+assertEqual(classifyRange(6,   RERT_RANGES['pr-mo']), 'ok',          '6 months → ok');
+assertEqual(classifyRange(2.5, RERT_RANGES['pr-ab']), 'ok',          '2.5 α/β → ok (decimals allowed)');
 assert(OAR_DOSE_RANGE_GY.max === 200,          'OAR Gy dose max is 200');
 assert(OAR_DOSE_RANGE_CC.max === 5000,         'OAR cc volume max is 5000');
 
