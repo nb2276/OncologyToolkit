@@ -713,6 +713,14 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   margin: -8px 0 20px;
 }
 
+/* Separate the Recent Calculations panel from the chart/controls above it.
+   Scoped to the PSA column so the shared .history-section spacing on
+   bed/composite is untouched. Must exceed the chart-section's 28px
+   bottom margin (adjacent block margins collapse to the larger of the two). */
+.psa-col-right .history-section {
+  margin-top: 44px;
+}
+
 /* White background mode for PSA results */
 .psa-white-mode {
   background: #ffffff;
