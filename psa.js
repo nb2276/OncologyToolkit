@@ -1,6 +1,9 @@
 // PSA Doubling Time Calculator
-// Weighted least-squares exponential fitting: y = A * exp(B * x)
-// Reference: https://mathworld.wolfram.com/LeastSquaresFittingExponential.html
+// Unweighted log-linear regression: ln(PSA) = ln(A) + B*t, so y = A * exp(B*t).
+// Doubling time = ln(2)/B. This is the standard clinical PSADT method (each
+// measurement weighted equally in log space, matching PSA's multiplicative
+// error). PSA velocity is reported separately as a linear regression of raw
+// PSA on time. Reference: https://en.wikipedia.org/wiki/Simple_linear_regression
 
 'use strict';
 
@@ -82,7 +85,7 @@ function parseLine(line) {
 
     if (psaValue === null) {
       const n = parseFloat(token);
-      if (!isNaN(n) && n >= 0) { psaValue = n; }
+      if (isFinite(n) && n >= 0) { psaValue = n; }   // reject NaN AND Infinity (1e309)
     }
   }
 
@@ -107,16 +110,23 @@ function parseInput(text) {
 const MS_PER_DAY = 86400000;
 
 /**
- * Fit y = A * exp(B * x) to the data using weighted least squares,
- * with weights w_i = y_i^2 (MathWorld formula).
+ * Fit y = A * exp(B * x) to the data using UNWEIGHTED ordinary least squares
+ * on the linearised model ln(y) = ln(A) + B*x.
+ *
+ * This is the standard PSA-doubling-time method (log-linear regression of
+ * ln(PSA) on time). It treats each measurement equally in log space, which is
+ * the right error model for PSA: measurement and biological variation scale
+ * with the value (multiplicative / log-normal error → constant variance in
+ * ln-space). The earlier weighted form (w = y^2) over-weighted high values and
+ * is not the clinical PSADT convention; it was replaced 2026-06.
  *
  * x is measured in days from the first data point.
  *
- * Also computes the variance-covariance matrix for ln(A) and B so that
- * confidence bands can be drawn around the projection.
+ * Also computes the variance-covariance matrix for ln(A) and B (for confidence
+ * bands + the doubling-time CI) and the log-scale R^2 goodness of fit.
  *
- * Returns { A, B, doublingTimeDays, firstDate, pts, varA, varB, covAB, n }
- * or null on failure.
+ * Returns { A, B, doublingTimeDays, firstDate, pts, varLnA, varB, covAB, n,
+ *           rSquared, rSquaredDefined, ciEstimable } or null on failure.
  */
 function fitExponential(data) {
   const valid = data.filter(d => d.psaValue > 0);
@@ -130,33 +140,34 @@ function fitExponential(data) {
     date: d.date
   }));
 
-  // Weighted sums (weights w_i = y_i^2)
+  // Unweighted sums (w_i = 1): S1 = n, S2 = Σx, S3 = Σx², S4 = Σln y, S5 = Σx·ln y
   let S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0;
   for (const { x, y } of pts) {
-    const w   = y * y;
     const lny = Math.log(y);
-    S1 += w;
-    S2 += w * x;
-    S3 += w * x * x;
-    S4 += w * lny;
-    S5 += w * x * lny;
+    S1 += 1;
+    S2 += x;
+    S3 += x * x;
+    S4 += lny;
+    S5 += x * lny;
   }
 
   const denom = S1 * S3 - S2 * S2;
-  if (Math.abs(denom) < 1e-15) return null;
+  if (Math.abs(denom) < 1e-15) return null;   // all points share one date
 
   const B = (S1 * S5 - S2 * S4) / denom;
   const lnA = (S4 - B * S2) / S1;
   const A = Math.exp(lnA);
   const doublingTimeDays = Math.log(2) / B;
 
-  // Weighted residual variance for the linearised model: ln(y) = lnA + B*x
+  // Residual + total sums of squares in log space (for variance + R²)
   const n = pts.length;
-  let ssRes = 0;
+  const meanLnY = S4 / S1;
+  let ssRes = 0, ssTot = 0;
   for (const { x, y } of pts) {
-    const w   = y * y;
-    const r   = Math.log(y) - lnA - B * x;
-    ssRes += w * r * r;
+    const lny = Math.log(y);
+    const r   = lny - lnA - B * x;
+    ssRes += r * r;
+    ssTot += (lny - meanLnY) * (lny - meanLnY);
   }
   const s2 = n > 2 ? ssRes / (n - 2) : 0;
 
@@ -165,7 +176,84 @@ function fitExponential(data) {
   const varB   = s2 * S1 / denom;
   const covAB  = -s2 * S2 / denom;
 
-  return { A, B, doublingTimeDays, firstDate, pts, varLnA, varB, covAB, n };
+  // Log-scale R². Only meaningful with ≥3 points AND non-zero spread in ln(y):
+  // constant PSA gives ssTot=0 (0/0), n=2 gives a trivial R²=1. Flag both.
+  const rSquaredDefined = n >= 3 && ssTot > 1e-12;
+  const rSquared = rSquaredDefined ? 1 - ssRes / ssTot : null;
+
+  // CI / bands need residual d.o.f.: n-2 ≥ 1, i.e. n ≥ 3. With n=2, varB=0
+  // would fake a zero-width interval — suppress instead.
+  const ciEstimable = n >= 3;
+
+  return {
+    A, B, doublingTimeDays, firstDate, pts, varLnA, varB, covAB, n,
+    rSquared, rSquaredDefined, ciEstimable
+  };
+}
+
+/**
+ * 95% confidence interval for the doubling time, derived by inverting the CI
+ * for the slope B (DT = ln2 / B).
+ *
+ * The inversion is only valid when B's CI does not straddle zero — if it does,
+ * the doubling time is unbounded/disjoint (the trend could be flat or either
+ * direction) and we must NOT show a tidy finite interval. When both bounds are
+ * negative the PSA is falling and the interval is a halving-time interval.
+ *
+ * Returns one of:
+ *   { estimable: false, reason: 'need3' | 'degenerate' | 'spanszero' }
+ *   { estimable: true, loDays, hiDays, increasing }   // loDays/hiDays signed
+ */
+function doublingTimeCI(fit) {
+  if (!fit || !fit.ciEstimable || fit.varB == null) {
+    return { estimable: false, reason: 'need3' };
+  }
+  const seB = Math.sqrt(fit.varB);
+  if (!(seB > 0) || !isFinite(seB)) {
+    return { estimable: false, reason: 'degenerate' };
+  }
+  const tCrit = tValue95(fit.n - 2);
+  const Blo = fit.B - tCrit * seB;
+  const Bhi = fit.B + tCrit * seB;
+
+  // CI for B straddles 0 → DT interval is unbounded; not estimable.
+  if (Blo <= 0 && Bhi >= 0) {
+    return { estimable: false, reason: 'spanszero' };
+  }
+
+  // Same sign: ln2/B is monotonic, so the endpoints map to the DT bounds.
+  const d1 = Math.log(2) / Blo;
+  const d2 = Math.log(2) / Bhi;
+  return {
+    estimable: true,
+    loDays: Math.min(d1, d2),
+    hiDays: Math.max(d1, d2),
+    increasing: fit.B > 0
+  };
+}
+
+/**
+ * PSA velocity (ng/mL per year) via a SEPARATE simple linear regression of raw
+ * PSA on time — the textbook PSAV method, distinct from the exponential fit.
+ * Uses the same psaValue>0 filtered set as fitExponential for consistency.
+ * Returns ng/mL/yr (may be negative = declining), or null if not computable.
+ */
+function psaVelocity(data) {
+  const valid = data.filter(d => d.psaValue > 0);
+  if (valid.length < 2) return null;
+
+  const t0 = valid[0].date.getTime();
+  let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const d of valid) {
+    const x = (d.date.getTime() - t0) / MS_PER_DAY;
+    const y = d.psaValue;
+    n++; sx += x; sy += y; sxx += x * x; sxy += x * y;
+  }
+  const denom = n * sxx - sx * sx;
+  if (Math.abs(denom) < 1e-9) return null;   // all on one date
+
+  const slopePerDay = (n * sxy - sx * sy) / denom;
+  return slopePerDay * 365.25;
 }
 
 // -------------------------------------------------------------------------
@@ -177,6 +265,8 @@ let whiteMode = false;
 let lastData  = null;
 let lastFit   = null;
 let defaultProjectionYears = 2;
+let yAxisType = 'linear';      // 'linear' (capped) | 'logarithmic'
+let lastDataMs = null;         // last measured date — projection-shading divider
 
 function fmtDate(date) {
   return date.toLocaleDateString('en-US', {
@@ -184,11 +274,59 @@ function fmtDate(date) {
   });
 }
 
+// A "doubling time" longer than a human lifetime is, clinically, no trend at all
+// (and catches B≈0 floating-point noise that would otherwise print absurd values).
+const DT_STABLE_DAYS = 100 * 365.25;
+
 function fmtDoublingTime(days) {
+  if (!isFinite(days) || Math.abs(days) > DT_STABLE_DAYS) {
+    return `PSA stable (no measurable trend)`;
+  }
   if (days < 0)   return `PSA is decreasing (rate constant implies halving, not doubling)`;
   if (days < 60)  return `${days.toFixed(1)} days`;
   if (days < 730) return `${(days / 30.44).toFixed(1)} months`;
   return `${(days / 365.25).toFixed(2)} years  (${(days / 30.44).toFixed(1)} months)`;
+}
+
+// Compact one-unit duration for CI bounds (no dual unit, pairs cleanly in a range).
+function fmtDurationShort(days) {
+  const a = Math.abs(days);
+  if (a < 60)  return `${days.toFixed(0)} d`;
+  if (a < 730) return `${(days / 30.44).toFixed(1)} mo`;
+  return `${(days / 365.25).toFixed(1)} yr`;
+}
+
+// Human text for the doubling-time 95% CI (see doublingTimeCI).
+// For a decreasing series the bounds are negative half-life days; show them as
+// positive halving times ordered small→large so the range reads naturally.
+function fmtDoublingTimeCI(ci) {
+  if (!ci || !ci.estimable) {
+    if (ci && ci.reason === 'need3') return '95% CI: needs ≥3 measurements';
+    return '95% CI: not estimable (trend not significant)';   // spanszero / degenerate
+  }
+  if (ci.increasing) {
+    return `95% CI ${fmtDurationShort(ci.loDays)} – ${fmtDurationShort(ci.hiDays)}`;
+  }
+  const a = Math.abs(ci.loDays), b = Math.abs(ci.hiDays);
+  const lo = Math.min(a, b), hi = Math.max(a, b);
+  return `95% CI (halving) ${fmtDurationShort(lo)} – ${fmtDurationShort(hi)}`;
+}
+
+function fmtRSquared(fit) {
+  if (!fit || !fit.rSquaredDefined) return 'R² n/a';
+  return `R² ${fit.rSquared.toFixed(2)} (log fit)`;
+}
+
+function fmtVelocity(v) {
+  if (v == null || !isFinite(v)) return 'velocity n/a';
+  const sign = v >= 0 ? '+' : '';
+  return `velocity ${sign}${v.toFixed(2)} ng/mL/yr`;
+}
+
+// Set textContent if the element exists (no-op under the test DOM shim).
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
 }
 
 /**
@@ -263,12 +401,32 @@ function renderChart(data, fit) {
   const titleColor  = light ? '#444'    : '#777';
 
   const MS_PER_YEAR = 365.25 * MS_PER_DAY;
-  const projYrs     = Math.max(0.5, parseFloat(document.getElementById('projectionYears').value) || defaultProjectionYears);
+  // Clamp to [0.5, 30] yr: buildCurve steps weekly, so an unbounded value (e.g.
+  // a hand-edited URL/history param) would generate millions of points and hang.
+  let projYrs = parseFloat(document.getElementById('projectionYears').value);
+  if (!isFinite(projYrs)) projYrs = defaultProjectionYears;
+  projYrs = Math.max(0.5, Math.min(30, projYrs));
   const chartStart  = new Date(data[0].date);
   const chartEnd    = new Date(data[data.length - 1].date.getTime() + projYrs * MS_PER_YEAR);
 
   const { pts: curve, upper, lower, hasBands } = buildCurve(fit, chartStart, chartEnd);
   const measured = data.map(d => ({ x: new Date(d.date), y: d.psaValue }));
+
+  // Projection-region divider (last measured date), used by the shading plugin.
+  lastDataMs = data[data.length - 1].date.getTime();
+
+  // Linear axis cap: the CI band grows exponentially into the projection and
+  // would otherwise force autoscale to a huge max, crushing the data. Cap to
+  // 1.5x the largest *finite, positive* value over the WHOLE sampled curve plus
+  // measured points (not just fit-at-end — a decreasing fit peaks at the start).
+  let yMax = null;
+  if (yAxisType === 'linear') {
+    let m = 0;
+    for (const p of measured) if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
+    for (const p of curve)    if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
+    if (m > 0 && isFinite(m)) yMax = m * 1.5;
+  }
+  const isLog = yAxisType === 'logarithmic';
 
   if (psaChart) { psaChart.destroy(); psaChart = null; }
 
@@ -280,6 +438,7 @@ function renderChart(data, fit) {
       data: measured,
       backgroundColor: '#4fc3f7',
       borderColor: '#4fc3f7',
+      pointStyle: 'circle',
       pointRadius: 6,
       pointHoverRadius: 9,
       order: 1
@@ -291,6 +450,7 @@ function renderChart(data, fit) {
       borderColor: '#ef5350',
       backgroundColor: 'rgba(239,83,80,0.08)',
       fill: false,
+      pointStyle: 'line',   // legend swatch renders as a line, not a box
       pointRadius: 0,
       pointHitRadius: 10,
       borderWidth: 2.5,
@@ -301,12 +461,13 @@ function renderChart(data, fit) {
 
   if (hasBands) {
     datasets.push({
-      label: '95% CI',
+      label: '95% CI (trend)',
       data: upper,
       type: 'line',
       borderColor: 'rgba(239,83,80,0.3)',
       backgroundColor: 'rgba(239,83,80,0.10)',
       fill: '+1',   // fill between this dataset and the next (lower)
+      pointStyle: 'rectRot',
       pointRadius: 0,
       pointHitRadius: 0,
       borderWidth: 1,
@@ -330,6 +491,22 @@ function renderChart(data, fit) {
     });
   }
 
+  const yScale = isLog
+    ? {
+        type: 'logarithmic',
+        ticks: { color: tickColor },
+        grid:  { color: gridColor },
+        title: { display: true, text: 'PSA (ng/mL, log scale)', color: titleColor }
+      }
+    : {
+        type: 'linear',
+        beginAtZero: true,
+        max: yMax != null ? yMax : undefined,
+        ticks: { color: tickColor },
+        grid:  { color: gridColor },
+        title: { display: true, text: 'PSA (ng/mL)', color: titleColor }
+      };
+
   psaChart = new Chart(ctx, {
     type: 'scatter',
     data: { datasets },
@@ -342,10 +519,11 @@ function renderChart(data, fit) {
           labels: {
             color: legendColor,
             padding: 16,
+            usePointStyle: true,
             filter: item => item.text !== '95% CI Lower'
           },
           onClick: function(evt, legendItem, legend) {
-            const ci = legendItem.text === '95% CI';
+            const ci = legendItem.text === '95% CI (trend)';
             Chart.defaults.plugins.legend.onClick.call(this, evt, legendItem, legend);
             if (ci) {
               // Also toggle the hidden CI Lower dataset
@@ -370,11 +548,7 @@ function renderChart(data, fit) {
           grid:  { color: gridColor },
           title: { display: true, text: 'Date', color: titleColor }
         },
-        y: {
-          ticks: { color: tickColor },
-          grid:  { color: gridColor },
-          title: { display: true, text: 'PSA (ng/mL)', color: titleColor }
-        }
+        y: yScale
       },
       onHover: (evt) => handleChartHover(evt, fit),
       onClick: (evt) => handleChartClick(evt, fit)
@@ -388,19 +562,71 @@ function renderChart(data, fit) {
         c2.fillRect(0, 0, chart.width, chart.height);
         c2.restore();
       },
+      // Shade the projection region (last measured date → end) so users can
+      // tell measured data from extrapolation. Drawn behind the datasets.
+      beforeDatasetsDraw(chart) {
+        if (lastDataMs == null) return;
+        const area = chart.chartArea;
+        const xPix = chart.scales.x.getPixelForValue(lastDataMs);
+        if (!isFinite(xPix) || xPix >= area.right - 1) return;
+        const left = Math.max(xPix, area.left);
+        const c2 = chart.canvas.getContext('2d');
+        c2.save();
+        c2.fillStyle = light ? 'rgba(0,0,0,0.045)' : 'rgba(255,255,255,0.05)';
+        c2.fillRect(left, area.top, area.right - left, area.bottom - area.top);
+        c2.restore();
+      },
       afterDraw(chart) {
         const c2 = chart.canvas.getContext('2d');
+        const area = chart.chartArea;
+
+        // "Projected" label + divider at the measured/extrapolated boundary.
+        if (lastDataMs != null) {
+          const xPix = chart.scales.x.getPixelForValue(lastDataMs);
+          if (isFinite(xPix) && xPix < area.right - 1 && xPix > area.left) {
+            c2.save();
+            c2.strokeStyle = light ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.22)';
+            c2.lineWidth = 1;
+            c2.setLineDash([3, 3]);
+            c2.beginPath();
+            c2.moveTo(xPix, area.top);
+            c2.lineTo(xPix, area.bottom);
+            c2.stroke();
+            c2.setLineDash([]);
+            const lblSize = Math.max(9, Math.round(chart.width / 90));
+            c2.font = `${lblSize}px system-ui, sans-serif`;
+            c2.fillStyle = light ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)';
+            c2.textAlign = 'left';
+            c2.textBaseline = 'top';
+            c2.fillText('Projected →', xPix + 5, area.top + 4);
+            c2.restore();
+          }
+        }
+
+        // Watermark, bottom-right.
         c2.save();
         const fontSize = Math.max(10, Math.round(chart.width / 72));
         c2.font = `${fontSize}px system-ui, sans-serif`;
-        c2.fillStyle = light ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.18)';
+        c2.fillStyle = light ? 'rgba(0,0,0,0.16)' : 'rgba(255,255,255,0.16)';
         c2.textAlign = 'right';
         c2.textBaseline = 'bottom';
-        c2.fillText('oncologytoolkit.com', chart.width - 10, chart.height - 8);
+        c2.fillText('oncologytoolkit.com', area.right, chart.height - 6);
         c2.restore();
       }
     }]
   });
+}
+
+// Flip the y-axis between capped-linear and logarithmic, then re-render.
+function toggleAxisScale() {
+  yAxisType = yAxisType === 'linear' ? 'logarithmic' : 'linear';
+  const btn = document.getElementById('axisToggleBtn');
+  if (btn) {
+    btn.textContent = yAxisType === 'linear' ? 'Log scale' : 'Linear scale';
+    btn.setAttribute('aria-label',
+      yAxisType === 'linear' ? 'Switch chart to logarithmic y-axis' : 'Switch chart to linear y-axis');
+  }
+  if (lastData && lastFit) renderChart(lastData, lastFit);
 }
 
 /**
@@ -420,15 +646,16 @@ function handleChartHover(evt, fit) {
   }
 
   const xMs = psaChart.scales.x.getValueForPixel(pos.x);
-  if (xMs == null) { tooltip.style.display = 'none'; return; }
+  if (xMs == null || !isFinite(xMs)) { tooltip.style.display = 'none'; return; }
 
   const hoverDate = new Date(xMs);
   const dx  = (hoverDate.getTime() - fit.firstDate.getTime()) / MS_PER_DAY;
   const psa = fit.A * Math.exp(fit.B * dx);
+  if (!isFinite(psa)) { tooltip.style.display = 'none'; return; }
 
   // Check if cursor is near the fit line (within 30px vertically)
   const fitYPixel = psaChart.scales.y.getPixelForValue(psa);
-  if (Math.abs(pos.y - fitYPixel) > 30) {
+  if (!isFinite(fitYPixel) || Math.abs(pos.y - fitYPixel) > 30) {
     tooltip.style.display = 'none';
     return;
   }
@@ -477,11 +704,12 @@ function handleChartClick(evt, fit) {
 
   const pos = Chart.helpers.getRelativePosition(evt, psaChart);
   const xMs = psaChart.scales.x.getValueForPixel(pos.x);
-  if (xMs == null) return;
+  if (xMs == null || !isFinite(xMs)) return;
 
   const clickedDate = new Date(xMs);
   const dx  = (clickedDate.getTime() - fit.firstDate.getTime()) / MS_PER_DAY;
   const psa = fit.A * Math.exp(fit.B * dx);
+  if (!isFinite(psa)) return;
 
   const el = document.getElementById('clickInfo');
   el.innerHTML =
@@ -520,8 +748,12 @@ function copyResults() {
 
   const font = 'Arial, Helvetica, sans-serif';
 
+  // Secondary readouts (CI, R², velocity) for the exported image.
+  const ciText    = (document.getElementById('psaCI') || {}).textContent || '';
+  const statsText = (document.getElementById('psaStats') || {}).textContent || '';
+
   const pad    = 36;
-  const headH  = 100;
+  const headH  = 132;
   const gap    = 24;
   const rowH   = 34;
   const tableH = (lastData.length + 2) * rowH + pad * 2 + gap;
@@ -540,13 +772,20 @@ function copyResults() {
   const titleSize = Math.max(16, Math.round(W / 28));
   c.fillStyle = '#111111';
   c.font = `bold ${titleSize}px ${font}`;
-  c.fillText('PSA Doubling Time', pad, Math.round(headH * 0.42));
+  c.fillText('PSA Doubling Time', pad, 36);
 
   // Doubling time value
   const valSize = Math.max(14, Math.round(W / 32));
   c.fillStyle = '#1565c0';
   c.font = `bold ${valSize}px ${font}`;
-  c.fillText(dt, pad, Math.round(headH * 0.78));
+  c.fillText(dt, pad, 72);
+
+  // CI + R²/velocity subtitle
+  const subSize = Math.max(11, Math.round(W / 64));
+  c.fillStyle = '#555555';
+  c.font = `${subSize}px ${font}`;
+  if (ciText)    c.fillText(ciText, pad, 98);
+  if (statsText) c.fillText(statsText, pad, 98 + subSize + 8);
 
   // Chart
   c.drawImage(chartCanvas, 0, headH + gap);
@@ -623,6 +862,7 @@ function updateParsedTable(data) {
 var PSA_INPUT_IDS = ['psaInput', 'projectionYears'];
 
 function psaShortDt(days) {
+  if (!isFinite(days) || Math.abs(days) > DT_STABLE_DAYS) return 'stable';
   if (days < 0)   return 'decreasing';
   if (days < 60)  return days.toFixed(0) + ' d';
   if (days < 730) return (days / 30.44).toFixed(1) + ' mo';
@@ -718,6 +958,27 @@ function calculate(keepProjection) {
   }
 
   document.getElementById('doublingTime').textContent = fmtDoublingTime(fit.doublingTimeDays);
+
+  // Uncertainty rides with the headline; R²/velocity sit in a muted stat row.
+  const ci = doublingTimeCI(fit);
+  setText('psaCI', fmtDoublingTimeCI(ci));
+  const velocity = psaVelocity(data);
+  setText('psaStats', fmtRSquared(fit) + '  ·  ' + fmtVelocity(velocity));
+
+  // Disclose measurements dropped from the fit (PSA ≤ 0 / below detection).
+  const dropped = data.length - fit.n;
+  const dropEl = document.getElementById('psaDropNote');
+  if (dropEl) {
+    if (dropped > 0) {
+      // Axis-independent wording so it never goes stale when the y-axis is toggled.
+      dropEl.textContent = dropped + ' measurement' + (dropped === 1 ? '' : 's') +
+        ' with PSA ≤ 0 excluded from the fit (zero cannot be plotted on a log axis).';
+      dropEl.style.display = 'block';
+    } else {
+      dropEl.style.display = 'none';
+    }
+  }
+
   document.getElementById('clickInfo').style.display = 'none';
 
   updateParsedTable(data);
