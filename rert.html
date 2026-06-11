@@ -160,8 +160,8 @@
             <button class="psa-action-btn" id="copy-link-btn">Copy Link</button>
           </div>
 
-          <!-- History — plan-level inputs only; OAR selection isn't in RERT_INPUT_IDS,
-               so a recalled entry restores Fractions/α/β/Months but the user re-ticks OARs. -->
+          <!-- History — full state: a recalled entry restores Fractions/α/β/Months,
+               the selected OARs, and each OAR's prior dose (see rert.js restoreRertState). -->
           <details class="bed-card history-section" id="history-section" style="display:none;">
             <summary class="history-summary">Recent Calculations</summary>
             <div class="history-list"></div>

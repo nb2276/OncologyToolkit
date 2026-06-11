@@ -7,13 +7,23 @@
 
 var HISTORY_MAX = 10;
 
-function saveToHistory(toolName, inputIds) {
+// extraParams (optional) is a flat { key: value } object merged into the saved
+// params alongside the DOM-read inputIds. ReRT uses it to persist state that
+// lives outside a fixed input list — which OARs are selected (`rert-oars`) and
+// their per-OAR prior doses (`dose-<id>`). Because these land in `params`, they
+// participate in dedup, ride along in getRecentAcrossTools, and round-trip the URL.
+function saveToHistory(toolName, inputIds, extraParams) {
   try {
     var entry = { ts: Date.now(), params: {} };
     inputIds.forEach(function (id) {
       var el = document.getElementById(id);
       if (el) entry.params[id] = el.value;
     });
+    if (extraParams) {
+      Object.keys(extraParams).forEach(function (k) {
+        entry.params[k] = extraParams[k];
+      });
+    }
     var key = 'history_' + toolName;
     var history = loadHistoryRaw(key);
     // Deduplicate: remove existing entry with same params
@@ -48,7 +58,12 @@ function clearHistory(toolName) {
   try { localStorage.removeItem('history_' + toolName); } catch (e) { /* silent */ }
 }
 
-function renderHistory(toolName, inputIds, updateFn, summaryFn) {
+// restoreFn (optional) overrides the default per-key value assignment when a
+// history item is clicked. Tools whose state can't be restored by simply writing
+// item.params[id] into matching elements (ReRT must re-tick OAR checkboxes to
+// rebuild dose inputs before filling them) pass a restoreFn that owns the entire
+// restore — including calling updateFn and updating the URL.
+function renderHistory(toolName, inputIds, updateFn, summaryFn, restoreFn) {
   var container = document.getElementById('history-section');
   if (!container) return;
   var items = loadHistory(toolName);
@@ -66,6 +81,11 @@ function renderHistory(toolName, inputIds, updateFn, summaryFn) {
     li.textContent = summaryFn ? summaryFn(item.params) : defaultHistorySummary(item.params);
     li.title = new Date(item.ts).toLocaleString();
     li.addEventListener('click', function () {
+      if (restoreFn) {
+        // Tool owns the full restore (values + update + URL). See ReRT.
+        restoreFn(item.params);
+        return;
+      }
       Object.keys(item.params).forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.value = item.params[id];
@@ -113,9 +133,12 @@ function compositeSummary(p) {
 }
 
 function rertSummary(p) {
-  // Note: OAR selection is not in RERT_INPUT_IDS, so the pill label can't
-  // include which organs were checked. Partial-state restore by design.
-  return 'prior ' + (p['pr-fx'] || '?') + ' fx, ' + (p['pr-mo'] || '?') + ' mo ago';
+  // OAR selection + doses ARE persisted now (params['rert-oars'] + dose-<id>),
+  // so a recalled entry restores the full case. The pill label stays terse —
+  // prior fx + months — because organ lists would overflow the recents row.
+  var n = p['rert-oars'] ? p['rert-oars'].split(',').filter(Boolean).length : 0;
+  var oarPart = n ? ', ' + n + ' OAR' + (n > 1 ? 's' : '') : '';
+  return 'prior ' + (p['pr-fx'] || '?') + ' fx, ' + (p['pr-mo'] || '?') + ' mo ago' + oarPart;
 }
 
 // ------------------------------------------------------------------

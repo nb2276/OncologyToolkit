@@ -736,6 +736,44 @@ sandbox.localStorage.setItem('history_bed', 'not valid json{{{');
 hist = loadHistory.call(sandbox, 'bed');
 assertEqual(hist.length, 0, 'history: corrupted JSON returns empty array');
 
+// extraParams (ReRT OAR selection + per-OAR doses) merge into the saved params
+// and participate in dedup — see saveToHistory(toolName, inputIds, extraParams).
+sandbox.localStorage.clear();
+var rPrFxEl = makeDomElement(); rPrFxEl.value = '25';
+var rPrAbEl = makeDomElement(); rPrAbEl.value = '2.5';
+var rPrMoEl = makeDomElement(); rPrMoEl.value = '12';
+var rCustEl = makeDomElement(); rCustEl.value = '10';
+sandbox.document.getElementById = function(id) {
+  if (id === 'pr-fx') return rPrFxEl;
+  if (id === 'pr-ab') return rPrAbEl;
+  if (id === 'pr-mo') return rPrMoEl;
+  if (id === 'custom-fx') return rCustEl;
+  return makeDomElement();
+};
+var rIds = ['pr-fx', 'pr-ab', 'pr-mo', 'custom-fx'];
+saveToHistory.call(sandbox, 'rert', rIds,
+  { 'rert-oars': 'bladder,spinalcord', 'dose-bladder': '70', 'dose-spinalcord': '45' });
+var rHist = loadHistory.call(sandbox, 'rert');
+assertEqual(rHist.length, 1, 'history(rert): 1 entry after save');
+assertEqual(rHist[0].params['pr-fx'], '25', 'history(rert): plan input saved');
+assertEqual(rHist[0].params['rert-oars'], 'bladder,spinalcord',
+  'history(rert): extraParams rert-oars merged into params');
+assertEqual(rHist[0].params['dose-bladder'], '70', 'history(rert): dose-bladder merged');
+assertEqual(rHist[0].params['dose-spinalcord'], '45', 'history(rert): dose-spinalcord merged');
+
+// A dose-only change (extraParams differ, inputIds identical) is a distinct entry.
+saveToHistory.call(sandbox, 'rert', rIds,
+  { 'rert-oars': 'bladder,spinalcord', 'dose-bladder': '60', 'dose-spinalcord': '45' });
+rHist = loadHistory.call(sandbox, 'rert');
+assertEqual(rHist.length, 2, 'history(rert): dose-only change creates a new entry');
+
+// Re-saving identical full state dedupes and moves it to the top.
+saveToHistory.call(sandbox, 'rert', rIds,
+  { 'rert-oars': 'bladder,spinalcord', 'dose-bladder': '70', 'dose-spinalcord': '45' });
+rHist = loadHistory.call(sandbox, 'rert');
+assertEqual(rHist.length, 2, 'history(rert): identical full state dedupes');
+assertEqual(rHist[0].params['dose-bladder'], '70', 'history(rert): deduped entry moved to top');
+
 // Restore
 sandbox.localStorage.clear();
 sandbox.document.getElementById = function() { return makeDomElement(); };
@@ -810,6 +848,12 @@ assertEqual(rertSummary({ 'pr-fx': '25' }),
   'prior 25 fx, ? mo ago', 'rertSummary: missing pr-mo');
 assertEqual(rertSummary({}),
   'prior ? fx, ? mo ago', 'rertSummary: empty params');
+assertEqual(rertSummary({ 'pr-fx': '25', 'pr-mo': '18', 'rert-oars': 'bladder' }),
+  'prior 25 fx, 18 mo ago, 1 OAR', 'rertSummary: single OAR appends count (singular)');
+assertEqual(rertSummary({ 'pr-fx': '25', 'pr-mo': '18', 'rert-oars': 'bladder,spinalcord,heart' }),
+  'prior 25 fx, 18 mo ago, 3 OARs', 'rertSummary: multiple OARs pluralized');
+assertEqual(rertSummary({ 'pr-fx': '25', 'pr-mo': '18', 'rert-oars': '' }),
+  'prior 25 fx, 18 mo ago', 'rertSummary: empty rert-oars omits OAR clause');
 
 // ============================================================
 // TESTS: history.js — getRecentAcrossTools (hub recents)

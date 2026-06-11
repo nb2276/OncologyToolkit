@@ -42,6 +42,11 @@ const OAR_DATA = [
 const oarById    = Object.fromEntries(OAR_DATA.map(o => [o.id, o]));
 const addedOarIds = [];
 
+// Suppresses history saves while we're programmatically rebuilding state
+// (URL load or history restore) so the OAR re-ticking doesn't spray
+// intermediate entries into history. Set true only inside restoreRertState.
+var isRestoring = false;
+
 // ============================================================
 // TRF helpers
 // ============================================================
@@ -178,6 +183,9 @@ function onCheckboxChange(id, checked) {
     tr.id = 'rert-row-' + id;
     $('rert-tbody').appendChild(tr);
     $('dose-' + id).addEventListener('input', updateAll);
+    $('dose-' + id).addEventListener('change', function () {
+      if (!isRestoring) saveAndRenderHistory();
+    });
     toggleEmptyRow();
     updateOarCount();
     updateBtnBar();
@@ -192,6 +200,8 @@ function onCheckboxChange(id, checked) {
     updateOarCount();
     updateBtnBar();
   }
+  // Persist the new OAR selection (and doses) unless we're mid-restore.
+  if (!isRestoring) saveAndRenderHistory();
 }
 
 function removeOar(id) {
@@ -592,9 +602,12 @@ RERT_INPUT_IDS.forEach(function (id) {
   $(id).addEventListener('input', updateAll);
 });
 
-// URL params — apply plan-level inputs from URL
-initUrlParams(RERT_INPUT_IDS, null);
-setupCopyLinkButton('copy-link-btn', RERT_INPUT_IDS);
+// URL params — restore full state (plan inputs + OARs + doses) from URL.
+// initRertFromUrl / setupRertCopyLink replace the generic url-state helpers
+// because ReRT's shareable link carries the OAR selection and per-OAR doses,
+// which the plain RERT_INPUT_IDS-based serializer can't express.
+initRertFromUrl();
+setupRertCopyLink('copy-link-btn');
 
 // Re-render when the global decimal-places preference changes
 document.addEventListener('decimalschange', updateAll);
@@ -603,22 +616,135 @@ toggleEmptyRow();
 updateAll();
 
 // ============================================================
-// History — save plan inputs (Fractions / α/β / Months / Custom fx)
-// after every input change. saveToHistory dedupes identical entries,
-// so transient keystrokes coalesce into one row per distinct param set.
-// OAR selection is intentionally NOT in RERT_INPUT_IDS — see history.js
-// rertSummary comment and the design doc's Premises section.
+// Persistence — full state (plan inputs + OAR selection + per-OAR doses) is
+// saved to history, restored from history, and round-tripped through the URL.
+//
+//   params shape:  pr-fx, pr-ab, pr-mo, custom-fx        (plan inputs)
+//                  rert-oars = "bladder,spinalcord"      (selected OAR ids)
+//                  dose-<id> = "<gy or cc>"              (one per selected OAR)
+//
+// saveToHistory dedupes identical param sets, so transient keystrokes coalesce
+// into one row per distinct state. OAR ids/doses live in `params` (not just
+// RERT_INPUT_IDS) so they participate in dedup, the hub recents, and the URL.
 // ============================================================
+
+// Collect the OAR-derived params (selection + doses) that aren't in RERT_INPUT_IDS.
+function buildRertExtraParams() {
+  var extra = {};
+  if (addedOarIds.length) {
+    extra['rert-oars'] = addedOarIds.join(',');
+    addedOarIds.forEach(function (id) {
+      var el = $('dose-' + id);
+      extra['dose-' + id] = el ? el.value : '';
+    });
+  }
+  return extra;
+}
+
+// pathname + query capturing the full ReRT state. Shared by the URL bar update
+// on restore and the "Copy Link" button.
+function serializeRertToUrl() {
+  var sp = new URLSearchParams();
+  RERT_INPUT_IDS.forEach(function (id) {
+    var el = $(id);
+    if (el && el.value !== '') sp.set(id, el.value);
+  });
+  if (addedOarIds.length) {
+    sp.set('rert-oars', addedOarIds.join(','));
+    addedOarIds.forEach(function (id) {
+      var el = $('dose-' + id);
+      if (el && el.value !== '') sp.set('dose-' + id, el.value);
+    });
+  }
+  var qs = sp.toString();
+  return window.location.pathname + (qs ? '?' + qs : '');
+}
+
+// Rebuild the page from a flat params object (history entry or parsed URL):
+// reset OARs, set plan inputs, re-tick the saved OARs (which rebuilds their
+// dose inputs), fill doses, then recompute. Guarded so the programmatic
+// re-ticking doesn't trigger saves.
+function restoreRertState(params) {
+  isRestoring = true;
+  try {
+    addedOarIds.slice().forEach(function (id) {
+      var cb = $('check-' + id);
+      if (cb) cb.checked = false;
+      onCheckboxChange(id, false);
+    });
+    RERT_INPUT_IDS.forEach(function (id) {
+      var el = $(id);
+      if (el && params[id] !== undefined && params[id] !== '') el.value = params[id];
+    });
+    var oarsRaw = params['rert-oars'];
+    var oarIds = oarsRaw ? String(oarsRaw).split(',') : [];
+    oarIds.forEach(function (rawId) {
+      var id = rawId.trim();
+      if (!id || !oarById[id]) return;
+      var cb = $('check-' + id);
+      if (cb) cb.checked = true;
+      onCheckboxChange(id, true);
+      var doseEl = $('dose-' + id);
+      var doseVal = params['dose-' + id];
+      if (doseEl && doseVal !== undefined && doseVal !== '') doseEl.value = doseVal;
+    });
+  } finally {
+    isRestoring = false;
+  }
+  updateAll();
+}
+
+// History-item click handler: restore, then point the URL at the recalled state.
+function restoreRertEntry(params) {
+  restoreRertState(params);
+  window.history.replaceState(null, '', serializeRertToUrl());
+}
+
+// On page load, reconstruct state from ?params (shared link or hub recents pill).
+function initRertFromUrl() {
+  var sp = new URLSearchParams(window.location.search);
+  var params = {};
+  var has = false;
+  RERT_INPUT_IDS.forEach(function (id) {
+    var v = sp.get(id);
+    if (v !== null) { params[id] = v; has = true; }
+  });
+  var oarsRaw = sp.get('rert-oars');
+  if (oarsRaw) {
+    params['rert-oars'] = oarsRaw;
+    has = true;
+    oarsRaw.split(',').forEach(function (rawId) {
+      var id = rawId.trim();
+      var dv = sp.get('dose-' + id);
+      if (dv !== null) params['dose-' + id] = dv;
+    });
+  }
+  if (has) restoreRertState(params);
+}
+
+function setupRertCopyLink(buttonId) {
+  var btn = $(buttonId);
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var url = window.location.origin + serializeRertToUrl();
+    copyToClipboard(url, function () {
+      var orig = btn.textContent;
+      btn.textContent = '\u2713 Link Copied!';
+      setTimeout(function () { btn.textContent = orig; }, 1500);
+    });
+  });
+}
 
 function saveAndRenderHistory() {
   var prFx   = parseFloat($('pr-fx').value);
   var prAb   = parseFloat($('pr-ab').value);
   var prMo   = parseFloat($('pr-mo').value);
   if (!isNaN(prFx) && !isNaN(prAb) && !isNaN(prMo)) {
-    saveToHistory('rert', RERT_INPUT_IDS);
+    saveToHistory('rert', RERT_INPUT_IDS, buildRertExtraParams());
   }
   // rertSummary is defined in history.js — single source of truth.
-  renderHistory('rert', RERT_INPUT_IDS, updateAll, rertSummary);
+  // restoreRertEntry owns the full restore (values + OARs + doses + URL).
+  renderHistory('rert', RERT_INPUT_IDS, updateAll, rertSummary, restoreRertEntry);
 }
 
 RERT_INPUT_IDS.forEach(function (id) {
