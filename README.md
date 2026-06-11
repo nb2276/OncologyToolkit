@@ -38,13 +38,15 @@ QUANTEC, HyTEC, and ASTRO 2026 (Puckett) DVH constraints with PubMed-linked cita
 - Click any constraint to copy the full citation
 
 ### PSA Doubling Time Calculator
-Calculates PSA doubling time from serial PSA measurements using weighted least-squares exponential fitting (weights w = y²).
+Calculates PSA doubling time from serial PSA measurements using unweighted log-linear regression of ln(PSA) on time — the standard clinical PSADT method (doubling time = ln(2)/slope).
 - Flexible date parsing — accepts most common date formats (MM/DD/YYYY, YYYY-MM-DD, DD.MM.YYYY, etc.)
+- Reports a 95% confidence interval for the doubling time, log-scale R² goodness of fit, and PSA velocity (ng/mL/yr, separate linear regression)
 - Interactive Chart.js plot projected forward with configurable years
-- 95% confidence interval bands on the fit curve
-- Click anywhere on the chart to query the expected PSA at that date
+- 95% confidence band on the fit curve (trend CI, not a prediction interval); shaded projection region
+- Linear / log y-axis toggle (log keeps the band readable; linear is capped so the band can't crush the data)
+- Click or tap anywhere on the chart to query the expected PSA at that date
 - White background toggle for pasting into documents
-- Copy Results button — composites the doubling time, chart, and measurement table as a PNG to the clipboard
+- Copy Results button — composites the doubling time, CI, R², velocity, chart, and measurement table as a PNG to the clipboard
 - Chart automatically adapts to light/dark mode
 
 ### ICD-10 Code Search

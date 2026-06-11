@@ -18,6 +18,13 @@ Tracking open work and ideas for future improvement.
 
 The de facto design system lives implicitly in `style.css` (CSS variables under `:root` + `[data-theme="light"]`, DM Sans body / Outfit display, `.bed-card` token, radius scale, transition scale, accent `#4fc3f7` / `#0288d1`). Future `/plan-design-review` runs would calibrate more consistently against a real `DESIGN.md`. Run `/design-consultation` to inventory tokens, document the type scale, document component vocabulary, and add usage rules (e.g., "tile cards use class composition with `.bed-card`; new `.foo-*` class families should match the breakpoint convention of 900 px nav-hamburger + 700 px content stack").
 
+### PSA: define duplicate-same-day measurement handling
+**Priority:** P3
+**Component:** psa.js (parseInput / fitExponential)
+**Discovered:** 2026-06-10 (Codex outside-voice during PSA figure review)
+
+Multiple PSA values on the same date are currently treated as independent observations, which slightly distorts the regression slope and inflates apparent precision (narrower CI). Options: reject duplicates, average same-day values, or keep as-is with a UI note. Low frequency in practice; deferred. Start in `parseInput` (dedupe/aggregate by `date.getTime()`), then confirm `fitExponential` weighting still holds and update tests.
+
 ## Completed (2026-03-16)
 
 - [x] URL Parameter State Sharing — `url-state.js` shared module, BED/Composite/ReRT

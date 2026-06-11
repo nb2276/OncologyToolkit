@@ -689,6 +689,30 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   min-width: 0;
 }
 
+/* PSA readout cluster: CI rides under the doubling-time headline; R² + velocity
+   sit as a muted stat row below the card. Hierarchy: DT hero > CI > stats. */
+.result-ci {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.psa-stat-row {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin: -14px 0 22px;       /* pull up under the card's bottom margin */
+  font-variant-numeric: tabular-nums;
+}
+
+.psa-stat-row:empty { display: none; }
+
+.psa-drop-note {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: -8px 0 20px;
+}
+
 /* White background mode for PSA results */
 .psa-white-mode {
   background: #ffffff;
@@ -700,6 +724,9 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 .psa-white-mode .result-card   { background: #f0f0f0; }
 .psa-white-mode .result-label  { color: #555; }
 .psa-white-mode .result-value  { color: #111; }
+.psa-white-mode .result-ci     { color: #555; }
+.psa-white-mode .psa-stat-row  { color: #666; }
+.psa-white-mode .psa-drop-note { color: #777; }
 .psa-white-mode .chart-hint    { color: #555; }
 .psa-white-mode .click-info    { color: #333; background: #f5f5f5; border-color: #ddd; }
 
@@ -755,6 +782,18 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 @media (max-width: 780px) {
   .psa-layout { flex-direction: column; }
   .psa-col-left { flex: none; width: 100%; }
+}
+
+/* Touch ergonomics: at the mobile breakpoint (900px, matching the nav hamburger
+   per CLAUDE.md), give the chart action buttons a larger tap target and let the
+   readout cluster breathe. */
+@media (max-width: 900px) {
+  .psa-action-btn {
+    padding: 10px 16px;
+    min-height: 40px;
+  }
+  .psa-btn-bar { flex-wrap: wrap; }
+  .psa-stat-row { margin-top: -10px; }
 }
 
 .input-section {

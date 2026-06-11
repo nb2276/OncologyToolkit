@@ -167,8 +167,12 @@ vm.runInContext(`
   globalThis.parseLine = parseLine;
   globalThis.parseInput = parseInput;
   globalThis.fitExponential = fitExponential;
+  globalThis.doublingTimeCI = doublingTimeCI;
+  globalThis.psaVelocity = psaVelocity;
   globalThis.tValue95 = tValue95;
   globalThis.fmtDoublingTime = fmtDoublingTime;
+  globalThis.fmtDoublingTimeCI = fmtDoublingTimeCI;
+  globalThis.psaShortDt = psaShortDt;
 `, sandbox);
 
 // Extract functions from sandbox
@@ -187,8 +191,12 @@ var makeDate = sandbox.makeDate;
 var parseLine = sandbox.parseLine;
 var parseInput = sandbox.parseInput;
 var fitExponential = sandbox.fitExponential;
+var doublingTimeCI = sandbox.doublingTimeCI;
+var psaVelocity = sandbox.psaVelocity;
 var tValue95 = sandbox.tValue95;
 var fmtDoublingTime = sandbox.fmtDoublingTime;
+var fmtDoublingTimeCI = sandbox.fmtDoublingTimeCI;
+var psaShortDt = sandbox.psaShortDt;
 var parseUrlParams = sandbox.parseUrlParams;
 var serializeToUrl = sandbox.serializeToUrl;
 var buildToolUrl = sandbox.buildToolUrl;
@@ -590,6 +598,118 @@ assert(fit3.varB !== undefined, 'fitExponential: varB present for n=3');
 assert(fit3.covAB !== undefined, 'fitExponential: covAB present for n=3');
 assert(fit3.n === 3, 'fitExponential: n = 3');
 
+// ---- Unweighted fit: noisy data pins the OLS slope (weighted w=y² would differ) ----
+// Reference computed from the unweighted log-linear regression on this set.
+var noisyData = [
+  { date: new Date(2023, 0, 1),  psaValue: 1.0 },
+  { date: new Date(2023, 2, 1),  psaValue: 2.2 },
+  { date: new Date(2023, 5, 1),  psaValue: 1.8 },
+  { date: new Date(2023, 8, 1),  psaValue: 4.5 },
+  { date: new Date(2023, 11, 1), psaValue: 6.0 },
+];
+var noisyFit = fitExponential(noisyData);
+assertClose(noisyFit.B, 0.00498336, 1e-6, 'fitExponential: unweighted slope on noisy data (pins OLS, not w=y²)');
+assertClose(noisyFit.doublingTimeDays, 139.0922, 0.01, 'fitExponential: noisy doubling time ~139.1 days');
+assert(noisyFit.rSquaredDefined === true, 'fitExponential: R² defined for n≥3 with spread');
+assertClose(noisyFit.rSquared, 0.874116, 1e-4, 'fitExponential: log-scale R² ~0.874');
+
+// R² ~ 1 for exact-exponential data
+assertClose(fit.rSquared, 1.0, 1e-4, 'fitExponential: R² ≈ 1 for exact exponential');
+
+// n=2: fit returns, but CI/R² are flagged not-estimable (no fake zero-width CI)
+var twoPt = fitExponential([
+  { date: new Date(2023, 0, 1), psaValue: 1.0 },
+  { date: new Date(2023, 6, 1), psaValue: 2.0 },
+]);
+assert(twoPt !== null, 'fitExponential: 2 points returns a fit');
+assert(twoPt.ciEstimable === false, 'fitExponential: n=2 → ciEstimable false (no fake CI)');
+assert(twoPt.rSquaredDefined === false, 'fitExponential: n=2 → R² not defined');
+
+// Constant PSA: zero log-spread → R² undefined, not 0/0 NaN
+var constFit = fitExponential([
+  { date: new Date(2023, 0, 1), psaValue: 5 },
+  { date: new Date(2023, 3, 1), psaValue: 5 },
+  { date: new Date(2023, 6, 1), psaValue: 5 },
+]);
+assert(constFit.rSquaredDefined === false, 'fitExponential: constant PSA → R² undefined (no NaN)');
+assert(constFit.rSquared === null, 'fitExponential: constant PSA → rSquared null');
+// Constant PSA → B≈0 → doubling time is infinite/absurd; headline must not leak it.
+assert(!isFinite(constFit.doublingTimeDays) || Math.abs(constFit.doublingTimeDays) > 100 * 365.25,
+  'fitExponential: constant PSA → doubling time is infinite/beyond-lifetime');
+
+// parseLine rejects non-finite PSA (1e309 → Infinity)
+assertEqual(parseLine('2023-01-01 1e309'), null, 'parseLine: Infinity-valued PSA rejected');
+assertEqual(parseLine('2023-01-01 Infinity'), null, 'parseLine: literal Infinity rejected');
+
+section('=== psa.js: doublingTimeCI ===');
+
+// Normal increasing series → finite, ordered interval bracketing the estimate
+var ciNoisy = doublingTimeCI(noisyFit);
+assert(ciNoisy.estimable === true, 'doublingTimeCI: estimable for clean increasing trend');
+assert(ciNoisy.increasing === true, 'doublingTimeCI: increasing flag set');
+assertClose(ciNoisy.loDays, 81.9552, 0.01, 'doublingTimeCI: lower bound ~82 days');
+assertClose(ciNoisy.hiDays, 459.3131, 0.01, 'doublingTimeCI: upper bound ~459 days');
+assert(ciNoisy.loDays < noisyFit.doublingTimeDays && noisyFit.doublingTimeDays < ciNoisy.hiDays,
+  'doublingTimeCI: point estimate lies inside the interval');
+
+// n=2 → not estimable (needs ≥3)
+assert(doublingTimeCI(twoPt).estimable === false, 'doublingTimeCI: n=2 not estimable');
+assertEqual(doublingTimeCI(twoPt).reason, 'need3', 'doublingTimeCI: n=2 reason=need3');
+
+// Slope CI that straddles zero → not estimable (unbounded interval), NOT Infinity
+// Near-flat noisy data so the slope CI spans zero.
+var flatFit = fitExponential([
+  { date: new Date(2023, 0, 1),  psaValue: 2.0 },
+  { date: new Date(2023, 3, 1),  psaValue: 2.1 },
+  { date: new Date(2023, 6, 1),  psaValue: 1.9 },
+  { date: new Date(2023, 9, 1),  psaValue: 2.05 },
+]);
+var ciFlat = doublingTimeCI(flatFit);
+assert(ciFlat.estimable === false, 'doublingTimeCI: flat trend (slope CI spans 0) not estimable');
+assertEqual(ciFlat.reason, 'spanszero', 'doublingTimeCI: spans-zero reason set');
+
+// Clean decreasing series → both bounds negative (halving), still estimable
+var decFit = fitExponential([
+  { date: new Date(2023, 0, 1), psaValue: 8 },
+  { date: new Date(2023, 2, 1), psaValue: 4 },
+  { date: new Date(2023, 4, 1), psaValue: 2 },
+  { date: new Date(2023, 6, 1), psaValue: 1 },
+]);
+var ciDec = doublingTimeCI(decFit);
+assert(ciDec.estimable === true, 'doublingTimeCI: clean decreasing series is estimable');
+assert(ciDec.increasing === false, 'doublingTimeCI: decreasing flag (halving)');
+assert(ciDec.loDays < 0 && ciDec.hiDays < 0, 'doublingTimeCI: decreasing → both bounds negative');
+// The decreasing CI must render as positive, ordered halving times (no leading "-")
+var decLabel = fmtDoublingTimeCI(ciDec);
+assert(decLabel.indexOf('halving') !== -1, 'fmtDoublingTimeCI: decreasing labelled halving');
+assert(decLabel.indexOf('-') === -1, 'fmtDoublingTimeCI: decreasing shows positive magnitudes (no minus sign)');
+// Spans-zero + n<3 messaging
+assert(fmtDoublingTimeCI({ estimable: false, reason: 'spanszero' }).indexOf('not estimable') !== -1,
+  'fmtDoublingTimeCI: spans-zero message');
+assert(fmtDoublingTimeCI({ estimable: false, reason: 'need3' }).indexOf('≥3') !== -1,
+  'fmtDoublingTimeCI: need-3 message');
+
+// psaShortDt (history/hub label) must collapse stable/non-finite to "stable", not "Infinity yr"
+assertEqual(psaShortDt(Infinity), 'stable', 'psaShortDt: Infinity → stable');
+assertEqual(psaShortDt(100 * 365.25 + 1), 'stable', 'psaShortDt: beyond-lifetime → stable');
+assertEqual(psaShortDt(-30), 'decreasing', 'psaShortDt: negative → decreasing');
+
+section('=== psa.js: psaVelocity ===');
+
+assertClose(psaVelocity(noisyData), 5.300128, 1e-4, 'psaVelocity: linear slope ng/mL/yr on noisy data');
+assertEqual(psaVelocity([{ date: new Date(2023, 0, 1), psaValue: 1 }]), null, 'psaVelocity: <2 points returns null');
+assertEqual(psaVelocity([]), null, 'psaVelocity: empty returns null');
+// Zeros excluded → same as filtered set
+var velZeros = psaVelocity([
+  { date: new Date(2023, 0, 1), psaValue: 0 },
+  { date: new Date(2023, 2, 1), psaValue: 2.2 },
+  { date: new Date(2023, 5, 1), psaValue: 1.8 },
+  { date: new Date(2023, 8, 1), psaValue: 4.5 },
+  { date: new Date(2023, 11, 1), psaValue: 6.0 },
+]);
+var velNoFirst = psaVelocity(noisyData.slice(1));
+assertClose(velZeros, velNoFirst, 1e-9, 'psaVelocity: PSA≤0 excluded (matches filtered set)');
+
 section('=== psa.js: tValue95 ===');
 
 // Known values
@@ -613,6 +733,12 @@ assert(fmtDoublingTime(800).includes('months'), 'fmtDoublingTime: 800 days also 
 
 // Negative (decreasing PSA)
 assert(fmtDoublingTime(-50).includes('decreasing'), 'fmtDoublingTime: negative shows decreasing');
+
+// Stable / non-finite guards — must never leak "Infinity" or "NaN" to the UI
+assert(!/Infinity/.test(fmtDoublingTime(Infinity)), 'fmtDoublingTime: Infinity → no "Infinity" text');
+assert(fmtDoublingTime(Infinity).toLowerCase().includes('stable'), 'fmtDoublingTime: Infinity → "stable"');
+assert(!/NaN/.test(fmtDoublingTime(NaN)), 'fmtDoublingTime: NaN → no "NaN" text');
+assert(fmtDoublingTime(100 * 365.25 + 1).toLowerCase().includes('stable'), 'fmtDoublingTime: >100yr → stable');
 
 // ============================================================
 // TESTS: composite.js — TDF validation boundary

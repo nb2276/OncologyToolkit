@@ -95,10 +95,13 @@
             <div class="result-card">
               <div class="result-label">PSA Doubling Time</div>
               <div id="doublingTime" class="result-value"></div>
+              <div id="psaCI" class="result-ci"></div>
             </div>
+            <div id="psaStats" class="psa-stat-row"></div>
+            <div id="psaDropNote" class="psa-drop-note" style="display:none;"></div>
 
             <div class="chart-section">
-              <p class="chart-hint">Hover over the fit line for PSA values. Click anywhere for the projected PSA at that date.</p>
+              <p class="chart-hint">Hover (or tap) the chart for the projected PSA at any date. The shaded region is extrapolation beyond your last measurement.</p>
               <div id="clickInfo" class="click-info" style="display:none;"></div>
               <canvas id="psaChart" onmouseleave="var t=document.getElementById('psaFitTooltip');if(t)t.style.display='none';"></canvas>
 
@@ -110,6 +113,7 @@
                   <span>years beyond last data point</span>
                 </div>
                 <div class="psa-btn-bar">
+                  <button class="psa-action-btn" id="axisToggleBtn" onclick="toggleAxisScale()" aria-label="Switch chart to logarithmic y-axis">Log scale</button>
                   <button class="psa-action-btn" id="whiteModeBtn" onclick="toggleWhiteMode()">White Background</button>
                   <button class="psa-action-btn" id="copyResultsBtn" onclick="copyResults()">Copy Results</button>
                   <button class="psa-action-btn" id="copy-link-btn">Copy Link</button>

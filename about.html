@@ -71,10 +71,12 @@
           </li>
           <li>
             <strong>PSA Doubling Time Calculator</strong> &mdash; Calculates PSA doubling
-            time from serial PSA measurements using weighted least-squares exponential
-            fitting. Accepts flexible date and value input formats, plots an interactive
-            growth curve projected five years forward, and allows date-point querying
-            directly on the graph.
+            time from serial PSA measurements by log-linear regression, with a 95%
+            confidence interval, log-scale goodness of fit (R&sup2;), and PSA velocity.
+            Accepts flexible date and value input formats, plots an interactive growth
+            curve with a confidence band and a shaded projection region, toggles between
+            linear and log y-axes, and allows date-point querying directly on the graph.
+            See <a href="#psa-method">how the doubling time is calculated</a> below.
           </li>
           <li>
             <strong>BED / EQD2 Calculator</strong> &mdash; Computes Biologically Effective
@@ -108,6 +110,60 @@
             for 1, 3, 5, and a custom number of fractions — all updating in real time.
           </li>
         </ul>
+
+        <hr class="about-divider">
+
+        <h3 id="psa-method">How the PSA doubling time is calculated</h3>
+        <p>
+          Each measurement is converted to a point in time (days from the first
+          value). The calculator fits an exponential model
+          <code>PSA = A &middot; e<sup>B&middot;t</sup></code> by
+          <strong>unweighted least-squares linear regression of ln(PSA) on time</strong>
+          &mdash; the standard clinical PSA-doubling-time method. Each measurement is
+          weighted equally in log space, which is the appropriate error model for PSA,
+          where variation is multiplicative (roughly proportional to the value).
+          The doubling time is <code>ln(2) / B</code>. A negative slope means PSA is
+          falling, and the result is reported as a halving time.
+        </p>
+        <p>
+          The reported figures around the doubling time mean:
+        </p>
+        <ul>
+          <li>
+            <strong>95% confidence interval</strong> &mdash; derived from the
+            uncertainty in the fitted slope. It needs at least three measurements.
+            When the slope&rsquo;s interval includes zero (no statistically clear
+            trend), the doubling-time interval is unbounded and is reported as
+            &ldquo;not estimable&rdquo; rather than a misleadingly tidy range.
+          </li>
+          <li>
+            <strong>R&sup2; (log fit)</strong> &mdash; goodness of fit on the log
+            scale: how closely the measurements follow a single exponential. It is a
+            measure of fit quality, <em>not</em> a guarantee that the extrapolation is
+            correct.
+          </li>
+          <li>
+            <strong>PSA velocity</strong> &mdash; computed separately as the slope of
+            a simple linear regression of raw PSA on time (ng/mL per year). This is a
+            different model from the exponential doubling-time fit and is provided for
+            reference.
+          </li>
+        </ul>
+        <p>
+          The shaded confidence band around the curve is a <strong>confidence interval
+          for the underlying trend</strong>, not a prediction interval &mdash; it
+          describes uncertainty in the fitted curve, not the range where an individual
+          future PSA measurement is expected to fall. The shaded region to the right of
+          your last measurement is extrapolation.
+        </p>
+        <p>
+          Measurements with a PSA of zero (or below the assay detection limit) cannot
+          be placed on a log scale and are excluded from the fit; the calculator notes
+          when this happens. The tool applies no cohort-eligibility rules (minimum
+          interval between values, treatment-free interval, assay-change or
+          PSA-bounce handling) that some clinical protocols specify. It is intended for
+          education and quick estimation, not as a validated risk classifier.
+        </p>
 
         <hr class="about-divider">
 
