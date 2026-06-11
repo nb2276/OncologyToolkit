@@ -78,7 +78,16 @@ function renderHistory(toolName, inputIds, updateFn, summaryFn, restoreFn) {
   items.forEach(function (item) {
     var li = document.createElement('div');
     li.className = 'history-item';
-    li.textContent = summaryFn ? summaryFn(item.params) : defaultHistorySummary(item.params);
+    // Two-part row: the descriptor summary + a muted relative date, so two
+    // entries with similar params are still distinguishable at a glance.
+    var summary = document.createElement('span');
+    summary.className = 'history-item-summary';
+    summary.textContent = summaryFn ? summaryFn(item.params) : defaultHistorySummary(item.params);
+    var when = document.createElement('span');
+    when.className = 'history-item-date';
+    when.textContent = relativeTime(item.ts);
+    li.appendChild(summary);
+    li.appendChild(when);
     li.title = new Date(item.ts).toLocaleString();
     li.addEventListener('click', function () {
       if (restoreFn) {
@@ -117,6 +126,29 @@ function defaultHistorySummary(params) {
   return parts.join(' / ');
 }
 
+// Compact relative date for a history timestamp: "just now", "5m ago",
+// "3h ago", "2d ago", then falls back to a short calendar date past a week.
+// Pure formatting (no math.js) so the hub can use it too.
+function relativeTime(ts) {
+  if (typeof ts !== 'number') return '';
+  var sec = Math.floor((Date.now() - ts) / 1000);
+  if (sec < 45)        return 'just now';
+  var min = Math.floor(sec / 60);
+  if (min < 60)        return min + 'm ago';
+  var hr = Math.floor(min / 60);
+  if (hr < 24)         return hr + 'h ago';
+  var day = Math.floor(hr / 24);
+  if (day < 7)         return day + 'd ago';
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Trim a computed number to at most 2 decimals without trailing zeros
+// (e.g. 2 → "2", 2.75 → "2.75", 2.666… → "2.67"). Used by summaries that
+// derive a field (dose-per-fraction) from saved params.
+function trimNum(x) {
+  return String(Math.round(x * 100) / 100);
+}
+
 // ------------------------------------------------------------------
 // Per-tool summary functions — single source of truth.
 // bed.js, composite.js, rert.js all call these (instead of inline lambdas)
@@ -125,20 +157,40 @@ function defaultHistorySummary(params) {
 // ------------------------------------------------------------------
 
 function bedSummary(p) {
-  return (p['bd-dose'] || '?') + ' Gy / ' + (p['bd-fx'] || '?') + ' fx';
+  var dose = p['bd-dose'], fx = p['bd-fx'];
+  var s = (dose || '?') + ' Gy / ' + (fx || '?') + ' fx';
+  var dn = parseFloat(dose), fn = parseFloat(fx);
+  if (!isNaN(dn) && !isNaN(fn) && fn > 0) s += ' · ' + trimNum(dn / fn) + ' Gy/fx';
+  if (p['ab1']) s += ' · α/β ' + p['ab1'];
+  return s;
 }
 
 function compositeSummary(p) {
-  return 'Tol ' + (p['st-dose'] || '?') + 'Gy, Prior ' + (p['pv-dose'] || '?') + 'Gy';
+  var tol = 'Tol ' + (p['st-dose'] || '?') + ' Gy' + (p['st-fx'] ? '/' + p['st-fx'] + ' fx' : '');
+  var prior = 'Prior ' + (p['pv-dose'] || '?') + ' Gy' + (p['pv-fx'] ? '/' + p['pv-fx'] + ' fx' : '');
+  var s = tol + ' · ' + prior;
+  if (p['pv-tdf'] !== undefined && p['pv-tdf'] !== '') s += ' · TDF ' + p['pv-tdf'];
+  return s;
 }
 
 function rertSummary(p) {
   // OAR selection + doses ARE persisted now (params['rert-oars'] + dose-<id>),
-  // so a recalled entry restores the full case. The pill label stays terse —
-  // prior fx + months — because organ lists would overflow the recents row.
+  // so a recalled entry restores the full case. The pill label stays terse
+  // because organ lists would overflow the recents row.
+  var ab = p['pr-ab'] ? ' (α/β ' + p['pr-ab'] + ')' : '';
   var n = p['rert-oars'] ? p['rert-oars'].split(',').filter(Boolean).length : 0;
   var oarPart = n ? ', ' + n + ' OAR' + (n > 1 ? 's' : '') : '';
-  return 'prior ' + (p['pr-fx'] || '?') + ' fx, ' + (p['pr-mo'] || '?') + ' mo ago' + oarPart;
+  return 'prior ' + (p['pr-fx'] || '?') + ' fx' + ab + ', ' + (p['pr-mo'] || '?') + ' mo ago' + oarPart;
+}
+
+function psaSummary(p) {
+  // The doubling time, count, and date span are computed in psa.js and stored
+  // as params (psa-dt / psa-n / psa-span) — the fit math isn't available here
+  // or on the hub, so the label is precomputed rather than re-derived.
+  var s = p['psa-dt'] || '? doubling time';
+  if (p['psa-n']) s += ' · ' + p['psa-n'] + ' value' + (parseInt(p['psa-n'], 10) === 1 ? '' : 's');
+  if (p['psa-span']) s += ' · ' + p['psa-span'];
+  return s;
 }
 
 // ------------------------------------------------------------------
@@ -151,7 +203,8 @@ function rertSummary(p) {
 var KNOWN_TOOLS = [
   { tool: 'bed',       path: 'bed.html',       label: bedSummary },
   { tool: 'composite', path: 'composite.html', label: compositeSummary },
-  { tool: 'rert',      path: 'rert.html',      label: rertSummary }
+  { tool: 'rert',      path: 'rert.html',      label: rertSummary },
+  { tool: 'psa',       path: 'psa.html',       label: psaSummary }
 ];
 
 function getRecentAcrossTools(limit) {

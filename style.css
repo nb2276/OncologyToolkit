@@ -1958,6 +1958,10 @@ details[open].rert-oar-picker .rert-picker-chevron {
 }
 
 .history-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   padding: 8px 22px;
   font-size: 13px;
   color: var(--text-secondary);
@@ -1966,8 +1970,26 @@ details[open].rert-oar-picker .rert-picker-chevron {
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.history-item-summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item-date {
+  flex: none;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
 .history-item:hover {
   background-color: rgba(79, 195, 247, 0.04);
+  color: var(--accent);
+}
+
+.history-item:hover .history-item-date {
   color: var(--accent);
 }
 
@@ -2495,6 +2517,12 @@ details[open].rert-oar-picker .rert-picker-chevron {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
+}
+.hub-recent-date {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Tile grid: 3-col on desktop, 2-col on mobile (≤900px). */

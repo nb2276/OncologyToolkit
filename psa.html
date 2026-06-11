@@ -112,10 +112,19 @@
                 <div class="psa-btn-bar">
                   <button class="psa-action-btn" id="whiteModeBtn" onclick="toggleWhiteMode()">White Background</button>
                   <button class="psa-action-btn" id="copyResultsBtn" onclick="copyResults()">Copy Results</button>
+                  <button class="psa-action-btn" id="copy-link-btn">Copy Link</button>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- History — recalls a prior dataset + its doubling time. The whole
+               textarea (psaInput) and projectionYears round-trip via params + URL. -->
+          <details class="bed-card history-section" id="history-section" style="display:none;">
+            <summary class="history-summary">Recent Calculations</summary>
+            <div class="history-list"></div>
+            <button class="history-clear">Clear History</button>
+          </details>
         </div><!-- end .psa-col-right -->
 
       </div><!-- end .psa-layout -->
@@ -124,6 +133,10 @@
     <!-- Chart.js with date-fns adapter for time scale support -->
     <script src="vendor/chart.umd.min.js"></script>
     <script src="vendor/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- Shared modules for history + shareable link (must load before psa.js) -->
+    <script src="clipboard.js"></script>
+    <script src="url-state.js"></script>
+    <script src="history.js"></script>
     <script src="psa.js"></script>
     <script src="shortcuts.js"></script>
     <script src="theme.js"></script>

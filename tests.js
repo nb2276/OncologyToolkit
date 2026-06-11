@@ -199,6 +199,9 @@ var getRecentAcrossTools = sandbox.getRecentAcrossTools;
 var bedSummary = sandbox.bedSummary;
 var compositeSummary = sandbox.compositeSummary;
 var rertSummary = sandbox.rertSummary;
+var psaSummary = sandbox.psaSummary;
+var relativeTime = sandbox.relativeTime;
+var trimNum = sandbox.trimNum;
 var copyToClipboard = sandbox.copyToClipboard;
 var HISTORY_MAX = sandbox.HISTORY_MAX;
 var classifyRange = sandbox.classifyRange;
@@ -820,24 +823,28 @@ sandbox.window.location.search = ''; // restore
 // ============================================================
 
 section('=== history.js: bedSummary ===');
-assertEqual(bedSummary({ 'bd-dose': '60', 'bd-fx': '30' }), '60 Gy / 30 fx',
-  'bedSummary: both fields present');
+assertEqual(bedSummary({ 'bd-dose': '60', 'bd-fx': '30' }), '60 Gy / 30 fx · 2 Gy/fx',
+  'bedSummary: dose/fx adds derived Gy/fx');
+assertEqual(bedSummary({ 'bd-dose': '55', 'bd-fx': '20', 'ab1': '10' }),
+  '55 Gy / 20 fx · 2.75 Gy/fx · α/β 10', 'bedSummary: full entry with α/β');
 assertEqual(bedSummary({ 'bd-fx': '30' }), '? Gy / 30 fx',
-  'bedSummary: missing bd-dose → ?');
+  'bedSummary: missing bd-dose → ? and no Gy/fx');
 assertEqual(bedSummary({ 'bd-dose': '60' }), '60 Gy / ? fx',
-  'bedSummary: missing bd-fx → ?');
+  'bedSummary: missing bd-fx → ? and no Gy/fx');
 assertEqual(bedSummary({}), '? Gy / ? fx',
   'bedSummary: empty params → ? / ?');
 
 section('=== history.js: compositeSummary ===');
 assertEqual(compositeSummary({ 'st-dose': '50', 'pv-dose': '60' }),
-  'Tol 50Gy, Prior 60Gy', 'compositeSummary: both fields present');
+  'Tol 50 Gy · Prior 60 Gy', 'compositeSummary: doses only');
+assertEqual(compositeSummary({ 'st-dose': '50', 'st-fx': '25', 'pv-dose': '60', 'pv-fx': '30', 'pv-tdf': '0.5' }),
+  'Tol 50 Gy/25 fx · Prior 60 Gy/30 fx · TDF 0.5', 'compositeSummary: full entry with fx + TDF');
 assertEqual(compositeSummary({ 'pv-dose': '60' }),
-  'Tol ?Gy, Prior 60Gy', 'compositeSummary: missing st-dose');
+  'Tol ? Gy · Prior 60 Gy', 'compositeSummary: missing st-dose');
 assertEqual(compositeSummary({ 'st-dose': '50' }),
-  'Tol 50Gy, Prior ?Gy', 'compositeSummary: missing pv-dose');
+  'Tol 50 Gy · Prior ? Gy', 'compositeSummary: missing pv-dose');
 assertEqual(compositeSummary({}),
-  'Tol ?Gy, Prior ?Gy', 'compositeSummary: empty params');
+  'Tol ? Gy · Prior ? Gy', 'compositeSummary: empty params');
 
 section('=== history.js: rertSummary ===');
 assertEqual(rertSummary({ 'pr-fx': '25', 'pr-mo': '18' }),
@@ -854,6 +861,33 @@ assertEqual(rertSummary({ 'pr-fx': '25', 'pr-mo': '18', 'rert-oars': 'bladder,sp
   'prior 25 fx, 18 mo ago, 3 OARs', 'rertSummary: multiple OARs pluralized');
 assertEqual(rertSummary({ 'pr-fx': '25', 'pr-mo': '18', 'rert-oars': '' }),
   'prior 25 fx, 18 mo ago', 'rertSummary: empty rert-oars omits OAR clause');
+assertEqual(rertSummary({ 'pr-fx': '30', 'pr-ab': '2.5', 'pr-mo': '8', 'rert-oars': 'bladder,heart' }),
+  'prior 30 fx (α/β 2.5), 8 mo ago, 2 OARs', 'rertSummary: full entry with α/β + OAR count');
+
+section('=== history.js: psaSummary ===');
+assertEqual(psaSummary({ 'psa-dt': '8.4 mo', 'psa-n': '5', 'psa-span': 'Jan 2023 – Jun 2025' }),
+  '8.4 mo · 5 values · Jan 2023 – Jun 2025', 'psaSummary: full label');
+assertEqual(psaSummary({ 'psa-dt': '12 d', 'psa-n': '1' }),
+  '12 d · 1 value', 'psaSummary: singular value, no span');
+assertEqual(psaSummary({ 'psa-dt': 'decreasing', 'psa-n': '4' }),
+  'decreasing · 4 values', 'psaSummary: decreasing PSA');
+assertEqual(psaSummary({}),
+  '? doubling time', 'psaSummary: empty params fallback');
+
+section('=== history.js: trimNum ===');
+assertEqual(trimNum(2), '2', 'trimNum: integer stays integer');
+assertEqual(trimNum(2.75), '2.75', 'trimNum: two decimals kept');
+assertEqual(trimNum(8 / 3), '2.67', 'trimNum: rounds to 2 decimals');
+
+section('=== history.js: relativeTime ===');
+var NOW = Date.now();
+assertEqual(relativeTime(NOW), 'just now', 'relativeTime: now → just now');
+assertEqual(relativeTime(NOW - 5 * 60 * 1000), '5m ago', 'relativeTime: 5 minutes');
+assertEqual(relativeTime(NOW - 3 * 60 * 60 * 1000), '3h ago', 'relativeTime: 3 hours');
+assertEqual(relativeTime(NOW - 2 * 24 * 60 * 60 * 1000), '2d ago', 'relativeTime: 2 days');
+assert(/[A-Z][a-z]{2} \d/.test(relativeTime(NOW - 30 * 24 * 60 * 60 * 1000)),
+  'relativeTime: >1 week falls back to short calendar date');
+assertEqual(relativeTime('nope'), '', 'relativeTime: non-numeric ts → empty');
 
 // ============================================================
 // TESTS: history.js — getRecentAcrossTools (hub recents)
@@ -876,7 +910,7 @@ assertEqual(recentsBed.length, 2, 'getRecentAcrossTools: BED-only → 2 entries'
 assertEqual(recentsBed[0].tool, 'bed', 'getRecentAcrossTools: entry tagged tool=bed');
 assertEqual(recentsBed[0].path, 'bed.html', 'getRecentAcrossTools: entry tagged path=bed.html');
 assertEqual(recentsBed[0].ts, 2000, 'getRecentAcrossTools: newest first (ts=2000)');
-assertEqual(recentsBed[0].label, '60 Gy / 30 fx', 'getRecentAcrossTools: label from bedSummary');
+assertEqual(recentsBed[0].label, '60 Gy / 30 fx · 2 Gy/fx', 'getRecentAcrossTools: label from bedSummary');
 
 // All three tools populated → merged + sorted by ts desc
 sandbox.localStorage.setItem('history_composite', JSON.stringify([
@@ -890,6 +924,18 @@ assertEqual(recentsAll.length, 3, 'getRecentAcrossTools: three tools merged → 
 assertEqual(recentsAll[0].tool, 'composite', 'getRecentAcrossTools: composite ts=3000 is newest');
 assertEqual(recentsAll[1].tool, 'bed',       'getRecentAcrossTools: bed ts=2000 second');
 assertEqual(recentsAll[2].tool, 'rert',      'getRecentAcrossTools: rert ts=1500 third');
+
+// PSA participates in the merge too (added to KNOWN_TOOLS)
+sandbox.localStorage.setItem('history_psa', JSON.stringify([
+  { ts: 4000, params: { 'psaInput': '2023-01-01 1.2\n2024-01-01 2.4', 'projectionYears': '2',
+    'psa-dt': '12 mo', 'psa-n': '2', 'psa-span': 'Jan 2023 – Jan 2024' } }
+]));
+var recentsPsa = getRecentAcrossTools.call(sandbox, 4);
+assertEqual(recentsPsa[0].tool, 'psa', 'getRecentAcrossTools: psa ts=4000 newest');
+assertEqual(recentsPsa[0].path, 'psa.html', 'getRecentAcrossTools: psa tagged path=psa.html');
+assertEqual(recentsPsa[0].label, '12 mo · 2 values · Jan 2023 – Jan 2024',
+  'getRecentAcrossTools: psa label from psaSummary');
+sandbox.localStorage.removeItem('history_psa');
 
 // Default limit = 3 (slices when more entries exist)
 sandbox.localStorage.setItem('history_bed', JSON.stringify([

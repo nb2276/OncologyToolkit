@@ -609,10 +609,70 @@ function updateParsedTable(data) {
 }
 
 // -------------------------------------------------------------------------
+// History + shareable link
+//
+// PSA's "input" is the whole textarea (psaInput) plus projectionYears, so the
+// history params carry the full dataset and round-trip through the URL. The
+// computed doubling time / measurement count / date span are stored as extra
+// params (psa-dt / psa-n / psa-span) so the recents label and the hub pill can
+// show them without re-running the fit (which isn't available on the hub).
+// saveToHistory / renderHistory / serializeToUrl / setupCopyLinkButton come
+// from history.js + url-state.js (loaded before psa.js).
+// -------------------------------------------------------------------------
+
+var PSA_INPUT_IDS = ['psaInput', 'projectionYears'];
+
+function psaShortDt(days) {
+  if (days < 0)   return 'decreasing';
+  if (days < 60)  return days.toFixed(0) + ' d';
+  if (days < 730) return (days / 30.44).toFixed(1) + ' mo';
+  return (days / 365.25).toFixed(1) + ' yr';
+}
+
+function psaSpanLabel(data) {
+  function ym(d) { return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); }
+  var a = ym(data[0].date), b = ym(data[data.length - 1].date);
+  return a === b ? a : a + ' – ' + b;
+}
+
+function savePsaHistory(data, fit) {
+  saveToHistory('psa', PSA_INPUT_IDS, {
+    'psa-dt': psaShortDt(fit.doublingTimeDays),
+    'psa-n': String(data.length),
+    'psa-span': psaSpanLabel(data)
+  });
+  renderHistory('psa', PSA_INPUT_IDS, calculate, psaSummary, restorePsaEntry);
+}
+
+// Recall a saved entry: refill textarea + projection, recompute keeping the
+// saved projection, then point the URL at the recalled dataset.
+function restorePsaEntry(params) {
+  document.getElementById('psaInput').value = params['psaInput'] || '';
+  var hasPy = params['projectionYears'] !== undefined && params['projectionYears'] !== '';
+  if (hasPy) document.getElementById('projectionYears').value = params['projectionYears'];
+  calculate(hasPy);
+  window.history.replaceState(null, '', serializeToUrl(PSA_INPUT_IDS));
+}
+
+// On load, reconstruct from ?psaInput=...&projectionYears=... (shared link or
+// hub recents pill). parseUrlParams can't be reused — it drops non-numeric
+// values like the textarea text.
+function initPsaFromUrl() {
+  var sp = new URLSearchParams(window.location.search);
+  var text = sp.get('psaInput');
+  if (text === null) return;
+  document.getElementById('psaInput').value = text;
+  var py = sp.get('projectionYears');
+  var hasPy = py !== null && !isNaN(parseFloat(py));
+  if (hasPy) document.getElementById('projectionYears').value = py;
+  calculate(hasPy);
+}
+
+// -------------------------------------------------------------------------
 // Main entry point
 // -------------------------------------------------------------------------
 
-function calculate() {
+function calculate(keepProjection) {
   const input = document.getElementById('psaInput');
   // Strip blank lines so pasted data with leading/trailing whitespace works
   input.value = input.value.split('\n').filter(l => l.trim()).join('\n');
@@ -647,11 +707,15 @@ function calculate() {
   lastData = data;
   lastFit  = fit;
 
-  // Default projection: 50% of the input date range, clamped between 0.5 and 5 years
-  const dataSpanMs = data[data.length - 1].date.getTime() - data[0].date.getTime();
-  const dataSpanYrs = dataSpanMs / (365.25 * MS_PER_DAY);
-  defaultProjectionYears = Math.max(0.5, Math.min(5, Math.round(dataSpanYrs * 0.5 * 2) / 2)); // round to nearest 0.5
-  document.getElementById('projectionYears').value = defaultProjectionYears;
+  // Default projection: 50% of the input date range, clamped between 0.5 and 5
+  // years. Skipped when restoring (keepProjection) so a recalled/shared
+  // projectionYears isn't clobbered by the auto-default.
+  if (!keepProjection) {
+    const dataSpanMs = data[data.length - 1].date.getTime() - data[0].date.getTime();
+    const dataSpanYrs = dataSpanMs / (365.25 * MS_PER_DAY);
+    defaultProjectionYears = Math.max(0.5, Math.min(5, Math.round(dataSpanYrs * 0.5 * 2) / 2)); // round to nearest 0.5
+    document.getElementById('projectionYears').value = defaultProjectionYears;
+  }
 
   document.getElementById('doublingTime').textContent = fmtDoublingTime(fit.doublingTimeDays);
   document.getElementById('clickInfo').style.display = 'none';
@@ -660,6 +724,8 @@ function calculate() {
   resEl.style.display = 'block';
   parsedSecEl.style.display = 'block';
   renderChart(data, fit);
+
+  savePsaHistory(data, fit);
 }
 
 // Allow Enter key in textarea to not submit, but Shift+Enter or Ctrl+Enter
@@ -675,7 +741,19 @@ document.getElementById('projectionYears').addEventListener('input', function ()
   if (lastData && lastFit) renderChart(lastData, lastFit);
 });
 
+// Persist a changed projection so a recalled entry shows the same chart view
+// (doubling time itself is unaffected). 'change' (not 'input') to save on commit.
+document.getElementById('projectionYears').addEventListener('change', function () {
+  if (lastData && lastFit) savePsaHistory(lastData, lastFit);
+});
+
 // Re-render chart when site-wide theme changes
 window.addEventListener('themechange', function () {
   if (lastData && lastFit) renderChart(lastData, lastFit);
 });
+
+// Shareable link + restore-from-URL (shared link or hub recents pill), then
+// render any existing history so recents are clickable before a fresh calc.
+setupCopyLinkButton('copy-link-btn', PSA_INPUT_IDS);
+initPsaFromUrl();
+renderHistory('psa', PSA_INPUT_IDS, calculate, psaSummary, restorePsaEntry);

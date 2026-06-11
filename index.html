@@ -122,6 +122,12 @@
           a.appendChild(tool);
           a.appendChild(dot);
           a.appendChild(sum);
+          if (typeof relativeTime === 'function') {
+            var when = document.createElement('span');
+            when.className = 'hub-recent-date';
+            when.textContent = relativeTime(r.ts);
+            a.appendChild(when);
+          }
           row.appendChild(a);
         });
         section.hidden = false;
