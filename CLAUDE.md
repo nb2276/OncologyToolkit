@@ -31,7 +31,7 @@ Analytics: Google Analytics `G-PP2FRCMYS1` + Cloudflare Web Analytics beacon `90
 | `psa.html` | PSA doubling time | `psa.js` (Chart.js) + `history.js` + `url-state.js` + `clipboard.js` |
 | `composite.html` | Composite dose (re-tx tolerance) | `composite.js` + `math.js` |
 | `rert.html` | Reirradiation OAR tolerance (UMich ReRT) | `rert.js` + `math.js` |
-| `constraints.html` | QUANTEC/HyTEC/NRG dose constraints | `constraints.js` |
+| `constraints.html` | QUANTEC/HyTEC/NRG/ASTRO-DVH/SFRO dose constraints | `constraints.js` |
 | `icd.html` | ICD-10 code search | `script.js` (XHR-loads 9 MB `icd10.xml` only on this page) |
 | `about.html` | About / contact | `theme.js` only |
 
