@@ -680,8 +680,8 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 }
 
 .psa-col-left {
-  flex: 0 0 320px;
-  min-width: 260px;
+  flex: 0 0 360px;
+  min-width: 280px;
 }
 
 .psa-col-right {
@@ -846,7 +846,9 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 
 #psaInput {
   width: 100%;
-  height: 130px;
+  min-height: 130px;
+  max-height: 460px;   /* JS auto-grows up to here, then it scrolls */
+  overflow-y: auto;
   background-color: var(--bg-card);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
