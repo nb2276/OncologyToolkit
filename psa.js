@@ -103,6 +103,24 @@ function parseInput(text) {
   return data;
 }
 
+/**
+ * Drop exact-duplicate measurements — same day AND same PSA value. A reading
+ * entered twice carries no extra information, so it is removed from both the
+ * fit and the parsed-measurements table. Same-day DIFFERENT values are kept
+ * (they are distinct readings, not duplicates). Keeps first occurrence.
+ */
+function dedupeMeasurements(data) {
+  const seen = {};
+  const out = [];
+  for (const d of data) {
+    const key = d.date.getTime() + '|' + d.psaValue;
+    if (seen[key]) continue;
+    seen[key] = true;
+    out.push(d);
+  }
+  return out;
+}
+
 // -------------------------------------------------------------------------
 // Least-squares exponential fit
 // -------------------------------------------------------------------------
@@ -981,7 +999,9 @@ function calculate(keepProjection) {
   input.value = input.value.split('\n').filter(l => l.trim()).join('\n');
   const text = input.value;
   autoGrowPsaInput(input);
-  const data = parseInput(text);
+  const rawData = parseInput(text);
+  const data = dedupeMeasurements(rawData);   // hide exact duplicates everywhere
+  const dupsRemoved = rawData.length - data.length;
 
   const errEl        = document.getElementById('psaError');
   const resEl        = document.getElementById('psaResults');
@@ -1040,6 +1060,18 @@ function calculate(keepProjection) {
       dropEl.style.display = 'block';
     } else {
       dropEl.style.display = 'none';
+    }
+  }
+
+  // Note hidden exact-duplicate measurements so rows don't vanish silently.
+  const dupEl = document.getElementById('psaDupNote');
+  if (dupEl) {
+    if (dupsRemoved > 0) {
+      dupEl.textContent = dupsRemoved + ' duplicate measurement' +
+        (dupsRemoved === 1 ? '' : 's') + ' hidden.';
+      dupEl.style.display = 'block';
+    } else {
+      dupEl.style.display = 'none';
     }
   }
 

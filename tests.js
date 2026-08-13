@@ -166,6 +166,7 @@ vm.runInContext(`
   globalThis.makeDate = makeDate;
   globalThis.parseLine = parseLine;
   globalThis.parseInput = parseInput;
+  globalThis.dedupeMeasurements = dedupeMeasurements;
   globalThis.fitExponential = fitExponential;
   globalThis.doublingTimeCI = doublingTimeCI;
   globalThis.psaVelocity = psaVelocity;
@@ -190,6 +191,7 @@ var tryParseDate = sandbox.tryParseDate;
 var makeDate = sandbox.makeDate;
 var parseLine = sandbox.parseLine;
 var parseInput = sandbox.parseInput;
+var dedupeMeasurements = sandbox.dedupeMeasurements;
 var fitExponential = sandbox.fitExponential;
 var doublingTimeCI = sandbox.doublingTimeCI;
 var psaVelocity = sandbox.psaVelocity;
@@ -551,6 +553,37 @@ assert(parsed[1].date < parsed[2].date, 'parseInput: sorted chronologically (1 <
 var input2 = '\n01/15/2023 1.20\n\n06/20/2023 2.40\n\n';
 var parsed2 = parseInput(input2);
 assertEqual(parsed2.length, 2, 'parseInput: ignores blank lines');
+
+section('=== psa.js: dedupeMeasurements ===');
+
+// Exact duplicate (same date AND same value) → collapsed to one
+var dupSet = [
+  { date: new Date(2023, 0, 1), psaValue: 1.2 },
+  { date: new Date(2023, 0, 1), psaValue: 1.2 },
+  { date: new Date(2023, 5, 1), psaValue: 2.0 },
+];
+var deduped = dedupeMeasurements(dupSet);
+assertEqual(deduped.length, 2, 'dedupeMeasurements: exact duplicate removed');
+assertClose(deduped[0].psaValue, 1.2, 0.001, 'dedupeMeasurements: keeps first occurrence value');
+
+// Same date, DIFFERENT value → both kept (not duplicates)
+var sameDayDiff = [
+  { date: new Date(2023, 0, 1), psaValue: 1.2 },
+  { date: new Date(2023, 0, 1), psaValue: 1.4 },
+];
+assertEqual(dedupeMeasurements(sameDayDiff).length, 2, 'dedupeMeasurements: same-day different values both kept');
+
+// Same value, DIFFERENT date → both kept
+var sameValDiffDate = [
+  { date: new Date(2023, 0, 1), psaValue: 2.0 },
+  { date: new Date(2023, 6, 1), psaValue: 2.0 },
+];
+assertEqual(dedupeMeasurements(sameValDiffDate).length, 2, 'dedupeMeasurements: same value different dates both kept');
+
+// No duplicates → unchanged
+assertEqual(dedupeMeasurements(sameValDiffDate).length, sameValDiffDate.length, 'dedupeMeasurements: no-op when no duplicates');
+// Empty
+assertEqual(dedupeMeasurements([]).length, 0, 'dedupeMeasurements: empty input');
 
 // ============================================================
 // TESTS: psa.js — Exponential fit
