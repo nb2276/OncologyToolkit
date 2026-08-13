@@ -1280,7 +1280,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1291,7 +1292,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1302,7 +1304,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1313,7 +1316,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1324,7 +1328,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1335,7 +1340,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Cord",
@@ -1346,7 +1352,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1357,7 +1364,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1368,7 +1376,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Supraclav)",
@@ -1379,7 +1388,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Supraclav)",
@@ -1390,7 +1400,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Axillary)",
@@ -1401,7 +1412,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Axillary)",
@@ -1412,7 +1424,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (IMN)",
@@ -1423,7 +1436,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (IMN)",
@@ -1434,7 +1448,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; conv 50–50.4 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast",
@@ -1445,7 +1460,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1456,7 +1472,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1467,7 +1484,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1478,7 +1496,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1489,7 +1508,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1500,7 +1520,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1511,7 +1532,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1522,7 +1544,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW (no LN); hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast",
@@ -1533,7 +1556,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1544,7 +1568,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1555,7 +1580,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1566,7 +1592,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1577,7 +1604,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1588,7 +1616,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Cord",
@@ -1599,7 +1628,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1610,7 +1640,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1621,7 +1652,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1632,7 +1664,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Supraclav)",
@@ -1643,7 +1676,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Supraclav)",
@@ -1654,7 +1688,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Axillary)",
@@ -1665,7 +1700,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (Axillary)",
@@ -1676,7 +1712,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (IMN)",
@@ -1687,7 +1724,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lymph Node (IMN)",
@@ -1698,7 +1736,8 @@
     "rate": "Primary goal",
     "fractionation": "Breast/CW + LN; hypofx 40.05–42.56 Gy / 15–16 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast",
@@ -1709,7 +1748,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast",
@@ -1720,7 +1760,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast",
@@ -1731,7 +1772,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1742,7 +1784,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1753,7 +1796,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1764,7 +1808,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1775,7 +1820,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1786,7 +1832,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1797,7 +1844,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (Partial breast)",
@@ -1808,7 +1856,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (Partial breast)",
@@ -1819,7 +1868,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (Partial breast)",
@@ -1830,7 +1880,8 @@
     "rate": "Primary goal",
     "fractionation": "Partial breast; SBRT 30 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1841,7 +1892,8 @@
     "rate": "Primary goal",
     "fractionation": "Whole breast/CW; ultrahypofx 26 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -1852,7 +1904,8 @@
     "rate": "Primary goal",
     "fractionation": "Whole breast/CW; ultrahypofx 26 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -1863,7 +1916,8 @@
     "rate": "Primary goal",
     "fractionation": "Whole breast/CW; ultrahypofx 26 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1874,7 +1928,8 @@
     "rate": "Primary goal",
     "fractionation": "Whole breast/CW; ultrahypofx 26 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1885,7 +1940,8 @@
     "rate": "Primary goal",
     "fractionation": "Whole breast/CW; ultrahypofx 26 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1896,7 +1952,8 @@
     "rate": "Primary goal",
     "fractionation": "Whole breast/CW; ultrahypofx 26 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Breast/Chest Wall",
@@ -1907,7 +1964,8 @@
     "rate": "Primary goal",
     "fractionation": "Whole breast/CW; ultrahypofx 26 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Mandible",
@@ -1918,7 +1976,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -1929,7 +1988,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brainstem",
@@ -1940,7 +2000,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Oral Cavity",
@@ -1951,7 +2012,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Oral Cavity",
@@ -1962,7 +2024,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Oral Cavity",
@@ -1973,7 +2036,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Cochlea",
@@ -1984,7 +2048,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -1995,7 +2060,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2006,7 +2072,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Submandibular Gland",
@@ -2017,7 +2084,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Submandibular Gland",
@@ -2028,7 +2096,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Larynx",
@@ -2039,7 +2108,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Pharyngeal Constrictors",
@@ -2050,7 +2120,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Parotid",
@@ -2061,7 +2132,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Parotid",
@@ -2072,7 +2144,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Cord",
@@ -2083,7 +2156,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (high risk)",
@@ -2094,7 +2168,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (high risk)",
@@ -2105,7 +2180,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (high risk)",
@@ -2116,7 +2192,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (low risk)",
@@ -2127,7 +2204,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (low risk)",
@@ -2138,7 +2216,8 @@
     "rate": "Primary goal",
     "fractionation": "Head & neck; conv 70 Gy / 33–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Carotid Artery",
@@ -2149,7 +2228,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Carotid Artery",
@@ -2160,7 +2240,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2171,7 +2252,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Submandibular Gland",
@@ -2182,7 +2264,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Pharyngeal Constrictors",
@@ -2193,7 +2276,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Cord",
@@ -2204,7 +2288,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2215,7 +2300,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2226,7 +2312,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2237,7 +2324,8 @@
     "rate": "Primary goal",
     "fractionation": "Early-stage larynx (IMRT/VMAT); 63–65.25 Gy / 28–29 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -2248,7 +2336,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -2259,7 +2348,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -2270,7 +2360,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -2281,7 +2372,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2292,7 +2384,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2303,7 +2396,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2314,7 +2408,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Duodenum",
@@ -2325,7 +2420,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Duodenum",
@@ -2336,7 +2432,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2347,7 +2444,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -2358,7 +2456,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -2369,7 +2468,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Kidneys",
@@ -2380,7 +2480,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2391,7 +2492,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2402,7 +2504,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2413,7 +2516,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -2424,7 +2528,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Stomach",
@@ -2435,7 +2540,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Stomach",
@@ -2446,7 +2552,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2457,7 +2564,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2468,7 +2576,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 36–60 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -2479,7 +2588,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -2490,7 +2600,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -2501,7 +2612,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2512,7 +2624,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2523,7 +2636,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Duodenum",
@@ -2534,7 +2648,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Duodenum",
@@ -2545,7 +2660,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2556,7 +2672,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -2567,7 +2684,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -2578,7 +2696,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Kidneys",
@@ -2589,7 +2708,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2600,7 +2720,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2611,7 +2732,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2622,7 +2744,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2633,7 +2756,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2644,7 +2768,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2655,7 +2780,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -2666,7 +2792,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Stomach",
@@ -2677,7 +2804,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Stomach",
@@ -2688,7 +2816,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2699,7 +2828,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2710,7 +2840,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver SBRT 40–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -2721,7 +2852,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -2732,7 +2864,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2743,7 +2876,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2754,7 +2888,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -2765,7 +2900,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Duodenum",
@@ -2776,7 +2912,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2787,7 +2924,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -2798,7 +2936,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Kidneys",
@@ -2809,7 +2948,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2820,7 +2960,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2831,7 +2972,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Liver",
@@ -2842,7 +2984,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -2853,7 +2996,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Stomach",
@@ -2864,7 +3008,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2875,7 +3020,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -2886,7 +3032,8 @@
     "rate": "Primary goal",
     "fractionation": "Liver hypofx 45–67.5 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -2897,7 +3044,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2908,7 +3056,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2919,7 +3068,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -2930,7 +3080,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -2941,7 +3092,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -2952,7 +3104,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -2963,7 +3116,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lung",
@@ -2974,7 +3128,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -2985,7 +3140,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -2996,7 +3152,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3007,7 +3164,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -3018,7 +3176,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3029,7 +3188,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung conv 60–70 Gy / 30–35 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -3040,7 +3200,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3051,7 +3212,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3062,7 +3224,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3073,7 +3236,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3084,7 +3248,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3095,7 +3260,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3106,7 +3272,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -3117,7 +3284,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3128,7 +3296,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3139,7 +3308,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3150,7 +3320,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3161,7 +3332,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3172,7 +3344,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3183,7 +3356,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3194,7 +3368,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -3205,7 +3380,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3216,7 +3392,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3227,7 +3404,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3238,7 +3416,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3249,7 +3428,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 27–34 Gy / 1 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -3260,7 +3440,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3271,7 +3452,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3282,7 +3464,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3293,7 +3476,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3304,7 +3488,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3315,7 +3500,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3326,7 +3512,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -3337,7 +3524,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3348,7 +3536,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3359,7 +3548,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3370,7 +3560,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3381,7 +3572,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3392,7 +3584,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3403,7 +3596,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3414,7 +3608,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3425,7 +3620,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3436,7 +3632,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3447,7 +3644,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -3458,7 +3656,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3469,7 +3668,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3480,7 +3680,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3491,7 +3692,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3502,7 +3704,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 54 Gy / 3 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -3513,7 +3716,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3524,7 +3728,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3535,7 +3740,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3546,7 +3752,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3557,7 +3764,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3568,7 +3776,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3579,7 +3788,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -3590,7 +3800,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3601,7 +3812,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3612,7 +3824,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3623,7 +3836,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3634,7 +3848,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3645,7 +3860,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3656,7 +3872,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3667,7 +3884,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3678,7 +3896,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -3689,7 +3908,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3700,7 +3920,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3711,7 +3932,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3722,7 +3944,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3733,7 +3956,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 48–50 Gy / 4 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -3744,7 +3968,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3755,7 +3980,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bronchus",
@@ -3766,7 +3992,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3777,7 +4004,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -3788,7 +4016,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3799,7 +4028,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -3810,7 +4040,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -3821,7 +4052,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3832,7 +4064,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -3843,7 +4076,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3854,7 +4088,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3865,7 +4100,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3876,7 +4112,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -3887,7 +4124,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3898,7 +4136,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -3909,7 +4148,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3920,7 +4160,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Skin",
@@ -3931,7 +4172,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -3942,7 +4184,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3953,7 +4196,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -3964,7 +4208,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3975,7 +4220,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -3986,7 +4232,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung SBRT 50–60 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -3997,7 +4244,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -4008,7 +4256,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -4019,7 +4268,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -4030,7 +4280,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -4041,7 +4292,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -4052,7 +4304,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -4063,7 +4316,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -4074,7 +4328,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -4085,7 +4340,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -4096,7 +4352,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -4107,7 +4364,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Ribs",
@@ -4118,7 +4376,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -4129,7 +4388,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -4140,7 +4400,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -4151,7 +4412,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4162,7 +4424,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4173,7 +4436,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 8 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -4184,7 +4448,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -4195,7 +4460,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -4206,7 +4472,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -4217,7 +4484,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -4228,7 +4496,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -4239,7 +4508,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -4250,7 +4520,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -4261,7 +4532,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -4272,7 +4544,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -4283,7 +4556,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -4294,7 +4568,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -4305,7 +4580,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -4316,7 +4592,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4327,7 +4604,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4338,7 +4616,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 70 Gy / 10 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Brachial Plexus",
@@ -4349,7 +4628,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Chest Wall",
@@ -4360,7 +4640,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -4371,7 +4652,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Esophagus",
@@ -4382,7 +4664,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Great Vessels",
@@ -4393,7 +4676,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -4404,7 +4688,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Heart",
@@ -4415,7 +4700,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -4426,7 +4712,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -4437,7 +4724,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Lungs (Total)",
@@ -4448,7 +4736,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Spinal Canal",
@@ -4459,7 +4748,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Trachea / Main Bronchus",
@@ -4470,7 +4760,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4481,7 +4772,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4492,7 +4784,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4503,7 +4796,8 @@
     "rate": "Primary goal",
     "fractionation": "Lung hypofx 60 Gy / 15 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4514,7 +4808,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4525,7 +4820,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4536,7 +4832,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -4547,7 +4844,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -4558,7 +4856,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -4569,7 +4868,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -4580,7 +4880,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -4591,7 +4892,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Penile Bulb",
@@ -4602,7 +4904,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4613,7 +4916,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4624,7 +4928,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4635,7 +4940,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4646,7 +4952,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4657,7 +4964,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate conv 74–81 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4668,7 +4976,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4679,7 +4988,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4690,7 +5000,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -4701,7 +5012,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -4712,7 +5024,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -4723,7 +5036,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -4734,7 +5048,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Penile Bulb",
@@ -4745,7 +5060,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4756,7 +5072,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4767,7 +5084,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4778,7 +5096,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4789,7 +5108,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4800,7 +5120,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 60 Gy / 20 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4811,7 +5132,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4822,7 +5144,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4833,7 +5156,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -4844,7 +5168,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -4855,7 +5180,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -4866,7 +5192,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -4877,7 +5204,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -4888,7 +5216,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Penile Bulb",
@@ -4899,7 +5228,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4910,7 +5240,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4921,7 +5252,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -4932,7 +5264,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4943,7 +5276,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -4954,7 +5288,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate hypofx 70 Gy / 28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4965,7 +5300,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -4976,7 +5312,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -4987,7 +5324,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -4998,7 +5336,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5009,7 +5348,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5020,7 +5360,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -5031,7 +5372,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Penile Bulb",
@@ -5042,7 +5384,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -5053,7 +5396,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -5064,7 +5408,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (Prostate bed)",
@@ -5075,7 +5420,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV (Prostate bed)",
@@ -5086,7 +5432,8 @@
     "rate": "Primary goal",
     "fractionation": "Postop prostate conv 64–72 Gy",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -5097,7 +5444,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -5108,7 +5456,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Large)",
@@ -5119,7 +5468,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5130,7 +5480,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5141,7 +5492,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -5152,7 +5504,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Penile Bulb",
@@ -5163,7 +5516,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Penile Bulb",
@@ -5174,7 +5528,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -5185,7 +5540,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -5196,7 +5552,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Rectum",
@@ -5207,7 +5564,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Urethra",
@@ -5218,7 +5576,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -5229,7 +5588,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -5240,7 +5600,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -5251,7 +5612,8 @@
     "rate": "Primary goal",
     "fractionation": "Prostate SBRT 36.25–40 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -5262,7 +5624,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -5273,7 +5636,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5284,7 +5648,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5295,7 +5660,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5306,7 +5672,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5317,7 +5684,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5328,7 +5696,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5339,7 +5708,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -5350,7 +5720,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -5361,7 +5732,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Genitals",
@@ -5372,7 +5744,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Genitals",
@@ -5383,7 +5756,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Genitals",
@@ -5394,7 +5768,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Vagina",
@@ -5405,7 +5780,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -5416,7 +5792,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -5427,7 +5804,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal conv 50–56 Gy / 25–28 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -5438,7 +5816,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -5449,7 +5828,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bladder",
@@ -5460,7 +5840,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5471,7 +5852,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5482,7 +5864,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5493,7 +5876,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Bowel (Small)",
@@ -5504,7 +5888,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "Femoral Head",
@@ -5515,7 +5900,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -5526,7 +5912,8 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   },
   {
     "organ": "PTV",
@@ -5537,6 +5924,7 @@
     "rate": "Primary goal",
     "fractionation": "Rectal short-course 25 Gy / 5 fx",
     "source": "ASTRO DVH",
-    "citation": "Puckett et al., Pract Radiat Oncol 2026"
+    "citation": "Puckett et al., Pract Radiat Oncol 2026",
+    "pmid": 41569222
   }
 ]
