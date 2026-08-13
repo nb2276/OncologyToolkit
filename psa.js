@@ -329,6 +329,15 @@ function setText(id, text) {
   if (el) el.textContent = text;
 }
 
+// Grow the PSA input textarea to fit its content (down to a floor, up to a cap,
+// then it scrolls) so pasting many measurements doesn't cram into a tiny box.
+function autoGrowPsaInput(el) {
+  el = el || document.getElementById('psaInput');
+  if (!el || el.scrollHeight == null) return;   // no-op under the test DOM shim
+  el.style.height = 'auto';
+  el.style.height = Math.min(460, Math.max(130, el.scrollHeight + 2)) + 'px';
+}
+
 /**
  * Generate weekly points along the fitted curve from startDate to endDate.
  * Also returns upper and lower 95% confidence bands when variance info is
@@ -740,6 +749,24 @@ function toggleWhiteMode() {
 // Copy results as PNG to clipboard
 // -------------------------------------------------------------------------
 
+// Break a string into lines that fit maxWidth in the given ctx's current font.
+// Character-based (URLs have no spaces to wrap on).
+function wrapTextToWidth(ctx, text, maxWidth) {
+  const lines = [];
+  let line = '';
+  for (let i = 0; i < text.length; i++) {
+    const test = line + text[i];
+    if (line && ctx.measureText(test).width > maxWidth) {
+      lines.push(line);
+      line = text[i];
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 function copyResults() {
   if (!lastData || !lastFit) return;
   const btn         = document.getElementById('copyResultsBtn');
@@ -753,12 +780,38 @@ function copyResults() {
   const statsText = (document.getElementById('psaStats') || {}).textContent || '';
 
   const pad    = 36;
-  const headH  = 132;
   const gap    = 24;
   const rowH   = 34;
-  const tableH = (lastData.length + 2) * rowH + pad * 2 + gap;
   const W      = chartCanvas.width;
-  const H      = headH + gap + chartCanvas.height + tableH;
+
+  // Header sizes + a roomier gap between the title and the doubling-time value.
+  const titleSize = Math.max(16, Math.round(W / 28));
+  const valSize   = Math.max(14, Math.round(W / 32));
+  const subSize   = Math.max(11, Math.round(W / 64));
+  const titleY = 42;
+  const valueY = titleY + valSize + 30;              // extra breathing room
+  const ciY    = valueY + subSize + 14;
+  const statsY = ciY + subSize + 8;
+  const headH  = statsY + 18;
+
+  // Shareable link — the same URL the "Copy Link" button produces — so the
+  // image can be reopened later to add more measurements. Wrapped to fit width.
+  const shareUrl = window.location.origin + window.location.pathname + '?' +
+    new URLSearchParams(PSA_INPUT_IDS.reduce(function (acc, id) {
+      const el = document.getElementById(id);
+      if (el && el.value !== '') acc[id] = el.value;
+      return acc;
+    }, {})).toString();
+
+  const urlSize   = Math.max(10, Math.round(W / 82));
+  const urlLineH  = urlSize + 5;
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  measureCtx.font = urlSize + 'px monospace';
+  const urlLines = wrapTextToWidth(measureCtx, shareUrl, W - pad * 2);
+  const footerH  = gap + (urlSize + 8) + urlLines.length * urlLineH + pad;
+
+  const tableH = (lastData.length + 2) * rowH + pad * 2 + gap;
+  const H      = headH + gap + chartCanvas.height + tableH + footerH;
 
   const out = document.createElement('canvas');
   out.width  = W;
@@ -769,23 +822,20 @@ function copyResults() {
   c.fillRect(0, 0, W, H);
 
   // Title
-  const titleSize = Math.max(16, Math.round(W / 28));
   c.fillStyle = '#111111';
   c.font = `bold ${titleSize}px ${font}`;
-  c.fillText('PSA Doubling Time', pad, 36);
+  c.fillText('PSA Doubling Time', pad, titleY);
 
   // Doubling time value
-  const valSize = Math.max(14, Math.round(W / 32));
   c.fillStyle = '#1565c0';
   c.font = `bold ${valSize}px ${font}`;
-  c.fillText(dt, pad, 72);
+  c.fillText(dt, pad, valueY);
 
   // CI + R²/velocity subtitle
-  const subSize = Math.max(11, Math.round(W / 64));
   c.fillStyle = '#555555';
   c.font = `${subSize}px ${font}`;
-  if (ciText)    c.fillText(ciText, pad, 98);
-  if (statsText) c.fillText(statsText, pad, 98 + subSize + 8);
+  if (ciText)    c.fillText(ciText, pad, ciY);
+  if (statsText) c.fillText(statsText, pad, statsY);
 
   // Chart
   c.drawImage(chartCanvas, 0, headH + gap);
@@ -817,6 +867,19 @@ function copyResults() {
     c.fillStyle = '#444444';
     c.fillText(fmtDate(date), col2x, y);
     y += rowH;
+  }
+
+  // Shareable-link footer
+  y += gap;
+  c.fillStyle = '#888888';
+  c.font = `${urlSize}px ${font}`;
+  c.fillText('Reopen / add measurements at:', pad, y);
+  y += urlSize + 8;
+  c.fillStyle = '#1565c0';
+  c.font = `${urlSize}px monospace`;
+  for (let i = 0; i < urlLines.length; i++) {
+    c.fillText(urlLines[i], pad, y);
+    y += urlLineH;
   }
 
   out.toBlob(function (blob) {
@@ -917,6 +980,7 @@ function calculate(keepProjection) {
   // Strip blank lines so pasted data with leading/trailing whitespace works
   input.value = input.value.split('\n').filter(l => l.trim()).join('\n');
   const text = input.value;
+  autoGrowPsaInput(input);
   const data = parseInput(text);
 
   const errEl        = document.getElementById('psaError');
@@ -996,6 +1060,11 @@ document.getElementById('psaInput').addEventListener('keydown', function(e) {
     e.preventDefault();
     calculate();
   }
+});
+
+// Auto-grow the textarea as the user types or pastes measurements.
+document.getElementById('psaInput').addEventListener('input', function () {
+  autoGrowPsaInput(this);
 });
 
 document.getElementById('projectionYears').addEventListener('input', function () {
