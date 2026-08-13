@@ -2288,6 +2288,12 @@ details[open].rert-oar-picker .rert-picker-chevron {
   border: 1px solid rgba(244, 143, 177, 0.2);
 }
 
+.constraint-source-sfro-2025 {
+  color: #4db6ac;
+  background: rgba(77, 182, 172, 0.1);
+  border: 1px solid rgba(77, 182, 172, 0.2);
+}
+
 .citation-link {
   color: var(--accent);
   text-decoration: none;

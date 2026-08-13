@@ -32,7 +32,7 @@ Estimates the remaining tolerable dose to a previously irradiated structure.
 - Based on a spreadsheet by Dr. Mike Wahl
 
 ### Dose Constraint Reference
-QUANTEC, HyTEC, and ASTRO 2026 (Puckett) DVH constraints with PubMed-linked citations.
+QUANTEC, HyTEC, ASTRO 2026 (Puckett) DVH, NRG protocol, and SFRO 2025 (French OAR guideline, Noël et al.) constraints with PubMed-linked citations.
 - AND-match search across organ, endpoint, dose, and source
 - Filter by source compendium
 - Click any constraint to copy the full citation
