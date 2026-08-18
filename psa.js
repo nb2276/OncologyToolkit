@@ -163,10 +163,17 @@ const MS_PER_DAY = 86400000;
  * Returns { A, B, doublingTimeDays, firstDate, pts, varLnA, varB, covAB, n,
  *           rSquared, rSquaredDefined, ciEstimable } or null on failure.
  */
+/**
+ * The measurements a fit may use: positive, and actually measured. Below-
+ * detection results carry no concentration — fitting them at their reported
+ * limit would bias the slope toward that limit.
+ */
+function fittablePoints(data) {
+  return data.filter(d => d.psaValue > 0 && !d.censored);
+}
+
 function fitExponential(data) {
-  // Below-detection results carry no measured concentration — fitting them at
-  // their reported limit would bias the slope toward that limit.
-  const valid = data.filter(d => d.psaValue > 0 && !d.censored);
+  const valid = fittablePoints(data);
   if (valid.length < 2) return null;
 
   const firstDate = valid[0].date;
@@ -277,7 +284,7 @@ function doublingTimeCI(fit) {
  * computable.
  */
 function psaVelocity(data) {
-  const valid = data.filter(d => d.psaValue > 0 && !d.censored);
+  const valid = fittablePoints(data);
   if (valid.length < 2) return null;
 
   const t0 = valid[0].date.getTime();
@@ -295,6 +302,120 @@ function psaVelocity(data) {
 }
 
 // -------------------------------------------------------------------------
+// Recent-trend window
+//
+// PSA kinetics are not fixed. Post-treatment log-PSA series are empirically
+// piecewise-linear rather than one straight line (Bellera 2008, Ann Epidemiol),
+// and a shift in doubling time between clinical epochs carries prognostic
+// weight (baseline vs off-treatment PSADT in intermittent ADT).
+//
+// This compares the most recent stretch of measurements against the earlier
+// ones and reports the difference DESCRIPTIVELY. It must never attribute a
+// change to disease biology: the usual causes — treatment start/stop, 5-ARIs,
+// testosterone recovery, benign post-radiotherapy bounce, a change of assay —
+// are all invisible to this page, and several of them look identical to
+// progression in the numbers alone.
+// -------------------------------------------------------------------------
+
+const RECENT_WINDOW_DAYS   = 365;   // preferred trailing window
+const RECENT_MIN_POINTS    = 3;     // a slope needs 3 points to carry a CI
+const RECENT_MIN_SPAN_DAYS = 90;    // 3 draws in a fortnight is not a trend
+
+/**
+ * Split the fittable measurements into { points: recent, earlier }, or null
+ * when the series can't support the comparison. Prefers a trailing 12 months,
+ * widens when that holds too few points or too short a span, and requires the
+ * window to leave enough earlier points behind to compare against.
+ */
+function recentWindow(data) {
+  const pts = fittablePoints(data);
+  if (pts.length < RECENT_MIN_POINTS + 1) return null;
+
+  const lastMs   = pts[pts.length - 1].date.getTime();
+  const inWindow = ms => (lastMs - ms) <= RECENT_WINDOW_DAYS * MS_PER_DAY;
+  const spanOk   = i  => (lastMs - pts[i].date.getTime()) >= RECENT_MIN_SPAN_DAYS * MS_PER_DAY;
+
+  let start = pts.findIndex(d => inWindow(d.date.getTime()));
+  if (start === -1) start = pts.length - 1;
+
+  // Widen backwards until the window holds enough points across enough time.
+  while (start > 0 && (pts.length - start < RECENT_MIN_POINTS || !spanOk(start))) start--;
+
+  // start === 0 means the window ate the whole series: nothing left to compare.
+  if (start === 0) return null;
+  if (pts.length - start < RECENT_MIN_POINTS || !spanOk(start)) return null;
+
+  return { points: pts.slice(start), earlier: pts.slice(0, start) };
+}
+
+/**
+ * Compare the exponential rate constant B between the recent window and the
+ * earlier points. The two sets are disjoint, so Var(difference) is the sum of
+ * variances — comparing recent against the OVERALL fit would double-count the
+ * shared points and overstate the difference.
+ *
+ * Returns { differs, direction } or null when either side can't carry a CI
+ * (n < 3 leaves no residual degrees of freedom, so varB would be a fake zero).
+ */
+function compareTrend(recentFit, earlierFit) {
+  if (!recentFit || !earlierFit) return null;
+  if (!recentFit.ciEstimable || !earlierFit.ciEstimable) return null;
+
+  const se = Math.sqrt(recentFit.varB + earlierFit.varB);
+  if (!isFinite(se) || se <= 0) return null;
+
+  const diff = recentFit.B - earlierFit.B;
+  const df   = (recentFit.n - 2) + (earlierFit.n - 2);
+  return {
+    differs: Math.abs(diff / se) > tValue95(df),
+    // "rate constant increased" stays true whether the series is rising faster
+    // or falling more slowly; "faster growth" would be wrong in the latter.
+    direction: diff > 0 ? 'increased' : 'decreased'
+  };
+}
+
+// Assay + biological noise floor. Biological variation alone runs ~7.3% CV
+// (95th percentile 19.2%), and assay CV commonly exceeds 20% below 0.4 ng/mL,
+// so a change between draws under ~20-46% can be entirely noise. 1.2x is the
+// conservative end of that band: series that move less get a caution instead
+// of a confident doubling time.
+const PSA_NOISE_FOLD     = 1.2;
+const ULTRASENSITIVE_MAX = 0.1;
+
+function medianOf(nums) {
+  const s = nums.slice().sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
+/**
+ * The single most important caveat about reading this series, or null. Capped
+ * at one message on purpose — a stack of hedges reads as noise and gets
+ * skipped, which defeats the point of hedging at all.
+ */
+function noiseCaveat(data) {
+  const pts = fittablePoints(data);
+  if (pts.length < 2) return null;
+
+  const first = pts[0].psaValue;
+  const last  = pts[pts.length - 1].psaValue;
+  const fold  = Math.max(last / first, first / last);
+  if (isFinite(fold) && fold < PSA_NOISE_FOLD) {
+    return 'Total change across these measurements is under ' +
+      Math.round((PSA_NOISE_FOLD - 1) * 100) + '%, which assay and biological ' +
+      'variation alone can produce. Treat the doubling time as provisional.';
+  }
+
+  if (medianOf(pts.map(d => d.psaValue)) < ULTRASENSITIVE_MAX) {
+    return 'At ultrasensitive levels (below ' + ULTRASENSITIVE_MAX + ' ng/mL) assay ' +
+      'variation commonly exceeds 20%, so these values scatter more than the fit ' +
+      'assumes. The doubling time is correspondingly less certain.';
+  }
+
+  return null;
+}
+
+// -------------------------------------------------------------------------
 // Chart
 // -------------------------------------------------------------------------
 
@@ -302,6 +423,7 @@ let psaChart  = null;
 let whiteMode = false;
 let lastData  = null;
 let lastFit   = null;
+let recentFit = null;          // recent-window fit, drawn as a comparison line
 let defaultProjectionYears = 2;
 let yAxisType = 'linear';      // 'linear' (capped) | 'logarithmic'
 let lastDataMs = null;         // last measured date — projection-shading divider
@@ -546,6 +668,26 @@ function renderChart(data, fit) {
       order: 2
     }
   ];
+
+  // Recent-trend line: no CI band of its own — it is a comparison aid against
+  // the main fit, not a second fit with its own uncertainty story to tell.
+  if (recentFit) {
+    datasets.push({
+      label: 'Recent trend',
+      data: buildCurve(recentFit, new Date(recentFit.firstDate), chartEnd).pts,
+      type: 'line',
+      borderColor: '#ffb74d',
+      backgroundColor: 'transparent',
+      fill: false,
+      pointStyle: 'line',
+      pointRadius: 0,
+      pointHitRadius: 0,
+      borderWidth: 2,
+      borderDash: [6, 3],
+      tension: 0,
+      order: 5
+    });
+  }
 
   if (censored.length) {
     // Down-pointing marker at the detection limit: the true value lies below it.
@@ -869,9 +1011,10 @@ function copyResults() {
 
   const font = 'Arial, Helvetica, sans-serif';
 
-  // Secondary readouts (CI, R², velocity) for the exported image.
-  const ciText    = (document.getElementById('psaCI') || {}).textContent || '';
-  const statsText = (document.getElementById('psaStats') || {}).textContent || '';
+  // Secondary readouts (CI, R², velocity, recent trend) for the exported image.
+  const ciText     = (document.getElementById('psaCI') || {}).textContent || '';
+  const statsText  = (document.getElementById('psaStats') || {}).textContent || '';
+  const recentText = (document.getElementById('psaRecent') || {}).textContent || '';
 
   const pad    = 36;
   const gap    = 24;
@@ -884,9 +1027,11 @@ function copyResults() {
   const subSize   = Math.max(11, Math.round(W / 64));
   const titleY = 42;
   const valueY = titleY + valSize + 30;              // extra breathing room
-  const ciY    = valueY + subSize + 14;
-  const statsY = ciY + subSize + 8;
-  const headH  = statsY + 18;
+  const ciY     = valueY + subSize + 14;
+  const statsY  = ciY + subSize + 8;
+  // The recent-trend line only reserves height when there is one to print.
+  const recentY = recentText ? statsY + subSize + 8 : statsY;
+  const headH   = recentY + 18;
 
   // Shareable link — the same URL the "Copy Link" button produces — so the
   // image can be reopened later to add more measurements. Wrapped to fit width.
@@ -928,8 +1073,9 @@ function copyResults() {
   // CI + R²/velocity subtitle
   c.fillStyle = '#555555';
   c.font = `${subSize}px ${font}`;
-  if (ciText)    c.fillText(ciText, pad, ciY);
-  if (statsText) c.fillText(statsText, pad, statsY);
+  if (ciText)     c.fillText(ciText, pad, ciY);
+  if (statsText)  c.fillText(statsText, pad, statsY);
+  if (recentText) c.fillText(recentText, pad, recentY);
 
   // Chart
   c.drawImage(chartCanvas, 0, headH + gap);
@@ -1084,6 +1230,7 @@ function calculate(keepProjection) {
   autoGrowPsaInput(input);
   const rawData = parseInput(text);
   const data = dedupeMeasurements(rawData);   // hide exact duplicates everywhere
+  recentFit = null;                           // never carry a stale trend line forward
   const dupsRemoved = rawData.length - data.length;
 
   const errEl        = document.getElementById('psaError');
@@ -1145,6 +1292,41 @@ function calculate(keepProjection) {
   setText('psaCI', fmtDoublingTimeCI(ci));
   const velocity = psaVelocity(data);
   setText('psaStats', fmtRSquared(fit) + '  ·  ' + fmtVelocity(velocity));
+
+  // Recent trend vs the earlier values. Descriptive only — see recentWindow.
+  // Computed before renderChart, which draws recentFit as a comparison line.
+  // Shown only when both segments can carry a CI, i.e. the comparison actually
+  // resolves. A bare "recent trend" number with no verdict would invite the
+  // reader to see acceleration in what may be scatter — the number and the
+  // "is this beyond noise?" answer ship together or not at all.
+  recentFit = null;
+  let recentText = '';
+  const win = recentWindow(data);
+  if (win) {
+    const rFit = fitExponential(win.points);
+    const cmp  = compareTrend(rFit, fitExponential(win.earlier));
+    if (cmp) {
+      recentFit = rFit;
+      recentText = 'Recent trend (' + win.points.length + ' values since ' +
+        fmtDate(win.points[0].date) + '): ' + psaShortDt(rFit.doublingTimeDays) +
+        (cmp.differs
+          ? '  ·  growth rate ' + cmp.direction + ' vs the earlier values, beyond measurement noise'
+          : '  ·  no measurable difference from the earlier values');
+    }
+  }
+  const recentEl = document.getElementById('psaRecent');
+  if (recentEl) {
+    recentEl.textContent = recentText;
+    recentEl.style.display = recentText ? 'block' : 'none';
+  }
+
+  // One caveat at most, about reading this series at all.
+  const caveat = noiseCaveat(data);
+  const caveatEl = document.getElementById('psaNoiseNote');
+  if (caveatEl) {
+    caveatEl.textContent = caveat || '';
+    caveatEl.style.display = caveat ? 'block' : 'none';
+  }
 
   // Disclose measurements dropped from the fit for being PSA ≤ 0. Counted
   // directly (not as data.length - fit.n) so censored rows, which the note
