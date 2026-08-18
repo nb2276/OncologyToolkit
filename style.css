@@ -1006,6 +1006,14 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   background-color: rgba(255, 255, 255, 0.015);
 }
 
+/* Below-detection rows ("<0.014"): listed, but visibly not part of the fit.
+   Italic + the leading "<" carry that signal; the row keeps the same contrast
+   as measured rows because the value is clinical data the user reads, not a
+   footnote (--text-tertiary would land under the WCAG AA 4.5:1 bar). */
+#parsedTable tr.psa-row-censored td {
+  font-style: italic;
+}
+
 /* -----------------------------------------------------------------------
    About page
 ----------------------------------------------------------------------- */

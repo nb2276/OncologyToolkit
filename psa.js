@@ -61,10 +61,17 @@ function makeDate(year, month, day) {
   return d;
 }
 
+// A below-detection result: "<0.014", "< 0.014", "<=0.014", "≤0.014". Labs
+// report ultrasensitive PSA this way when the assay can't resolve a value.
+const CENSOR_PREFIX = /^(?:<=?|≤)/;
+
 /**
- * Parse one line of input into { date, psaValue } or null.
+ * Parse one line of input into { date, psaValue, censored } or null.
  * Tokenises by whitespace, commas, semicolons, and pipes.
  * Skips any token that is exactly "PSA" (case-insensitive).
+ *
+ * `censored` is true when the value was reported as below the assay's detection
+ * limit; psaValue then holds that limit, not a measured concentration.
  */
 function parseLine(line) {
   line = line.trim();
@@ -74,9 +81,13 @@ function parseLine(line) {
 
   let date = null;
   let psaValue = null;
+  let censored = false;
+  let pendingCensor = false;   // a lone "<" applies to the token that follows
 
   for (const token of tokens) {
     if (/^psa$/i.test(token)) continue;
+
+    if (/^(?:<=?|≤)$/.test(token)) { pendingCensor = true; continue; }
 
     if (date === null) {
       const d = tryParseDate(token);
@@ -84,18 +95,23 @@ function parseLine(line) {
     }
 
     if (psaValue === null) {
-      const n = parseFloat(token);
-      if (isFinite(n) && n >= 0) { psaValue = n; }   // reject NaN AND Infinity (1e309)
+      const cm  = CENSOR_PREFIX.exec(token);
+      const num = cm ? token.slice(cm[0].length) : token;
+      const n = parseFloat(num);
+      if (isFinite(n) && n >= 0) {                   // reject NaN AND Infinity (1e309)
+        psaValue = n;
+        censored = pendingCensor || cm !== null;
+      }
     }
   }
 
   if (date === null || psaValue === null) return null;
-  return { date, psaValue };
+  return { date, psaValue, censored };
 }
 
 /**
- * Parse the full textarea input, returning an array of { date, psaValue }
- * sorted chronologically.
+ * Parse the full textarea input, returning an array of
+ * { date, psaValue, censored } sorted chronologically.
  */
 function parseInput(text) {
   const data = text.split('\n').map(parseLine).filter(Boolean);
@@ -113,7 +129,8 @@ function dedupeMeasurements(data) {
   const seen = {};
   const out = [];
   for (const d of data) {
-    const key = d.date.getTime() + '|' + d.psaValue;
+    // "<0.014" and a measured 0.014 on the same day are different readings.
+    const key = d.date.getTime() + '|' + d.psaValue + '|' + (d.censored ? 'c' : 'm');
     if (seen[key]) continue;
     seen[key] = true;
     out.push(d);
@@ -147,7 +164,9 @@ const MS_PER_DAY = 86400000;
  *           rSquared, rSquaredDefined, ciEstimable } or null on failure.
  */
 function fitExponential(data) {
-  const valid = data.filter(d => d.psaValue > 0);
+  // Below-detection results carry no measured concentration — fitting them at
+  // their reported limit would bias the slope toward that limit.
+  const valid = data.filter(d => d.psaValue > 0 && !d.censored);
   if (valid.length < 2) return null;
 
   const firstDate = valid[0].date;
@@ -253,11 +272,12 @@ function doublingTimeCI(fit) {
 /**
  * PSA velocity (ng/mL per year) via a SEPARATE simple linear regression of raw
  * PSA on time — the textbook PSAV method, distinct from the exponential fit.
- * Uses the same psaValue>0 filtered set as fitExponential for consistency.
- * Returns ng/mL/yr (may be negative = declining), or null if not computable.
+ * Uses the same filtered set as fitExponential (psaValue>0, non-censored) for
+ * consistency. Returns ng/mL/yr (may be negative = declining), or null if not
+ * computable.
  */
 function psaVelocity(data) {
-  const valid = data.filter(d => d.psaValue > 0);
+  const valid = data.filter(d => d.psaValue > 0 && !d.censored);
   if (valid.length < 2) return null;
 
   const t0 = valid[0].date.getTime();
@@ -290,6 +310,42 @@ function fmtDate(date) {
   return date.toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric'
   });
+}
+
+/**
+ * Format a PSA value with precision scaled to its magnitude. Ultrasensitive
+ * assays (post-prostatectomy) report to 3+ decimals — 0.008, 0.014 — and a
+ * fixed 2-decimal display collapsed all of those to "0.00". Anything below the
+ * 0.1 ng/mL "undetectable" threshold therefore gets 3 decimals; below 0.001 we
+ * fall back to 2 significant figures so a very low value never prints as zero.
+ */
+function fmtPsa(v) {
+  if (v == null || !isFinite(v)) return '—';
+  const a = Math.abs(v);
+  if (a === 0)     return '0.00';
+  if (a < 0.001)   return v.toPrecision(2);
+  if (a < 0.1)     return v.toFixed(3);
+  return v.toFixed(2);
+}
+
+// One measurement as a table cell. Below-detection rows keep their "<" so the
+// row never reads as a measured concentration.
+function fmtPsaCell(d) {
+  return (d.censored ? '< ' : '') + fmtPsa(d.psaValue);
+}
+
+/**
+ * Date where the fitted curve stops being supported by data — the last point
+ * the fit actually used. The chart shades everything after it as extrapolation,
+ * so a trailing row the fit ignored (below-detection, or PSA ≤ 0) must not push
+ * that divider right and pass extrapolation off as measured. Falls back to the
+ * last row when nothing was fittable.
+ */
+function lastFittedDateMs(data) {
+  for (let i = data.length - 1; i >= 0; i--) {
+    if (!data[i].censored && data[i].psaValue > 0) return data[i].date.getTime();
+  }
+  return data[data.length - 1].date.getTime();
 }
 
 // A "doubling time" longer than a human lifetime is, clinically, no trend at all
@@ -338,7 +394,7 @@ function fmtRSquared(fit) {
 function fmtVelocity(v) {
   if (v == null || !isFinite(v)) return 'velocity n/a';
   const sign = v >= 0 ? '+' : '';
-  return `velocity ${sign}${v.toFixed(2)} ng/mL/yr`;
+  return `velocity ${sign}${fmtPsa(v)} ng/mL/yr`;
 }
 
 // Set textContent if the element exists (no-op under the test DOM shim).
@@ -437,10 +493,14 @@ function renderChart(data, fit) {
   const chartEnd    = new Date(data[data.length - 1].date.getTime() + projYrs * MS_PER_YEAR);
 
   const { pts: curve, upper, lower, hasBands } = buildCurve(fit, chartStart, chartEnd);
-  const measured = data.map(d => ({ x: new Date(d.date), y: d.psaValue }));
+  // Below-detection results are plotted at their reported limit, as a separate
+  // series, so the row in the table has a visible counterpart on the chart
+  // without being mistaken for a measured point.
+  const measured = data.filter(d => !d.censored).map(d => ({ x: new Date(d.date), y: d.psaValue }));
+  const censored = data.filter(d =>  d.censored).map(d => ({ x: new Date(d.date), y: d.psaValue }));
 
-  // Projection-region divider (last measured date), used by the shading plugin.
-  lastDataMs = data[data.length - 1].date.getTime();
+  // Projection-region divider, used by the shading plugin.
+  lastDataMs = lastFittedDateMs(data);
 
   // Linear axis cap: the CI band grows exponentially into the projection and
   // would otherwise force autoscale to a huge max, crushing the data. Cap to
@@ -450,6 +510,7 @@ function renderChart(data, fit) {
   if (yAxisType === 'linear') {
     let m = 0;
     for (const p of measured) if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
+    for (const p of censored) if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
     for (const p of curve)    if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
     if (m > 0 && isFinite(m)) yMax = m * 1.5;
   }
@@ -485,6 +546,21 @@ function renderChart(data, fit) {
       order: 2
     }
   ];
+
+  if (censored.length) {
+    // Down-pointing marker at the detection limit: the true value lies below it.
+    datasets.splice(1, 0, {
+      label: 'Below detection',
+      data: censored,
+      backgroundColor: light ? 'rgba(0,0,0,0.30)' : 'rgba(255,255,255,0.40)',
+      borderColor:     light ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)',
+      pointStyle: 'triangle',
+      pointRotation: 180,
+      pointRadius: 6,
+      pointHoverRadius: 9,
+      order: 1
+    });
+  }
 
   if (hasBands) {
     datasets.push({
@@ -687,7 +763,7 @@ function handleChartHover(evt, fit) {
     return;
   }
 
-  tooltip.innerHTML = '<strong>' + fmtDate(hoverDate) + '</strong><br>PSA: ' + psa.toFixed(2) + ' ng/mL';
+  tooltip.innerHTML = '<strong>' + fmtDate(hoverDate) + '</strong><br>PSA: ' + fmtPsa(psa) + ' ng/mL';
   tooltip.style.display = 'block';
 
   // Position relative to the canvas
@@ -741,7 +817,7 @@ function handleChartClick(evt, fit) {
   const el = document.getElementById('clickInfo');
   el.innerHTML =
     '<strong>' + fmtDate(clickedDate) + '</strong> &nbsp;&rarr;&nbsp; ' +
-    'PSA: <strong>' + psa.toFixed(2) + ' ng/mL</strong>';
+    'PSA: <strong>' + fmtPsa(psa) + ' ng/mL</strong>';
   el.style.display = 'block';
 }
 
@@ -877,13 +953,14 @@ function copyResults() {
 
   // Table rows
   for (let i = 0; i < lastData.length; i++) {
-    const { date, psaValue } = lastData[i];
+    const d = lastData[i];
 
+    // Same treatment as the on-screen table: italic, full contrast.
     c.fillStyle = '#111111';
-    c.font = `${tSize}px ${font}`;
-    c.fillText(psaValue.toFixed(3), pad, y);
+    c.font = `${d.censored ? 'italic ' : ''}${tSize}px ${font}`;
+    c.fillText(fmtPsaCell(d), pad, y);
     c.fillStyle = '#444444';
-    c.fillText(fmtDate(date), col2x, y);
+    c.fillText(fmtDate(d.date), col2x, y);
     y += rowH;
   }
 
@@ -921,10 +998,16 @@ function copyResults() {
 function updateParsedTable(data) {
   const table = document.getElementById('parsedTable');
   while (table.rows.length > 1) table.deleteRow(-1);
-  for (const { date, psaValue } of data) {
+  for (const d of data) {
     const row = table.insertRow(-1);
-    row.insertCell(0).textContent = fmtDate(date);
-    row.insertCell(1).textContent = psaValue.toFixed(2);
+    row.insertCell(0).textContent = fmtDate(d.date);
+    const valCell = row.insertCell(1);
+    valCell.textContent = fmtPsaCell(d);
+    // Below-detection rows stay listed but read as excluded, not measured.
+    if (d.censored) {
+      row.className = 'psa-row-censored';
+      valCell.title = 'Below the assay detection limit — listed but excluded from the fit';
+    }
   }
 }
 
@@ -1007,13 +1090,20 @@ function calculate(keepProjection) {
   const resEl        = document.getElementById('psaResults');
   const parsedSecEl  = document.getElementById('parsedSection');
 
+  // Below-detection rows ("<0.014") are listed but never fitted.
+  const censoredCount = data.filter(d => d.censored).length;
+
+  // Whatever parsed stays on screen even when it can't be fitted — a run of
+  // all-undetectable results is a real (and common) post-prostatectomy case.
+  if (data.length) updateParsedTable(data);
+  parsedSecEl.style.display = data.length ? 'block' : 'none';
+
   if (data.length < 2) {
     errEl.textContent = data.length === 0
       ? 'No valid measurements found. Check that each line has a recognisable date and a numeric PSA value.'
       : 'At least 2 measurements are required to calculate a doubling time.';
     errEl.style.display = 'block';
     resEl.style.display = 'none';
-    parsedSecEl.style.display = 'none';
     return;
   }
 
@@ -1021,10 +1111,17 @@ function calculate(keepProjection) {
 
   const fit = fitExponential(data);
   if (!fit) {
-    errEl.textContent = 'Could not fit the data. Ensure all PSA values are positive numbers.';
+    // Name the actual cause: a fit needs 2+ values that are both positive and
+    // above the detection limit, and either shortfall can be what's missing.
+    const usable = data.filter(d => !d.censored && d.psaValue > 0).length;
+    errEl.textContent = censoredCount > 0
+      ? 'Only ' + usable + ' measurement' + (usable === 1 ? '' : 's') +
+        ' can be fitted (2 are needed). ' + censoredCount + ' below-detection value' +
+        (censoredCount === 1 ? ' is' : 's are') +
+        ' listed in the parsed measurements but excluded from the fit.'
+      : 'Could not fit the data. Ensure all PSA values are positive numbers.';
     errEl.style.display = 'block';
     resEl.style.display = 'none';
-    parsedSecEl.style.display = 'none';
     return;
   }
 
@@ -1049,8 +1146,10 @@ function calculate(keepProjection) {
   const velocity = psaVelocity(data);
   setText('psaStats', fmtRSquared(fit) + '  ·  ' + fmtVelocity(velocity));
 
-  // Disclose measurements dropped from the fit (PSA ≤ 0 / below detection).
-  const dropped = data.length - fit.n;
+  // Disclose measurements dropped from the fit for being PSA ≤ 0. Counted
+  // directly (not as data.length - fit.n) so censored rows, which the note
+  // below covers, aren't folded into this message.
+  const dropped = data.filter(d => !d.censored && !(d.psaValue > 0)).length;
   const dropEl = document.getElementById('psaDropNote');
   if (dropEl) {
     if (dropped > 0) {
@@ -1060,6 +1159,21 @@ function calculate(keepProjection) {
       dropEl.style.display = 'block';
     } else {
       dropEl.style.display = 'none';
+    }
+  }
+
+  // Below-detection rows are listed in the table and plotted at their limit,
+  // but the fit never sees them — say so rather than letting the table and the
+  // fit quietly disagree about how many measurements were used.
+  const censEl = document.getElementById('psaCensoredNote');
+  if (censEl) {
+    if (censoredCount > 0) {
+      censEl.textContent = censoredCount + ' below-detection result' +
+        (censoredCount === 1 ? '' : 's') + ' (reported as "<") listed but excluded from ' +
+        'the fit — the true value is unknown below the assay limit.';
+      censEl.style.display = 'block';
+    } else {
+      censEl.style.display = 'none';
     }
   }
 
@@ -1077,9 +1191,7 @@ function calculate(keepProjection) {
 
   document.getElementById('clickInfo').style.display = 'none';
 
-  updateParsedTable(data);
   resEl.style.display = 'block';
-  parsedSecEl.style.display = 'block';
   renderChart(data, fit);
 
   savePsaHistory(data, fit);

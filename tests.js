@@ -173,6 +173,11 @@ vm.runInContext(`
   globalThis.tValue95 = tValue95;
   globalThis.fmtDoublingTime = fmtDoublingTime;
   globalThis.fmtDoublingTimeCI = fmtDoublingTimeCI;
+  globalThis.fmtPsa = fmtPsa;
+  globalThis.fmtPsaCell = fmtPsaCell;
+  globalThis.fmtVelocity = fmtVelocity;
+  globalThis.updateParsedTable = updateParsedTable;
+  globalThis.lastFittedDateMs = lastFittedDateMs;
   globalThis.psaShortDt = psaShortDt;
 `, sandbox);
 
@@ -198,6 +203,11 @@ var psaVelocity = sandbox.psaVelocity;
 var tValue95 = sandbox.tValue95;
 var fmtDoublingTime = sandbox.fmtDoublingTime;
 var fmtDoublingTimeCI = sandbox.fmtDoublingTimeCI;
+var fmtPsa = sandbox.fmtPsa;
+var fmtPsaCell = sandbox.fmtPsaCell;
+var fmtVelocity = sandbox.fmtVelocity;
+var updateParsedTable = sandbox.updateParsedTable;
+var lastFittedDateMs = sandbox.lastFittedDateMs;
 var psaShortDt = sandbox.psaShortDt;
 var parseUrlParams = sandbox.parseUrlParams;
 var serializeToUrl = sandbox.serializeToUrl;
@@ -772,6 +782,181 @@ assert(!/Infinity/.test(fmtDoublingTime(Infinity)), 'fmtDoublingTime: Infinity �
 assert(fmtDoublingTime(Infinity).toLowerCase().includes('stable'), 'fmtDoublingTime: Infinity → "stable"');
 assert(!/NaN/.test(fmtDoublingTime(NaN)), 'fmtDoublingTime: NaN → no "NaN" text');
 assert(fmtDoublingTime(100 * 365.25 + 1).toLowerCase().includes('stable'), 'fmtDoublingTime: >100yr → stable');
+
+section('=== psa.js: fmtPsa (ultrasensitive values) ===');
+
+// Ordinary values keep the familiar 2-decimal display
+assertEqual(fmtPsa(4.5), '4.50', 'fmtPsa: 4.5 → 4.50');
+assertEqual(fmtPsa(18.72), '18.72', 'fmtPsa: 18.72 → 18.72');
+assertEqual(fmtPsa(0.1), '0.10', 'fmtPsa: 0.1 (threshold) → 0.10');
+assertEqual(fmtPsa(1234.5), '1234.50', 'fmtPsa: large value keeps 2 decimals');
+
+// Ultrasensitive (<0.1) must not collapse to 0.00
+assertEqual(fmtPsa(0.001), '0.001', 'fmtPsa: 0.001 → 0.001 (not 0.00)');
+assertEqual(fmtPsa(0.014), '0.014', 'fmtPsa: 0.014 → 0.014');
+assertEqual(fmtPsa(0.05), '0.050', 'fmtPsa: 0.05 → 0.050');
+assertEqual(fmtPsa(0.0996), '0.100', 'fmtPsa: rounds within the 3-decimal band');
+assertEqual(fmtPsa(0.0004), '0.00040', 'fmtPsa: <0.001 falls back to 2 sig figs');
+assertEqual(fmtPsa(-0.008), '-0.008', 'fmtPsa: negative small value keeps precision');
+
+// Guards
+assertEqual(fmtPsa(0), '0.00', 'fmtPsa: exact zero → 0.00');
+assert(!/NaN|Infinity/.test(fmtPsa(NaN)), 'fmtPsa: NaN → no "NaN" text');
+assert(!/NaN|Infinity/.test(fmtPsa(Infinity)), 'fmtPsa: Infinity → no "Infinity" text');
+assert(!/NaN|Infinity/.test(fmtPsa(null)), 'fmtPsa: null → no "NaN" text');
+
+// Velocity shares the same precision rule (an ultrasensitive rise is sub-0.1)
+assert(fmtVelocity(0.004).includes('+0.004'), 'fmtVelocity: tiny rise keeps 3 decimals');
+assert(fmtVelocity(5.3).includes('+5.30'), 'fmtVelocity: ordinary rise keeps 2 decimals');
+assert(fmtVelocity(-0.02).includes('-0.020'), 'fmtVelocity: small decline keeps 3 decimals');
+assertEqual(fmtVelocity(null), 'velocity n/a', 'fmtVelocity: null → n/a');
+
+// Parsing + fitting ultrasensitive data end-to-end
+var ultraLine = parseLine('2024-03-01, PSA 0.008');
+assert(ultraLine !== null, 'parseLine: ultrasensitive line parses');
+assertClose(ultraLine.psaValue, 0.008, 1e-9, 'parseLine: 0.008 preserved');
+var ultraFit = fitExponential([
+  { date: new Date(2024, 0, 1), psaValue: 0.010 },
+  { date: new Date(2024, 6, 1), psaValue: 0.020 },
+  { date: new Date(2025, 0, 1), psaValue: 0.040 },
+]);
+assert(ultraFit !== null, 'fitExponential: ultrasensitive series fits');
+assertClose(ultraFit.doublingTimeDays, 183, 1.5, 'fitExponential: 0.01→0.02→0.04 doubles ~every 6 mo');
+
+section('=== psa.js: below-detection ("<0.014") values ===');
+
+// Parsing: the operator may be attached, spaced, ≤, or <=
+var cen1 = parseLine('2024-01-15 <0.014');
+assert(cen1 !== null, 'parseLine: "<0.014" parses');
+assertEqual(cen1.censored, true, 'parseLine: "<0.014" flagged censored');
+assertClose(cen1.psaValue, 0.014, 1e-9, 'parseLine: "<0.014" keeps the limit as the value');
+assertEqual(parseLine('2024-01-15 < 0.014').censored, true, 'parseLine: spaced "< 0.014" flagged censored');
+assertClose(parseLine('2024-01-15 < 0.014').psaValue, 0.014, 1e-9, 'parseLine: spaced "< 0.014" value');
+assertEqual(parseLine('2024-01-15, PSA <=0.02').censored, true, 'parseLine: "<=0.02" flagged censored');
+assertEqual(parseLine('2024-01-15 ≤0.02').censored, true, 'parseLine: "≤0.02" flagged censored');
+assertEqual(parseLine('2024-01-15 0.014').censored, false, 'parseLine: plain value not censored');
+assertEqual(parseLine('2024-01-15 <abc'), null, 'parseLine: "<" with no number still rejected');
+
+// Display: the row keeps its operator
+assertEqual(fmtPsaCell({ psaValue: 0.014, censored: true }), '< 0.014', 'fmtPsaCell: censored keeps "<"');
+assertEqual(fmtPsaCell({ psaValue: 0.014, censored: false }), '0.014', 'fmtPsaCell: measured has no operator');
+assertEqual(fmtPsaCell({ psaValue: 4.5, censored: true }), '< 4.50', 'fmtPsaCell: censored uses the same precision rule');
+
+// Fit + velocity exclude censored rows
+var mixed = [
+  { date: new Date(2024, 0, 1), psaValue: 0.014, censored: true },
+  { date: new Date(2024, 6, 1), psaValue: 0.020, censored: false },
+  { date: new Date(2025, 0, 1), psaValue: 0.040, censored: false },
+];
+var mixedFit = fitExponential(mixed);
+assert(mixedFit !== null, 'fitExponential: mixed series fits on the measured points');
+assertEqual(mixedFit.n, 2, 'fitExponential: censored row excluded from n');
+var measuredOnlyFit = fitExponential(mixed.slice(1));
+assertClose(mixedFit.doublingTimeDays, measuredOnlyFit.doublingTimeDays, 1e-9,
+  'fitExponential: censored row does not shift the doubling time');
+assertClose(psaVelocity(mixed), psaVelocity(mixed.slice(1)), 1e-9,
+  'psaVelocity: censored row excluded');
+
+// All-undetectable series has nothing to fit (calculate() reports this)
+assertEqual(fitExponential([
+  { date: new Date(2024, 0, 1), psaValue: 0.014, censored: true },
+  { date: new Date(2024, 6, 1), psaValue: 0.014, censored: true },
+]), null, 'fitExponential: all-censored series returns null');
+
+// Dedupe: "<0.014" and a measured 0.014 on the same day are distinct readings
+var cenDedupe = dedupeMeasurements([
+  { date: new Date(2024, 0, 1), psaValue: 0.014, censored: true },
+  { date: new Date(2024, 0, 1), psaValue: 0.014, censored: false },
+  { date: new Date(2024, 0, 1), psaValue: 0.014, censored: true },
+]);
+assertEqual(cenDedupe.length, 2, 'dedupeMeasurements: censored vs measured kept, exact duplicate dropped');
+assertEqual(cenDedupe[0].censored, true, 'dedupeMeasurements: keeps first occurrence (censored)');
+assertEqual(cenDedupe[1].censored, false, 'dedupeMeasurements: measured row retained');
+
+// End-to-end through parseInput
+var cenSeries = parseInput('2024-01-15 <0.014\n2024-07-15 0.020\n2025-01-15 0.040');
+assertEqual(cenSeries.length, 3, 'parseInput: below-detection row is kept, not dropped');
+assertEqual(cenSeries.filter(function (d) { return d.censored; }).length, 1,
+  'parseInput: exactly one row flagged censored');
+
+section('=== psa.js: lastFittedDateMs (projection divider) ===');
+
+// Regression: a trailing row the fit ignored must not push the "measured →
+// projected" divider right, which would render extrapolation as measured data.
+var jan = new Date(2024, 0, 15), jul = new Date(2024, 6, 15), dec = new Date(2024, 11, 15);
+assertEqual(lastFittedDateMs([
+  { date: jan, psaValue: 0.02, censored: false },
+  { date: jul, psaValue: 0.04, censored: false },
+]), jul.getTime(), 'lastFittedDateMs: all measured → last row');
+assertEqual(lastFittedDateMs([
+  { date: jan, psaValue: 0.02, censored: false },
+  { date: jul, psaValue: 0.04, censored: false },
+  { date: dec, psaValue: 0.014, censored: true },
+]), jul.getTime(), 'lastFittedDateMs: trailing below-detection row does not move the divider');
+assertEqual(lastFittedDateMs([
+  { date: jan, psaValue: 0.02, censored: false },
+  { date: jul, psaValue: 0.04, censored: false },
+  { date: dec, psaValue: 0, censored: false },
+]), jul.getTime(), 'lastFittedDateMs: trailing PSA=0 row does not move the divider');
+assertEqual(lastFittedDateMs([
+  { date: jan, psaValue: 0.014, censored: true },
+  { date: jul, psaValue: 0.02, censored: false },
+]), jul.getTime(), 'lastFittedDateMs: leading censored row ignored');
+assertEqual(lastFittedDateMs([
+  { date: jan, psaValue: 0.014, censored: true },
+  { date: jul, psaValue: 0.014, censored: true },
+]), jul.getTime(), 'lastFittedDateMs: nothing fittable → falls back to last row');
+
+section('=== psa.js: updateParsedTable DOM behavior ===');
+
+// Minimal <table> stand-in: one header row, insertRow/insertCell/deleteRow.
+function makeFakeTable() {
+  var rows = [{ header: true }];
+  return {
+    rows: rows,
+    deleteRow: function (i) { rows.splice(i < 0 ? rows.length + i : i, 1); },
+    insertRow: function () {
+      var row = {
+        className: '',
+        cells: [],
+        insertCell: function () {
+          var cell = { textContent: '', title: '' };
+          this.cells.push(cell);
+          return cell;
+        }
+      };
+      rows.push(row);
+      return row;
+    }
+  };
+}
+
+var fakeTable = makeFakeTable();
+var origGetById = sandbox.document.getElementById;
+sandbox.document.getElementById = function (id) {
+  return id === 'parsedTable' ? fakeTable : origGetById(id);
+};
+
+updateParsedTable([
+  { date: new Date(2024, 0, 15), psaValue: 0.014, censored: true },
+  { date: new Date(2024, 6, 15), psaValue: 0.020, censored: false },
+]);
+
+assertEqual(fakeTable.rows.length, 3, 'updateParsedTable: header + one row per measurement');
+assertEqual(fakeTable.rows[1].className, 'psa-row-censored', 'updateParsedTable: censored row is class-tagged');
+assertEqual(fakeTable.rows[1].cells[1].textContent, '< 0.014', 'updateParsedTable: censored cell keeps "<"');
+assert(fakeTable.rows[1].cells[1].title.indexOf('excluded from the fit') !== -1,
+  'updateParsedTable: censored cell explains itself on hover');
+assertEqual(fakeTable.rows[2].className, '', 'updateParsedTable: measured row untagged');
+assertEqual(fakeTable.rows[2].cells[1].textContent, '0.020', 'updateParsedTable: measured cell has no operator');
+assertEqual(fakeTable.rows[2].cells[1].title, '', 'updateParsedTable: measured cell has no tooltip');
+
+// Re-render clears prior rows instead of appending to them
+updateParsedTable([{ date: new Date(2025, 0, 1), psaValue: 4.5, censored: false }]);
+assertEqual(fakeTable.rows.length, 2, 'updateParsedTable: re-render clears old rows');
+assertEqual(fakeTable.rows[1].cells[1].textContent, '4.50', 'updateParsedTable: re-render shows the new value');
+
+sandbox.document.getElementById = origGetById;
 
 // ============================================================
 // TESTS: composite.js — TDF validation boundary

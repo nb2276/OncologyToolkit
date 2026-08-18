@@ -60,6 +60,8 @@
               Each line should contain a <strong style="color:#ccc;">date</strong> and a <strong style="color:#ccc;">PSA value</strong>.
               Dates are detected automatically in most common formats. Values may optionally include the label "PSA".
               Lines are separated by commas, spaces, semicolons, or pipes.
+              Ultrasensitive values (e.g. 0.008) are supported and displayed to three decimals.
+              Below-detection results (e.g. &lt;0.014) are listed but excluded from the fit.
             </p>
             <label class="psa-field-label">Sample Input</label>
             <p class="help-text example">
@@ -99,6 +101,7 @@
             </div>
             <div id="psaStats" class="psa-stat-row"></div>
             <div id="psaDropNote" class="psa-drop-note" style="display:none;"></div>
+            <div id="psaCensoredNote" class="psa-drop-note" style="display:none;"></div>
             <div id="psaDupNote" class="psa-drop-note" style="display:none;"></div>
 
             <div class="chart-section">
