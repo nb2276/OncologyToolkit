@@ -807,6 +807,13 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 /* Touch ergonomics: at the mobile breakpoint (900px, matching the nav hamburger
    per CLAUDE.md), give the chart action buttons a larger tap target and let the
    readout cluster breathe. */
+/* The chart canvas fills this wrapper, so plot height is a design decision
+   rather than a side effect of the viewport width. */
+.psa-chart-wrap {
+  position: relative;
+  height: 360px;
+}
+
 @media (max-width: 900px) {
   .psa-action-btn {
     padding: 10px 16px;
@@ -814,6 +821,9 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   }
   .psa-btn-bar { flex-wrap: wrap; }
   .psa-stat-row { margin-top: -10px; }
+  /* Taller than the desktop ratio would give at this width: a phone-width
+     chart needs its vertical room back, not a letterbox. */
+  .psa-chart-wrap { height: 300px; }
 }
 
 .input-section {

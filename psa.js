@@ -18,12 +18,28 @@
  * If first part > 12, assumes DD-first.
  * Returns a Date object or null.
  */
+const MONTH_NAMES = {
+  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
+};
+
 function tryParseDate(token) {
-  token = token.trim();
+  token = token.trim().replace(/^["']+|["']+$/g, '');   // survive a quoted CSV paste
 
   // ISO: YYYY-MM-DD
   let m = token.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (m) return makeDate(+m[1], +m[2], +m[3]);
+
+  // Month name, either order: "Jan 15 2024" / "15 Jan 2024". The parsed table
+  // prints this shape, so without it the app cannot read its own output back.
+  m = token.match(/^([A-Za-z]{3,9})(\d{1,2})(\d{4})$/);
+  if (m && MONTH_NAMES[m[1].slice(0, 3).toLowerCase()]) {
+    return makeDate(+m[3], MONTH_NAMES[m[1].slice(0, 3).toLowerCase()], +m[2]);
+  }
+  m = token.match(/^(\d{1,2})([A-Za-z]{3,9})(\d{4})$/);
+  if (m && MONTH_NAMES[m[2].slice(0, 3).toLowerCase()]) {
+    return makeDate(+m[3], MONTH_NAMES[m[2].slice(0, 3).toLowerCase()], +m[1]);
+  }
 
   // General: p1 [/ - .] p2 [/ - .] p3  (separators may differ)
   m = token.match(/^(\d{1,4})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
@@ -65,9 +81,12 @@ function makeDate(year, month, day) {
 // report ultrasensitive PSA this way when the assay can't resolve a value.
 const CENSOR_PREFIX = /^(?:<=?|≤)/;
 
+// A number written with thousands separators ("1,234", "1,234.5"). Matched
+// against a whole field so it can never swallow a "date,value" CSV pair.
+const GROUPED_NUMBER = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/;
+
 /**
  * Parse one line of input into { date, psaValue, censored } or null.
- * Tokenises by whitespace, commas, semicolons, and pipes.
  * Skips any token that is exactly "PSA" (case-insensitive).
  *
  * `censored` is true when the value was reported as below the assay's detection
@@ -77,7 +96,25 @@ function parseLine(line) {
   line = line.trim();
   if (!line || line.startsWith('#')) return null;
 
-  const tokens = line.split(/[\s,;:|]+/).filter(Boolean);
+  // Strip clock times BEFORE tokenising. A lab line like "2024-01-15 08:30 4.5"
+  // otherwise splits on the colon and reads 08 as the PSA value — a wrong
+  // number, silently, which is worse than refusing the line.
+  line = line
+    .replace(/(\d{4}-\d{2}-\d{2})T\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?/gi, '$1')
+    .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\s*(?:[ap]\.?m\.?)?/gi, ' ');
+
+  // Glue a spelled-out date into one token so the field splitter keeps it whole.
+  line = line.replace(/\b([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})\b/g, '$1$2$3')
+             .replace(/\b(\d{1,2})\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})\b/g, '$1$2$3');
+
+  // Whitespace, semicolons and pipes split fields. Commas are handled per
+  // field so a grouped number ("1,234") survives, while a CSV field
+  // ("2024-01-15,123") still splits into a date and a value.
+  const tokens = [];
+  line.split(/[\s;|]+/).filter(Boolean).forEach(field => {
+    if (GROUPED_NUMBER.test(field)) { tokens.push(field.replace(/,/g, '')); return; }
+    field.split(/[,:]+/).filter(Boolean).forEach(t => tokens.push(t));
+  });
 
   let date = null;
   let psaValue = null;
@@ -95,8 +132,9 @@ function parseLine(line) {
     }
 
     if (psaValue === null) {
-      const cm  = CENSOR_PREFIX.exec(token);
-      const num = cm ? token.slice(cm[0].length) : token;
+      const bare = token.replace(/^["']+|["']+$/g, '');   // quoted CSV paste
+      const cm   = CENSOR_PREFIX.exec(bare);
+      const num  = cm ? bare.slice(cm[0].length) : bare;
       const n = parseFloat(num);
       if (isFinite(n) && n >= 0) {                   // reject NaN AND Infinity (1e309)
         psaValue = n;
@@ -117,6 +155,18 @@ function parseInput(text) {
   const data = text.split('\n').map(parseLine).filter(Boolean);
   data.sort((a, b) => a.date - b.date);
   return data;
+}
+
+/**
+ * Non-empty, non-comment lines the parser could not read. These are dropped
+ * silently otherwise, so a paste of 12 results can quietly become a fit over
+ * 10 without the user noticing which two went missing.
+ */
+function countUnparsedLines(text) {
+  return String(text).split('\n').filter(function (l) {
+    const s = l.trim();
+    return s && s.charAt(0) !== '#' && parseLine(l) === null;
+  }).length;
 }
 
 /**
@@ -757,6 +807,9 @@ function renderChart(data, fit) {
     data: { datasets },
     options: {
       responsive: true,
+      // A fixed 2:1 ratio left ~100px of plot on a phone, collapsing every
+      // point onto one line. The wrapper owns the height instead.
+      maintainAspectRatio: false,
       animation: { duration: 400 },
       plugins: {
         tooltip: { enabled: false },
@@ -874,10 +927,71 @@ function toggleAxisScale() {
   if (lastData && lastFit) renderChart(lastData, lastFit);
 }
 
+// How close the cursor must be to claim it is pointing at something, in px.
+const HOVER_POINT_TOL = 14;   // a plotted measurement
+const HOVER_CURVE_TOL = 30;   // a drawn curve
+
+/** Nearest candidate within tolerance, or null. Pure — takes {dist} objects. */
+function pickNearest(candidates, tol) {
+  let best = null;
+  for (const c of candidates) {
+    if (!c || !isFinite(c.dist) || c.dist > tol) continue;
+    if (!best || c.dist < best.dist) best = c;
+  }
+  return best;
+}
+
+/** One readout line. The label is not optional: see hoverTarget. */
+function fmtReadout(t) {
+  return t.label + ': ' + (t.censored ? '< ' : '') + fmtPsa(t.psa) + ' ng/mL';
+}
+
 /**
- * On hover, show a custom tooltip with the fit-curve PSA when the cursor
- * is near the exponential fit line. The tooltip follows the cursor and
- * snaps its y-value to the fit curve.
+ * What the cursor is actually pointing at: the nearest plotted measurement, the
+ * fitted curve, or the recent-trend line. Measurements win when the cursor is
+ * basically on one, since a plotted point is a fact and a curve is a model.
+ *
+ * With two curves drawn, an UNLABELLED readout is worse than none — the cursor
+ * can sit on the recent-trend line while the number quietly comes from the
+ * fitted one. Every result carries the name of the thing it came from.
+ */
+function hoverTarget(pos, fit) {
+  if (!psaChart) return null;
+  const xs = psaChart.scales.x, ys = psaChart.scales.y;
+  const xMs = xs.getValueForPixel(pos.x);
+  if (xMs == null || !isFinite(xMs)) return null;
+
+  const points = [];
+  if (lastData) {
+    for (const d of lastData) {
+      const px = xs.getPixelForValue(d.date.getTime());
+      const py = ys.getPixelForValue(d.psaValue);
+      if (!isFinite(px) || !isFinite(py)) continue;
+      points.push({
+        dist: Math.sqrt((pos.x - px) * (pos.x - px) + (pos.y - py) * (pos.y - py)),
+        label: d.censored ? 'Below detection' : 'Measured',
+        date: d.date, psa: d.psaValue, censored: d.censored, y: py
+      });
+    }
+  }
+  const onPoint = pickNearest(points, HOVER_POINT_TOL);
+  if (onPoint) return onPoint;
+
+  const curveAt = (f, label) => {
+    if (!f) return null;
+    const psa = f.A * Math.exp(f.B * (xMs - f.firstDate.getTime()) / MS_PER_DAY);
+    if (!isFinite(psa)) return null;
+    const py = ys.getPixelForValue(psa);
+    if (!isFinite(py)) return null;
+    return { dist: Math.abs(pos.y - py), label: label, date: new Date(xMs), psa: psa, y: py };
+  };
+  return pickNearest([curveAt(fit, 'Fitted trend'), curveAt(recentFit, 'Recent trend')],
+                     HOVER_CURVE_TOL);
+}
+
+/**
+ * On hover, report whatever the cursor is over — a measurement, the fitted
+ * curve, or the recent-trend line — labelled with which one it is.
  */
 function handleChartHover(evt, fit) {
   if (!psaChart) return;
@@ -890,28 +1004,16 @@ function handleChartHover(evt, fit) {
     return;
   }
 
-  const xMs = psaChart.scales.x.getValueForPixel(pos.x);
-  if (xMs == null || !isFinite(xMs)) { tooltip.style.display = 'none'; return; }
+  const target = hoverTarget(pos, fit);
+  if (!target) { tooltip.style.display = 'none'; return; }
 
-  const hoverDate = new Date(xMs);
-  const dx  = (hoverDate.getTime() - fit.firstDate.getTime()) / MS_PER_DAY;
-  const psa = fit.A * Math.exp(fit.B * dx);
-  if (!isFinite(psa)) { tooltip.style.display = 'none'; return; }
-
-  // Check if cursor is near the fit line (within 30px vertically)
-  const fitYPixel = psaChart.scales.y.getPixelForValue(psa);
-  if (!isFinite(fitYPixel) || Math.abs(pos.y - fitYPixel) > 30) {
-    tooltip.style.display = 'none';
-    return;
-  }
-
-  tooltip.innerHTML = '<strong>' + fmtDate(hoverDate) + '</strong><br>PSA: ' + fmtPsa(psa) + ' ng/mL';
+  tooltip.innerHTML = '<strong>' + fmtDate(target.date) + '</strong><br>' + fmtReadout(target);
   tooltip.style.display = 'block';
 
   // Position relative to the canvas
   const canvasRect = psaChart.canvas.getBoundingClientRect();
   const tipX = canvasRect.left + window.scrollX + pos.x + 14;
-  const tipY = canvasRect.top + window.scrollY + fitYPixel - 20;
+  const tipY = canvasRect.top + window.scrollY + target.y - 20;
   tooltip.style.left = tipX + 'px';
   tooltip.style.top  = tipY + 'px';
 }
@@ -948,18 +1050,22 @@ function handleChartClick(evt, fit) {
   if (!psaChart) return;
 
   const pos = Chart.helpers.getRelativePosition(evt, psaChart);
-  const xMs = psaChart.scales.x.getValueForPixel(pos.x);
-  if (xMs == null || !isFinite(xMs)) return;
-
-  const clickedDate = new Date(xMs);
-  const dx  = (clickedDate.getTime() - fit.firstDate.getTime()) / MS_PER_DAY;
-  const psa = fit.A * Math.exp(fit.B * dx);
-  if (!isFinite(psa)) return;
+  // Tapping away from every line still answers "what does the fit say here?",
+  // which is the point of the readout — but it says which line it read.
+  const target = hoverTarget(pos, fit) || (function () {
+    const xMs = psaChart.scales.x.getValueForPixel(pos.x);
+    if (xMs == null || !isFinite(xMs)) return null;
+    const psa = fit.A * Math.exp(fit.B * (xMs - fit.firstDate.getTime()) / MS_PER_DAY);
+    return isFinite(psa)
+      ? { label: 'Fitted trend', date: new Date(xMs), psa: psa, censored: false }
+      : null;
+  })();
+  if (!target) return;
 
   const el = document.getElementById('clickInfo');
-  el.innerHTML =
-    '<strong>' + fmtDate(clickedDate) + '</strong> &nbsp;&rarr;&nbsp; ' +
-    'PSA: <strong>' + fmtPsa(psa) + ' ng/mL</strong>';
+  el.innerHTML = '<strong>' + fmtDate(target.date) + '</strong> &nbsp;&rarr;&nbsp; ' +
+    target.label + ': <strong>' + (target.censored ? '&lt; ' : '') +
+    fmtPsa(target.psa) + ' ng/mL</strong>';
   el.style.display = 'block';
 }
 
@@ -1076,7 +1182,7 @@ function copyResults() {
   const measureCtx = document.createElement('canvas').getContext('2d');
   measureCtx.font = `${metaSize}px ${font}`;
   const noteLineH = metaSize + 7;
-  const noteLines = ['psaNoiseNote', 'psaCensoredNote', 'psaDropNote']
+  const noteLines = ['psaNoiseNote', 'psaCensoredNote', 'psaDropNote', 'psaUnparsedNote']
     .map(id => document.getElementById(id))
     .filter(el => el && el.style.display !== 'none' && el.textContent)
     .reduce((acc, el) => acc.concat(wrapTextToWidth(measureCtx, el.textContent, contentW)), []);
@@ -1358,7 +1464,15 @@ function calculate(keepProjection) {
     // Name the actual cause: a fit needs 2+ values that are both positive and
     // above the detection limit, and either shortfall can be what's missing.
     const usable = data.filter(d => !d.censored && d.psaValue > 0).length;
-    errEl.textContent = censoredCount > 0
+    // All on one date is a different failure from "no positive values", and
+    // saying the wrong one sends the user looking for a problem they don't have.
+    const fittable = fittablePoints(data);
+    const oneDate = fittable.length >= 2 &&
+      fittable.every(d => d.date.getTime() === fittable[0].date.getTime());
+
+    errEl.textContent = oneDate
+      ? 'All measurements are from the same date. A doubling time needs values spread over time.'
+      : censoredCount > 0
       ? 'Only ' + usable + ' measurement' + (usable === 1 ? '' : 's') +
         ' can be fitted (2 are needed). ' + censoredCount + ' below-detection value' +
         (censoredCount === 1 ? ' is' : 's are') +
@@ -1453,6 +1567,22 @@ function calculate(keepProjection) {
       censEl.style.display = 'block';
     } else {
       censEl.style.display = 'none';
+    }
+  }
+
+  // Lines the parser could not read at all. Without this they vanish between
+  // the textarea and the table, and the fit quietly covers fewer measurements
+  // than the user pasted.
+  const unreadable = countUnparsedLines(text);
+  const badEl = document.getElementById('psaUnparsedNote');
+  if (badEl) {
+    if (unreadable > 0) {
+      badEl.textContent = unreadable + ' line' + (unreadable === 1 ? '' : 's') +
+        ' could not be read and ' + (unreadable === 1 ? 'was' : 'were') +
+        ' skipped — check for a missing date or a non-numeric result.';
+      badEl.style.display = 'block';
+    } else {
+      badEl.style.display = 'none';
     }
   }
 

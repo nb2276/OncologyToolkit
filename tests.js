@@ -184,6 +184,9 @@ vm.runInContext(`
   globalThis.noiseCaveat = noiseCaveat;
   globalThis.medianOf = medianOf;
   globalThis.wrapTextToWidth = wrapTextToWidth;
+  globalThis.countUnparsedLines = countUnparsedLines;
+  globalThis.pickNearest = pickNearest;
+  globalThis.fmtReadout = fmtReadout;
   globalThis.psaShortDt = psaShortDt;
 `, sandbox);
 
@@ -220,6 +223,9 @@ var compareTrend = sandbox.compareTrend;
 var noiseCaveat = sandbox.noiseCaveat;
 var medianOf = sandbox.medianOf;
 var wrapTextToWidth = sandbox.wrapTextToWidth;
+var countUnparsedLines = sandbox.countUnparsedLines;
+var pickNearest = sandbox.pickNearest;
+var fmtReadout = sandbox.fmtReadout;
 var psaShortDt = sandbox.psaShortDt;
 var parseUrlParams = sandbox.parseUrlParams;
 var serializeToUrl = sandbox.serializeToUrl;
@@ -991,6 +997,103 @@ assert(/assay and biological/.test(noiseCaveat([dayPt(0, 0.020), dayPt(200, 0.02
   'noiseCaveat: flat ultrasensitive series reports the noise floor, not the scatter note');
 
 assertEqual(noiseCaveat([dayPt(0, 1.0)]), null, 'noiseCaveat: single point → no caveat');
+
+
+
+section('=== psa.js: quoted CSV and month-name dates ===');
+
+// Excel/EMR paste arrives quoted; this used to fail every row
+assertClose(parseLine('"2024-01-15","4.5"').psaValue, 4.5, 1e-9,
+  'parseLine: quoted CSV value');
+assertEqual(parseLine('"2024-01-15","4.5"').date.getDate(), 15,
+  'parseLine: quoted CSV date');
+assertClose(parseLine("'2024-01-15' '4.5'").psaValue, 4.5, 1e-9,
+  'parseLine: single-quoted fields');
+
+// The parsed table prints "Jan 1, 2024" — the app must be able to read it back
+var mn = parseLine('Jan 15, 2024  4.5');
+assert(mn !== null, 'parseLine: "Jan 15, 2024" parses');
+assertEqual(mn.date.getMonth(), 0, 'parseLine: month name maps to January');
+assertEqual(mn.date.getDate(), 15, 'parseLine: month-name day');
+assertEqual(mn.date.getFullYear(), 2024, 'parseLine: month-name year');
+assertClose(mn.psaValue, 4.5, 1e-9, 'parseLine: month-name line keeps its value');
+assertEqual(parseLine('January 15 2024 4.5').date.getMonth(), 0,
+  'parseLine: full month name');
+assertEqual(parseLine('15 Mar 2024 4.5').date.getMonth(), 2,
+  'parseLine: day-first month name');
+assertEqual(parseLine('Sep 3, 2026 0.008').date.getMonth(), 8,
+  'parseLine: month name with an ultrasensitive value');
+assertEqual(parseLine('Xyz 15, 2024 4.5'), null,
+  'parseLine: an unknown month name is not a date');
+
+// Round-trip: what the parsed table prints must parse back
+var rt = parseInput('Jan 1, 2024 1.00\nJun 29, 2024 1.20\nDec 26, 2024 1.45');
+assertEqual(rt.length, 3, 'parseInput: the app can read its own printed dates');
+assertEqual(rt[2].date.getMonth(), 11, 'parseInput: December round-trips');
+
+section('=== psa.js: clock times and thousands separators ===');
+
+// A timestamped lab line used to split on the colon and read the HOUR as PSA.
+assertClose(parseLine('2024-01-15 08:30 4.5').psaValue, 4.5, 1e-9,
+  'parseLine: HH:MM timestamp does not become the PSA value');
+assertClose(parseLine('2024-01-15 14:22:05 4.5').psaValue, 4.5, 1e-9,
+  'parseLine: HH:MM:SS timestamp ignored');
+assertClose(parseLine('2024-01-15 8:05 AM 4.5').psaValue, 4.5, 1e-9,
+  'parseLine: am/pm clock time ignored');
+assertClose(parseLine('2024-01-15T08:30:00 4.5').psaValue, 4.5, 1e-9,
+  'parseLine: ISO datetime keeps the date and the value');
+assertEqual(parseLine('2024-01-15T08:30:00 4.5').date.getMonth(), 0,
+  'parseLine: ISO datetime date survives stripping');
+
+// Thousands separators: metastatic PSA really does reach four figures.
+assertClose(parseLine('2024-01-15 1,234').psaValue, 1234, 1e-9,
+  'parseLine: "1,234" is 1234, not 1');
+assertClose(parseLine('2024-01-15 1,234.5').psaValue, 1234.5, 1e-9,
+  'parseLine: "1,234.5" keeps its decimal');
+assertClose(parseLine('2024-01-15 12,345').psaValue, 12345, 1e-9,
+  'parseLine: 5-digit grouped number');
+
+// The CSV pair that a naive comma-collapse would destroy
+assertClose(parseLine('2024-01-15,123').psaValue, 123, 1e-9,
+  'parseLine: "date,123" still splits into a date and a 3-digit value');
+assertEqual(parseLine('2024-01-15,123').date.getDate(), 15,
+  'parseLine: "date,123" keeps the date intact');
+assertClose(parseLine('2024-01-15,4.5').psaValue, 4.5, 1e-9,
+  'parseLine: ordinary CSV pair unaffected');
+// European decimal comma stays ambiguous by design (needs exactly 3 digits)
+assertClose(parseLine('2024-01-15 4,5').psaValue, 4, 1e-9,
+  'parseLine: "4,5" is not treated as a grouped number');
+
+section('=== psa.js: countUnparsedLines ===');
+
+assertEqual(countUnparsedLines('2024-01-15 4.5\n2024-06-15 9.0'), 0,
+  'countUnparsedLines: clean input counts nothing');
+assertEqual(countUnparsedLines('2024-01-15 4.5\n2024-06-15 undetectable'), 1,
+  'countUnparsedLines: a non-numeric result is counted');
+assertEqual(countUnparsedLines('2024-01-15 4.5\n\n   \n# a comment'), 0,
+  'countUnparsedLines: blanks and comments are not failures');
+assertEqual(countUnparsedLines('2024-01-15 >100\nhello\n2024-06-15 9.0'), 2,
+  'countUnparsedLines: counts every unreadable line');
+
+section('=== psa.js: hover readout targeting ===');
+
+assertEqual(pickNearest([{dist: 9, label: 'a'}, {dist: 3, label: 'b'}], 30).label, 'b',
+  'pickNearest: closest candidate wins');
+assertEqual(pickNearest([{dist: 40, label: 'a'}], 30), null,
+  'pickNearest: nothing within tolerance → null');
+assertEqual(pickNearest([null, {dist: NaN, label: 'x'}, {dist: 5, label: 'ok'}], 30).label, 'ok',
+  'pickNearest: skips null and non-finite distances');
+assertEqual(pickNearest([], 30), null, 'pickNearest: empty → null');
+
+// Every readout names the thing it came from — the whole point of the fix
+assertEqual(fmtReadout({label: 'Recent trend', psa: 8.67, censored: false}),
+  'Recent trend: 8.67 ng/mL', 'fmtReadout: recent-trend line is named');
+assertEqual(fmtReadout({label: 'Fitted trend', psa: 5.185, censored: false}),
+  'Fitted trend: 5.18 ng/mL', 'fmtReadout: fitted line is named (JS toFixed rounds 5.185 down)');
+assertEqual(fmtReadout({label: 'Measured', psa: 0.008, censored: false}),
+  'Measured: 0.008 ng/mL', 'fmtReadout: measured point keeps ultrasensitive precision');
+assertEqual(fmtReadout({label: 'Below detection', psa: 0.014, censored: true}),
+  'Below detection: < 0.014 ng/mL', 'fmtReadout: censored point keeps its operator');
 
 section('=== psa.js: wrapTextToWidth (export image) ===');
 
