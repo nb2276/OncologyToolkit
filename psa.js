@@ -222,8 +222,50 @@ function fittablePoints(data) {
   return data.filter(d => d.psaValue > 0 && !d.censored);
 }
 
+/**
+ * Collapse measurements that share a date into one observation.
+ *
+ * Two draws on one day are two reads of the same underlying value, not two
+ * independent points in time. Kept separate they anchor the fit harder to that
+ * date and inflate n, narrowing the confidence interval on precision the data
+ * does not have.
+ *
+ * `mode` matches the regression doing the asking: 'geometric' for the
+ * log-linear fit (the mean of ln values IS the ln of the geometric mean, so
+ * this is exactly the average the fit would take), 'arithmetic' for the
+ * raw-scale velocity regression. Idempotent — collapsing twice changes nothing.
+ */
+function collapseSameDay(pts, mode) {
+  const order = [];
+  const groups = {};
+  for (const p of pts) {
+    const key = p.date.getTime();
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(p);
+  }
+
+  const out = [];
+  for (const key of order) {
+    const group = groups[key];
+    if (group.length === 1) { out.push(group[0]); continue; }
+
+    let sum = 0;
+    for (const p of group) sum += (mode === 'geometric' ? Math.log(p.psaValue) : p.psaValue);
+    const mean = mode === 'geometric' ? Math.exp(sum / group.length) : sum / group.length;
+
+    out.push({ date: group[0].date, psaValue: mean, censored: false, collapsed: group.length });
+  }
+  return out;
+}
+
+/** How many rows the same-day collapse folds away (0 when every date is unique). */
+function sameDayCollapsedCount(data) {
+  const pts = fittablePoints(data);
+  return pts.length - collapseSameDay(pts, 'geometric').length;
+}
+
 function fitExponential(data) {
-  const valid = fittablePoints(data);
+  const valid = collapseSameDay(fittablePoints(data), 'geometric');
   if (valid.length < 2) return null;
 
   const firstDate = valid[0].date;
@@ -334,7 +376,7 @@ function doublingTimeCI(fit) {
  * computable.
  */
 function psaVelocity(data) {
-  const valid = fittablePoints(data);
+  const valid = collapseSameDay(fittablePoints(data), 'arithmetic');
   if (valid.length < 2) return null;
 
   const t0 = valid[0].date.getTime();
@@ -378,7 +420,8 @@ const RECENT_MIN_SPAN_DAYS = 90;    // 3 draws in a fortnight is not a trend
  * window to leave enough earlier points behind to compare against.
  */
 function recentWindow(data) {
-  const pts = fittablePoints(data);
+  // Collapsed, so the window and the fit reason over the same observations.
+  const pts = collapseSameDay(fittablePoints(data), 'geometric');
   if (pts.length < RECENT_MIN_POINTS + 1) return null;
 
   const lastMs   = pts[pts.length - 1].date.getTime();
@@ -1182,7 +1225,7 @@ function copyResults() {
   const measureCtx = document.createElement('canvas').getContext('2d');
   measureCtx.font = `${metaSize}px ${font}`;
   const noteLineH = metaSize + 7;
-  const noteLines = ['psaNoiseNote', 'psaCensoredNote', 'psaDropNote', 'psaUnparsedNote']
+  const noteLines = ['psaNoiseNote', 'psaCensoredNote', 'psaDropNote', 'psaUnparsedNote', 'psaSameDayNote']
     .map(id => document.getElementById(id))
     .filter(el => el && el.style.display !== 'none' && el.textContent)
     .reduce((acc, el) => acc.concat(wrapTextToWidth(measureCtx, el.textContent, contentW)), []);
@@ -1448,6 +1491,38 @@ function calculate(keepProjection) {
   if (data.length) updateParsedTable(data);
   parsedSecEl.style.display = data.length ? 'block' : 'none';
 
+  // Same-day values are averaged into their date for the fit; the table still
+  // lists every value as entered, so the two must be reconciled out loud.
+  const collapsed = sameDayCollapsedCount(data);
+  const sdEl = document.getElementById('psaSameDayNote');
+  if (sdEl) {
+    if (collapsed > 0) {
+      sdEl.textContent = collapsed + ' measurement' + (collapsed === 1 ? '' : 's') +
+        ' shared a date with another and ' + (collapsed === 1 ? 'was' : 'were') +
+        ' averaged into that date for the fit — same-day draws are repeat reads of ' +
+        'one value, not separate points in time. Every value is still listed below.';
+      sdEl.style.display = 'block';
+    } else {
+      sdEl.style.display = 'none';
+    }
+  }
+
+  // Lines the parser could not read at all. Without this they vanish between
+  // the textarea and the table, and the fit quietly covers fewer measurements
+  // than the user pasted.
+  const unreadable = countUnparsedLines(text);
+  const badEl = document.getElementById('psaUnparsedNote');
+  if (badEl) {
+    if (unreadable > 0) {
+      badEl.textContent = unreadable + ' line' + (unreadable === 1 ? '' : 's') +
+        ' could not be read and ' + (unreadable === 1 ? 'was' : 'were') +
+        ' skipped — check for a missing date or a non-numeric result.';
+      badEl.style.display = 'block';
+    } else {
+      badEl.style.display = 'none';
+    }
+  }
+
   if (data.length < 2) {
     errEl.textContent = data.length === 0
       ? 'No valid measurements found. Check that each line has a recognisable date and a numeric PSA value.'
@@ -1463,7 +1538,7 @@ function calculate(keepProjection) {
   if (!fit) {
     // Name the actual cause: a fit needs 2+ values that are both positive and
     // above the detection limit, and either shortfall can be what's missing.
-    const usable = data.filter(d => !d.censored && d.psaValue > 0).length;
+    const usable = collapseSameDay(fittablePoints(data), 'geometric').length;
     // All on one date is a different failure from "no positive values", and
     // saying the wrong one sends the user looking for a problem they don't have.
     const fittable = fittablePoints(data);
@@ -1567,22 +1642,6 @@ function calculate(keepProjection) {
       censEl.style.display = 'block';
     } else {
       censEl.style.display = 'none';
-    }
-  }
-
-  // Lines the parser could not read at all. Without this they vanish between
-  // the textarea and the table, and the fit quietly covers fewer measurements
-  // than the user pasted.
-  const unreadable = countUnparsedLines(text);
-  const badEl = document.getElementById('psaUnparsedNote');
-  if (badEl) {
-    if (unreadable > 0) {
-      badEl.textContent = unreadable + ' line' + (unreadable === 1 ? '' : 's') +
-        ' could not be read and ' + (unreadable === 1 ? 'was' : 'were') +
-        ' skipped — check for a missing date or a non-numeric result.';
-      badEl.style.display = 'block';
-    } else {
-      badEl.style.display = 'none';
     }
   }
 

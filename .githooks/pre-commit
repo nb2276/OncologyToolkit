@@ -1,0 +1,9 @@
+#!/bin/sh
+# Blocks a commit that changes a precached file without bumping CACHE_VERSION.
+# Enable once per clone:  git config core.hooksPath .githooks
+# Bypass deliberately:    git commit --no-verify
+#
+# Compares against origin/main, not HEAD, so a branch bumps once rather than
+# on every commit. Skips silently if node is unavailable.
+command -v node >/dev/null 2>&1 || exit 0
+node "$(git rev-parse --show-toplevel)/tools/cache-version.js" --check || exit 1
