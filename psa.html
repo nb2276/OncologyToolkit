@@ -107,12 +107,15 @@
             <div id="psaNoiseNote" class="psa-drop-note" style="display:none;"></div>
             <div id="psaDropNote" class="psa-drop-note" style="display:none;"></div>
             <div id="psaCensoredNote" class="psa-drop-note" style="display:none;"></div>
+            <div id="psaUnparsedNote" class="psa-drop-note" style="display:none;"></div>
             <div id="psaDupNote" class="psa-drop-note" style="display:none;"></div>
 
             <div class="chart-section">
               <p class="chart-hint">Hover (or tap) the chart for the projected PSA at any date. The shaded region is extrapolation beyond your last measurement.</p>
               <div id="clickInfo" class="click-info" style="display:none;"></div>
-              <canvas id="psaChart" onmouseleave="var t=document.getElementById('psaFitTooltip');if(t)t.style.display='none';"></canvas>
+              <div class="psa-chart-wrap">
+                <canvas id="psaChart" onmouseleave="var t=document.getElementById('psaFitTooltip');if(t)t.style.display='none';"></canvas>
+              </div>
 
               <div class="psa-chart-controls">
                 <div class="chart-projection-row">
