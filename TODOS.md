@@ -4,6 +4,23 @@ Tracking open work and ideas for future improvement.
 
 ## Open
 
+### Codex cross-model review of the 2026-08 PSA work
+**Priority:** P1
+**Component:** psa.js (parsing, fit statistics, chart readouts)
+**Discovered:** 2026-08-18 — tracked as [issue #24](https://github.com/nb2276/OncologyToolkit/issues/24)
+
+Five PRs shipped on 2026-08-17/18 (#23, #25, #26, #27) without a cross-model pass: Codex was over its usage limit the whole session, so the adversarial review ran in the same context that wrote the code. That is one perspective wearing two hats, and it already cost something — the hover bug fixed in #26 was introduced by #25.
+
+Highest value to scrutinise, in order:
+
+1. `compareTrend` uses `se = sqrt(varB_recent + varB_earlier)` with pooled `df = (n_recent - 2) + (n_earlier - 2)`. With unequal residual variances this is closer to a Welch problem; is the pooled form anticonservative at n=3-4 per side?
+2. `recentWindow` picks the window boundary from the data, then a significance test runs at that boundary — a garden-of-forking-paths concern for the false-positive rate.
+3. `PSA_NOISE_FOLD = 1.2` and `ULTRASENSITIVE_MAX = 0.1` threshold choices.
+4. Excluding below-detection values from the fit rather than substituting the limit or half the limit — the one clinical modelling call in the batch.
+5. `parseLine` after the QA hardening: clock-time stripping, `GROUPED_NUMBER` field matching, month-name dates.
+
+Run `/code-review ultra 25` (and 26) or point Codex at `git diff 7df27b6..86cb3a6`. Blocks Phase 2 of the PSA rate-change work (changepoint detection), which builds directly on the statistics in item 1.
+
 ### Automate CACHE_VERSION bump
 **Priority:** P2
 **Component:** sw.js, deploy workflow
