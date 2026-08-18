@@ -39,15 +39,28 @@ QUANTEC, HyTEC, ASTRO 2026 (Puckett) DVH, NRG protocol, and SFRO 2025 (French OA
 
 ### PSA Doubling Time Calculator
 Calculates PSA doubling time from serial PSA measurements using unweighted log-linear regression of ln(PSA) on time — the standard clinical PSADT method (doubling time = ln(2)/slope).
-- Flexible date parsing — accepts most common date formats (MM/DD/YYYY, YYYY-MM-DD, DD.MM.YYYY, etc.)
-- Reports a 95% confidence interval for the doubling time, log-scale R² goodness of fit, and PSA velocity (ng/mL/yr, separate linear regression)
-- Interactive Chart.js plot projected forward with configurable years
-- 95% confidence band on the fit curve (trend CI, not a prediction interval); shaded projection region
-- Linear / log y-axis toggle (log keeps the band readable; linear is capped so the band can't crush the data)
-- Click or tap anywhere on the chart to query the expected PSA at that date
-- White background toggle for pasting into documents
-- Copy Results button — composites the doubling time, CI, R², velocity, chart, and measurement table as a PNG to the clipboard
-- Chart automatically adapts to light/dark mode
+
+**Reading the input**
+- Flexible date parsing — `MM/DD/YYYY`, `YYYY-MM-DD`, `DD.MM.YYYY`, two-digit years, and month names (`Jan 15, 2024`)
+- Tolerates real lab exports: timestamps, quoted CSV from Excel, pipe- or comma-delimited fields, stray units and reference ranges
+- **Ultrasensitive values** (0.008, 0.014) display to three decimals instead of collapsing to 0.00
+- **Below-detection results** (`<0.014`, `≤0.02`) are listed and plotted at the reported limit, but excluded from the fit — fitting them at their limit would bias the slope toward it
+- Values with thousands separators (`1,234`) read correctly
+- Lines that can't be read are counted and reported, never dropped silently
+
+**What it reports**
+- Doubling time with a 95% confidence interval, log-scale R², and PSA velocity (ng/mL/yr, a separate linear regression)
+- **Recent-trend comparison** — the last stretch of measurements fitted separately and compared against the earlier ones, so an accelerating series doesn't hide inside a single all-history average. Shown only when the difference test resolves, and worded descriptively: treatment changes, testosterone recovery, and benign post-radiotherapy bounce all produce the same signal and are invisible to the page
+- A caution when the total change falls inside the range assay and biological variation alone can produce
+
+**Chart**
+- Interactive Chart.js plot with a configurable projection and a 95% confidence band on the trend (trend CI, not a prediction interval)
+- Hover or tap anything on the chart for a labelled readout — `Measured`, `Fitted trend`, or `Recent trend` — so a value is never mistaken for the other curve's
+- Linear / log y-axis toggle; shaded projection region beginning at the last fitted point
+- White background toggle and light/dark adaptation
+
+**Export**
+- Copy Results composites the headline, caveats, chart, and measurement table into a single PNG sized for pasting into a note or slide — including every caveat shown on screen, so they travel with the image
 
 ### ICD-10 Code Search
 Fast full-text search of ICD-10 diagnostic codes with oncology-focused filters.
@@ -65,7 +78,8 @@ Fast full-text search of ICD-10 diagnostic codes with oncology-focused filters.
 - **Works offline** — service worker precaches the app shell, so the hub and calculators (BED, Composite, ReRT, Constraints, PSA) work without network. ICD-10 search caches lazily on first online use.
 - **Recents on the hub** — returning users see their last 1–3 calculations on BED, Composite, or ReRT as one-click pills above the tile grid. Stored only in your browser's localStorage.
 - **Dark / Light mode** — toggle in the nav bar, preference saved per visitor via localStorage
-- **Responsive design** — works on desktop and mobile with collapsible hamburger navigation
+- **Responsive design** — works on desktop and mobile with collapsible hamburger navigation; stacked layouts put the answer directly under the button that produced it
+- **Accessible** — WCAG AA contrast on any value you read, visible focus, 44 px touch targets, and results announced to screen readers when calculated
 - **No account required** — all calculations run client-side in the browser
 
 ---
@@ -73,6 +87,7 @@ Fast full-text search of ICD-10 diagnostic codes with oncology-focused filters.
 ## Tech Stack
 
 - **Vanilla HTML / CSS / JavaScript** — no frameworks, no build step
+- **Test suite** — `node tests.js` runs 523 assertions against a DOM-shimmed sandbox; no framework, no dependencies
 - **Chart.js 4.4.0** + **chartjs-adapter-date-fns 3.0.0** — vendored under `vendor/` so the PSA page works offline
 - **Google Fonts** — DM Sans (body) + Outfit (headings), loaded from `fonts.googleapis.com`
 - **ICD-10 data** stored locally as XML (`icd10.xml`, `imrt_codes.xml`) — all search is client-side
@@ -89,7 +104,10 @@ No build tools required. Clone the repo and open any `.html` file directly in a 
 git clone https://github.com/nb2276/OncologyToolkit.git
 cd OncologyToolkit
 npx serve .   # or: python3 -m http.server 8080
+node tests.js # run the test suite
 ```
+
+Contributing: [`CLAUDE.md`](CLAUDE.md) covers architecture and module contracts, [`DESIGN.md`](DESIGN.md) covers the design system, [`TODOS.md`](TODOS.md) tracks open work.
 
 ---
 
