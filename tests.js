@@ -187,6 +187,8 @@ vm.runInContext(`
   globalThis.countUnparsedLines = countUnparsedLines;
   globalThis.pickNearest = pickNearest;
   globalThis.fmtReadout = fmtReadout;
+  globalThis.collapseSameDay = collapseSameDay;
+  globalThis.sameDayCollapsedCount = sameDayCollapsedCount;
   globalThis.psaShortDt = psaShortDt;
 `, sandbox);
 
@@ -226,6 +228,8 @@ var wrapTextToWidth = sandbox.wrapTextToWidth;
 var countUnparsedLines = sandbox.countUnparsedLines;
 var pickNearest = sandbox.pickNearest;
 var fmtReadout = sandbox.fmtReadout;
+var collapseSameDay = sandbox.collapseSameDay;
+var sameDayCollapsedCount = sandbox.sameDayCollapsedCount;
 var psaShortDt = sandbox.psaShortDt;
 var parseUrlParams = sandbox.parseUrlParams;
 var serializeToUrl = sandbox.serializeToUrl;
@@ -1094,6 +1098,120 @@ assertEqual(fmtReadout({label: 'Measured', psa: 0.008, censored: false}),
   'Measured: 0.008 ng/mL', 'fmtReadout: measured point keeps ultrasensitive precision');
 assertEqual(fmtReadout({label: 'Below detection', psa: 0.014, censored: true}),
   'Below detection: < 0.014 ng/mL', 'fmtReadout: censored point keeps its operator');
+
+
+
+section('=== tools/cache-version.js ===');
+
+var cacheVersion = require('./tools/cache-version.js');
+
+var swSample = [
+  "var CACHE_VERSION = 'v26-2026-08-18';",
+  "var REQUIRED_PRECACHE = [",
+  "  '/',",
+  "  '/index.html',",
+  "  '/psa.js'",
+  "];",
+  "var OPTIONAL_PRECACHE = [",
+  "  '/favicon.png'",
+  "];"
+].join('\n');
+
+assertEqual(cacheVersion.parseVersion(swSample), 'v26-2026-08-18',
+  'parseVersion: reads the declaration');
+assertEqual(cacheVersion.parseVersion('var NOTHING = 1;'), null,
+  'parseVersion: null when the declaration is missing');
+
+var pre = cacheVersion.parsePrecache(swSample);
+assert(pre.indexOf('index.html') !== -1, 'parsePrecache: includes required entries');
+assert(pre.indexOf('psa.js') !== -1, 'parsePrecache: includes JS');
+assert(pre.indexOf('favicon.png') !== -1, 'parsePrecache: includes optional entries');
+assert(pre.indexOf('/') === -1 && pre.indexOf('') === -1,
+  'parsePrecache: drops the bare directory index, which is not a file');
+assert(pre.every(function (p) { return p.charAt(0) !== '/'; }),
+  'parsePrecache: paths are repo-relative');
+
+assertEqual(cacheVersion.nextVersion('v26-2026-08-18', '2026-09-01'), 'v27-2026-09-01',
+  'nextVersion: increments the counter and restamps the date');
+assertEqual(cacheVersion.nextVersion('v9-2026-01-01', '2026-09-01'), 'v10-2026-09-01',
+  'nextVersion: crosses a digit boundary');
+assertEqual(cacheVersion.nextVersion(null, '2026-09-01'), 'v1-2026-09-01',
+  'nextVersion: starts at v1 when there is nothing to read');
+assertEqual(cacheVersion.nextVersion('garbage', '2026-09-01'), 'v1-2026-09-01',
+  'nextVersion: unparseable current version restarts rather than throwing');
+
+// A guard that silently matches nothing is worse than no guard: --check would
+// pass forever. Renaming the arrays must break loudly.
+var threw = false;
+try { cacheVersion.parsePrecache('var SOMETHING_ELSE = [\'/a.js\'];'); }
+catch (e) { threw = /REQUIRED_PRECACHE/.test(e.message); }
+assert(threw, 'parsePrecache: throws when the precache arrays cannot be found');
+
+// The guard is only useful if it actually covers the files that break users
+var realPrecache = cacheVersion.parsePrecache(require('fs').readFileSync('sw.js', 'utf8'));
+['psa.js', 'psa.html', 'style.css', 'history.js', 'math.js'].forEach(function (f) {
+  assert(realPrecache.indexOf(f) !== -1, 'parsePrecache: real sw.js guards ' + f);
+});
+
+section('=== psa.js: same-day measurement aggregation ===');
+
+var sdA = new Date(2024, 0, 15), sdB = new Date(2024, 6, 15), sdC = new Date(2025, 0, 15);
+function sd(date, v) { return { date: date, psaValue: v, censored: false }; }
+
+// Unique dates pass through untouched, same objects, same order
+var uniq = [sd(sdA, 1), sd(sdB, 2), sd(sdC, 4)];
+assertEqual(collapseSameDay(uniq, 'geometric').length, 3, 'collapseSameDay: unique dates unchanged');
+assertEqual(collapseSameDay(uniq, 'geometric')[1].psaValue, 2, 'collapseSameDay: value preserved');
+
+// Geometric mean is what the log-linear fit would average to: sqrt(4*9) = 6
+var pair = [sd(sdA, 4), sd(sdA, 9), sd(sdB, 20)];
+var geo = collapseSameDay(pair, 'geometric');
+assertEqual(geo.length, 2, 'collapseSameDay: same-day pair becomes one observation');
+assertClose(geo[0].psaValue, 6, 1e-9, 'collapseSameDay: geometric mean of 4 and 9 is 6');
+assertEqual(geo[0].collapsed, 2, 'collapseSameDay: records how many were folded in');
+assertEqual(geo[1].psaValue, 20, 'collapseSameDay: the lone point is untouched');
+
+// Arithmetic mode for the raw-scale velocity regression: (4+9)/2 = 6.5
+assertClose(collapseSameDay(pair, 'arithmetic')[0].psaValue, 6.5, 1e-9,
+  'collapseSameDay: arithmetic mean of 4 and 9 is 6.5');
+
+// Three on one date, and idempotence
+var triple = collapseSameDay([sd(sdA, 1), sd(sdA, 2), sd(sdA, 4), sd(sdB, 8)], 'geometric');
+assertEqual(triple.length, 2, 'collapseSameDay: three same-day values collapse to one');
+assertClose(triple[0].psaValue, 2, 1e-9, 'collapseSameDay: geometric mean of 1,2,4 is 2');
+assertEqual(collapseSameDay(triple, 'geometric').length, 2, 'collapseSameDay: idempotent');
+assertEqual(collapseSameDay([], 'geometric').length, 0, 'collapseSameDay: empty input');
+
+// The count that drives the disclosure note
+assertEqual(sameDayCollapsedCount(uniq), 0, 'sameDayCollapsedCount: none when dates are unique');
+assertEqual(sameDayCollapsedCount(pair), 1, 'sameDayCollapsedCount: one row folded away');
+assertEqual(sameDayCollapsedCount([sd(sdA, 1), sd(sdA, 2), sd(sdA, 4), sd(sdB, 8)]), 2,
+  'sameDayCollapsedCount: two rows folded away');
+// Censored and zero rows never reach the collapse
+assertEqual(sameDayCollapsedCount([
+  { date: sdA, psaValue: 4, censored: false },
+  { date: sdA, psaValue: 0.014, censored: true },
+  { date: sdB, psaValue: 8, censored: false }
+]), 0, 'sameDayCollapsedCount: a censored same-day row is not averaged in');
+
+// The reason for the change: duplicate observations inflated n and narrowed the CI
+var dupHeavy = [sd(sdA, 1), sd(sdA, 1.05), sd(sdB, 2), sd(sdC, 4)];
+var fitDup = fitExponential(dupHeavy);
+assertEqual(fitDup.n, 3, 'fitExponential: same-day pair counts as one observation, not two');
+var fitSingle = fitExponential([sd(sdA, Math.sqrt(1 * 1.05)), sd(sdB, 2), sd(sdC, 4)]);
+assertClose(fitDup.doublingTimeDays, fitSingle.doublingTimeDays, 1e-6,
+  'fitExponential: collapsed pair matches the equivalent single geometric-mean point');
+assertClose(fitDup.varB, fitSingle.varB, 1e-12,
+  'fitExponential: variance matches too — no fake precision from the duplicate');
+
+// All values on one date collapse to a single point, which cannot be fitted
+assertEqual(fitExponential([sd(sdA, 1), sd(sdA, 2), sd(sdA, 3)]), null,
+  'fitExponential: one date only → null after collapsing');
+
+// Velocity uses the same collapsed observations
+assertClose(psaVelocity(dupHeavy),
+  psaVelocity([sd(sdA, (1 + 1.05) / 2), sd(sdB, 2), sd(sdC, 4)]), 1e-9,
+  'psaVelocity: same-day pair averaged arithmetically');
 
 section('=== psa.js: wrapTextToWidth (export image) ===');
 

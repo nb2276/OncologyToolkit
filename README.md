@@ -107,6 +107,8 @@ npx serve .   # or: python3 -m http.server 8080
 node tests.js # run the test suite
 ```
 
+If you plan to commit, enable the deploy guard once: `git config core.hooksPath .githooks`. It blocks a commit that changes a precached file without bumping `CACHE_VERSION` in `sw.js`, which is the one way this site can ship fresh HTML against stale cached JS.
+
 Contributing: [`CLAUDE.md`](CLAUDE.md) covers architecture and module contracts, [`DESIGN.md`](DESIGN.md) covers the design system, [`TODOS.md`](TODOS.md) tracks open work.
 
 ---
