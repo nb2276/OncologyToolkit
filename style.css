@@ -799,9 +799,28 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   color: #111;
 }
 
-@media (max-width: 780px) {
-  .psa-layout { flex-direction: column; }
-  .psa-col-left { flex: none; width: 100%; }
+/* 900px, matching the nav hamburger per CLAUDE.md — at 780px the nav was
+   already in mobile mode while this layout was still two columns. */
+@media (max-width: 900px) {
+  .psa-layout {
+    flex-direction: column;
+    align-items: stretch;   /* column children fill the width, not their content */
+    gap: 0;                 /* each section already carries its own spacing */
+  }
+
+  /* Dissolve the column wrappers so their children can be ordered
+     independently: input -> results -> parsed table -> history. Stacked as
+     authored, the whole parsed table sits between the Calculate button and the
+     doubling time, so on a phone you scroll past every row to reach the answer
+     you just asked for. */
+  .psa-col-left,
+  .psa-col-right { display: contents; }
+
+  .input-section   { order: 1; }
+  #psaError        { order: 2; }
+  #psaResults      { order: 3; }
+  #parsedSection   { order: 4; margin-top: 28px; }
+  #history-section { order: 5; }
 }
 
 /* Touch ergonomics: at the mobile breakpoint (900px, matching the nav hamburger

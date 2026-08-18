@@ -61,6 +61,8 @@ All pages share: nav (hamburger on mobile at ≤900 px), theme toggle, site disc
 
 Single `style.css` (~50 KB) with numbered TOC at top (sections 1–21). Theming via CSS variables under `:root` and `[data-theme="light"]`. Dark is default. Accent: `#4fc3f7` (dark) / `#0288d1` (light). Section 21 is the hub landing (`.hub-container` / `.hub-grid` / `.hub-tile` / `.hub-recents` / `.hub-recent-pill`). `.hub-tile` uses class composition (`<a class="bed-card hub-tile">`) so it inherits `.bed-card` chrome and only contains hub-specific deltas. **Mobile breakpoint convention: `@media (max-width: 900px)`** to match the nav hamburger; new responsive sections must use this same breakpoint so nav and content switch to mobile mode together.
 
+The PSA layout stacks at that same 900 px (it was 780 px, so between 781–900 px the nav was a hamburger while the content was still two columns). When stacked, `.psa-col-left` / `.psa-col-right` become `display: contents` so their children reorder independently: input → results → parsed table → history. Authored order puts the whole parsed table between the Calculate button and the doubling time, which on a phone means scrolling past every row to reach the answer. CSS `order` moves the boxes but not the DOM, so the result card carries `aria-live="polite"` and `#psaError` carries `role="alert"` — the answer is announced regardless of reading position. Focus order is unaffected: the parsed table holds no focusable elements.
+
 When adding styles, find the right numbered section and add there — don't append to the bottom.
 
 ## Data
