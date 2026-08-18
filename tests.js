@@ -178,6 +178,12 @@ vm.runInContext(`
   globalThis.fmtVelocity = fmtVelocity;
   globalThis.updateParsedTable = updateParsedTable;
   globalThis.lastFittedDateMs = lastFittedDateMs;
+  globalThis.fittablePoints = fittablePoints;
+  globalThis.recentWindow = recentWindow;
+  globalThis.compareTrend = compareTrend;
+  globalThis.noiseCaveat = noiseCaveat;
+  globalThis.medianOf = medianOf;
+  globalThis.wrapTextToWidth = wrapTextToWidth;
   globalThis.psaShortDt = psaShortDt;
 `, sandbox);
 
@@ -208,6 +214,12 @@ var fmtPsaCell = sandbox.fmtPsaCell;
 var fmtVelocity = sandbox.fmtVelocity;
 var updateParsedTable = sandbox.updateParsedTable;
 var lastFittedDateMs = sandbox.lastFittedDateMs;
+var fittablePoints = sandbox.fittablePoints;
+var recentWindow = sandbox.recentWindow;
+var compareTrend = sandbox.compareTrend;
+var noiseCaveat = sandbox.noiseCaveat;
+var medianOf = sandbox.medianOf;
+var wrapTextToWidth = sandbox.wrapTextToWidth;
 var psaShortDt = sandbox.psaShortDt;
 var parseUrlParams = sandbox.parseUrlParams;
 var serializeToUrl = sandbox.serializeToUrl;
@@ -878,6 +890,140 @@ var cenSeries = parseInput('2024-01-15 <0.014\n2024-07-15 0.020\n2025-01-15 0.04
 assertEqual(cenSeries.length, 3, 'parseInput: below-detection row is kept, not dropped');
 assertEqual(cenSeries.filter(function (d) { return d.censored; }).length, 1,
   'parseInput: exactly one row flagged censored');
+
+section('=== psa.js: recent-trend window ===');
+
+// Day-offset helper so series read as "day N of the series", not calendar math.
+function dayPt(offset, psaValue, censored) {
+  return { date: new Date(2024, 0, 1 + offset), psaValue: psaValue, censored: !!censored };
+}
+
+assertEqual(medianOf([3, 1, 2]), 2, 'medianOf: odd length');
+assertEqual(medianOf([4, 1, 3, 2]), 2.5, 'medianOf: even length averages the middle pair');
+assertEqual(medianOf([5]), 5, 'medianOf: single value');
+
+// fittablePoints is the one filter the fit, velocity, and window all share
+var mixedPts = [dayPt(0, 0.5), dayPt(30, 0, false), dayPt(60, 0.8, true), dayPt(90, 1.2)];
+assertEqual(fittablePoints(mixedPts).length, 2, 'fittablePoints: drops zero and censored');
+
+// Too few points to leave anything to compare against
+assertEqual(recentWindow([dayPt(0, 1), dayPt(180, 2), dayPt(360, 4)]), null,
+  'recentWindow: 3 fittable points → null (no earlier segment left)');
+
+// 8 points over ~2.7 years: trailing 12 months holds 4
+var longSeries = [
+  dayPt(0, 1.0), dayPt(180, 1.2), dayPt(360, 1.45), dayPt(540, 1.75),
+  dayPt(720, 2.2), dayPt(810, 2.9), dayPt(900, 3.7), dayPt(990, 6.0),
+];
+var win = recentWindow(longSeries);
+assert(win !== null, 'recentWindow: long series produces a window');
+assertEqual(win.points.length, 4, 'recentWindow: trailing 12 months holds 4 points');
+assertEqual(win.earlier.length, 4, 'recentWindow: the rest become the earlier segment');
+assertEqual(win.points[0].psaValue, 2.2, 'recentWindow: window starts at the first in-window point');
+
+// Sparse tail: trailing 12 months holds only 2, so the window widens to 3
+var sparse = [
+  dayPt(0, 1.0), dayPt(200, 1.3), dayPt(400, 1.7), dayPt(1000, 2.4), dayPt(1300, 3.1),
+];
+var sparseWin = recentWindow(sparse);
+assert(sparseWin !== null, 'recentWindow: sparse series still produces a window');
+assertEqual(sparseWin.points.length, 3, 'recentWindow: widens to the 3-point minimum');
+assertEqual(sparseWin.earlier.length, 2, 'recentWindow: earlier segment keeps the remainder');
+
+// Clustered tail: 3 recent draws inside 3 weeks is not a trend — widen for span
+var clustered = [
+  dayPt(0, 1.0), dayPt(300, 1.4), dayPt(600, 1.9), dayPt(900, 2.5),
+  dayPt(907, 2.6), dayPt(914, 2.7),
+];
+var clusteredWin = recentWindow(clustered);
+assert(clusteredWin !== null, 'recentWindow: clustered tail still produces a window');
+assert((clusteredWin.points[clusteredWin.points.length - 1].date - clusteredWin.points[0].date)
+  / 86400000 >= 90, 'recentWindow: window span is at least 90 days');
+
+// Censored and zero rows never enter the window
+var withCensored = longSeries.concat([dayPt(1050, 0.014, true)]);
+var censWin = recentWindow(withCensored);
+assert(censWin.points.every(function (p) { return !p.censored; }),
+  'recentWindow: below-detection rows excluded from the window');
+
+section('=== psa.js: compareTrend ===');
+
+// Slow earlier segment, fast recent segment (DT ~22 mo → ~6 mo)
+var accelWin = recentWindow(longSeries);
+var accel = compareTrend(fitExponential(accelWin.points), fitExponential(accelWin.earlier));
+assert(accel !== null, 'compareTrend: returns a verdict for two 4-point segments');
+assertEqual(accel.differs, true, 'compareTrend: clear acceleration is flagged');
+assertEqual(accel.direction, 'increased', 'compareTrend: direction names the rate constant');
+
+// One constant slope across the whole series, with mild scatter
+var steady = [
+  dayPt(0, 1.00), dayPt(180, 1.42), dayPt(360, 1.98), dayPt(540, 2.85),
+  dayPt(720, 3.9), dayPt(810, 4.8), dayPt(900, 5.6), dayPt(990, 6.7),
+];
+var steadyWin = recentWindow(steady);
+var steadyCmp = compareTrend(fitExponential(steadyWin.points), fitExponential(steadyWin.earlier));
+assert(steadyCmp !== null, 'compareTrend: returns a verdict for a steady series');
+assertEqual(steadyCmp.differs, false, 'compareTrend: steady growth is not flagged as a change');
+
+// A 2-point segment has no residual d.o.f., so varB is a fake zero — no claim
+assertEqual(compareTrend(
+  fitExponential([dayPt(0, 1), dayPt(100, 2)]),
+  fitExponential([dayPt(200, 3), dayPt(300, 9)])
+), null, 'compareTrend: 2-point segments → null (no estimable noise level)');
+assertEqual(compareTrend(null, fitExponential(longSeries)), null, 'compareTrend: null input → null');
+
+section('=== psa.js: noiseCaveat ===');
+
+// Under the 20% noise floor across the whole series
+assert(/assay and biological/.test(noiseCaveat([dayPt(0, 4.00), dayPt(200, 4.10), dayPt(400, 4.15)])),
+  'noiseCaveat: sub-20% total change is called out as possible noise');
+
+// Ordinary rising series at ordinary levels → no caveat
+assertEqual(noiseCaveat([dayPt(0, 1.0), dayPt(200, 2.0), dayPt(400, 4.0)]), null,
+  'noiseCaveat: a clear rise at ordinary levels needs no caveat');
+
+// Ultrasensitive levels get the assay-scatter caveat even when the rise is real
+assert(/ultrasensitive/i.test(noiseCaveat([dayPt(0, 0.010), dayPt(200, 0.020), dayPt(400, 0.045)])),
+  'noiseCaveat: ultrasensitive series warns about assay scatter');
+
+// The noise floor outranks the ultrasensitive note (one message, most important)
+assert(/assay and biological/.test(noiseCaveat([dayPt(0, 0.020), dayPt(200, 0.021), dayPt(400, 0.022)])),
+  'noiseCaveat: flat ultrasensitive series reports the noise floor, not the scatter note');
+
+assertEqual(noiseCaveat([dayPt(0, 1.0)]), null, 'noiseCaveat: single point → no caveat');
+
+section('=== psa.js: wrapTextToWidth (export image) ===');
+
+// Fake ctx: every character is exactly 10 units wide, so widths are countable.
+var fakeCtx = { measureText: function (s) { return { width: s.length * 10 }; } };
+
+assertEqual(wrapTextToWidth(fakeCtx, 'one two', 200).length, 1,
+  'wrapTextToWidth: text that fits stays on one line');
+var wrapped = wrapTextToWidth(fakeCtx, 'alpha beta gamma delta', 120);
+assert(wrapped.every(function (l) { return l.length <= 12; }),
+  'wrapTextToWidth: no line exceeds the width');
+assert(wrapped.every(function (l) { return l.indexOf(' ') !== 0; }),
+  'wrapTextToWidth: lines do not start with a space');
+assertEqual(wrapped.join(' '), 'alpha beta gamma delta',
+  'wrapTextToWidth: rejoining the lines reproduces the text');
+
+// Prose breaks on spaces — the whole point of the word-aware pass
+assertEqual(wrapTextToWidth(fakeCtx, 'assay variation exceeds', 120)[0], 'assay',
+  'wrapTextToWidth: breaks at a space rather than mid-word');
+
+// A URL has no spaces, so it must still fall back to character wrapping
+var url = 'https://example.com/psa.html?psaInput=2024-01-01+1.0';
+var urlLines = wrapTextToWidth(fakeCtx, url, 200);
+assert(urlLines.length > 1, 'wrapTextToWidth: an unbreakable run still wraps');
+assert(urlLines.every(function (l) { return l.length <= 20; }),
+  'wrapTextToWidth: character fallback respects the width');
+assertEqual(urlLines.join(''), url, 'wrapTextToWidth: character fallback loses nothing');
+
+// A single word longer than the line, mixed with normal words
+var mixed = wrapTextToWidth(fakeCtx, 'see https://example.com/very/long/path now', 150);
+assertEqual(mixed[0], 'see', 'wrapTextToWidth: short leading word keeps its own line');
+assert(mixed[mixed.length - 1].indexOf('now') !== -1,
+  'wrapTextToWidth: trailing word survives the character fallback');
 
 section('=== psa.js: lastFittedDateMs (projection divider) ===');
 

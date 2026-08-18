@@ -163,10 +163,17 @@ const MS_PER_DAY = 86400000;
  * Returns { A, B, doublingTimeDays, firstDate, pts, varLnA, varB, covAB, n,
  *           rSquared, rSquaredDefined, ciEstimable } or null on failure.
  */
+/**
+ * The measurements a fit may use: positive, and actually measured. Below-
+ * detection results carry no concentration — fitting them at their reported
+ * limit would bias the slope toward that limit.
+ */
+function fittablePoints(data) {
+  return data.filter(d => d.psaValue > 0 && !d.censored);
+}
+
 function fitExponential(data) {
-  // Below-detection results carry no measured concentration — fitting them at
-  // their reported limit would bias the slope toward that limit.
-  const valid = data.filter(d => d.psaValue > 0 && !d.censored);
+  const valid = fittablePoints(data);
   if (valid.length < 2) return null;
 
   const firstDate = valid[0].date;
@@ -277,7 +284,7 @@ function doublingTimeCI(fit) {
  * computable.
  */
 function psaVelocity(data) {
-  const valid = data.filter(d => d.psaValue > 0 && !d.censored);
+  const valid = fittablePoints(data);
   if (valid.length < 2) return null;
 
   const t0 = valid[0].date.getTime();
@@ -295,6 +302,120 @@ function psaVelocity(data) {
 }
 
 // -------------------------------------------------------------------------
+// Recent-trend window
+//
+// PSA kinetics are not fixed. Post-treatment log-PSA series are empirically
+// piecewise-linear rather than one straight line (Bellera 2008, Ann Epidemiol),
+// and a shift in doubling time between clinical epochs carries prognostic
+// weight (baseline vs off-treatment PSADT in intermittent ADT).
+//
+// This compares the most recent stretch of measurements against the earlier
+// ones and reports the difference DESCRIPTIVELY. It must never attribute a
+// change to disease biology: the usual causes — treatment start/stop, 5-ARIs,
+// testosterone recovery, benign post-radiotherapy bounce, a change of assay —
+// are all invisible to this page, and several of them look identical to
+// progression in the numbers alone.
+// -------------------------------------------------------------------------
+
+const RECENT_WINDOW_DAYS   = 365;   // preferred trailing window
+const RECENT_MIN_POINTS    = 3;     // a slope needs 3 points to carry a CI
+const RECENT_MIN_SPAN_DAYS = 90;    // 3 draws in a fortnight is not a trend
+
+/**
+ * Split the fittable measurements into { points: recent, earlier }, or null
+ * when the series can't support the comparison. Prefers a trailing 12 months,
+ * widens when that holds too few points or too short a span, and requires the
+ * window to leave enough earlier points behind to compare against.
+ */
+function recentWindow(data) {
+  const pts = fittablePoints(data);
+  if (pts.length < RECENT_MIN_POINTS + 1) return null;
+
+  const lastMs   = pts[pts.length - 1].date.getTime();
+  const inWindow = ms => (lastMs - ms) <= RECENT_WINDOW_DAYS * MS_PER_DAY;
+  const spanOk   = i  => (lastMs - pts[i].date.getTime()) >= RECENT_MIN_SPAN_DAYS * MS_PER_DAY;
+
+  let start = pts.findIndex(d => inWindow(d.date.getTime()));
+  if (start === -1) start = pts.length - 1;
+
+  // Widen backwards until the window holds enough points across enough time.
+  while (start > 0 && (pts.length - start < RECENT_MIN_POINTS || !spanOk(start))) start--;
+
+  // start === 0 means the window ate the whole series: nothing left to compare.
+  if (start === 0) return null;
+  if (pts.length - start < RECENT_MIN_POINTS || !spanOk(start)) return null;
+
+  return { points: pts.slice(start), earlier: pts.slice(0, start) };
+}
+
+/**
+ * Compare the exponential rate constant B between the recent window and the
+ * earlier points. The two sets are disjoint, so Var(difference) is the sum of
+ * variances — comparing recent against the OVERALL fit would double-count the
+ * shared points and overstate the difference.
+ *
+ * Returns { differs, direction } or null when either side can't carry a CI
+ * (n < 3 leaves no residual degrees of freedom, so varB would be a fake zero).
+ */
+function compareTrend(recentFit, earlierFit) {
+  if (!recentFit || !earlierFit) return null;
+  if (!recentFit.ciEstimable || !earlierFit.ciEstimable) return null;
+
+  const se = Math.sqrt(recentFit.varB + earlierFit.varB);
+  if (!isFinite(se) || se <= 0) return null;
+
+  const diff = recentFit.B - earlierFit.B;
+  const df   = (recentFit.n - 2) + (earlierFit.n - 2);
+  return {
+    differs: Math.abs(diff / se) > tValue95(df),
+    // "rate constant increased" stays true whether the series is rising faster
+    // or falling more slowly; "faster growth" would be wrong in the latter.
+    direction: diff > 0 ? 'increased' : 'decreased'
+  };
+}
+
+// Assay + biological noise floor. Biological variation alone runs ~7.3% CV
+// (95th percentile 19.2%), and assay CV commonly exceeds 20% below 0.4 ng/mL,
+// so a change between draws under ~20-46% can be entirely noise. 1.2x is the
+// conservative end of that band: series that move less get a caution instead
+// of a confident doubling time.
+const PSA_NOISE_FOLD     = 1.2;
+const ULTRASENSITIVE_MAX = 0.1;
+
+function medianOf(nums) {
+  const s = nums.slice().sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
+/**
+ * The single most important caveat about reading this series, or null. Capped
+ * at one message on purpose — a stack of hedges reads as noise and gets
+ * skipped, which defeats the point of hedging at all.
+ */
+function noiseCaveat(data) {
+  const pts = fittablePoints(data);
+  if (pts.length < 2) return null;
+
+  const first = pts[0].psaValue;
+  const last  = pts[pts.length - 1].psaValue;
+  const fold  = Math.max(last / first, first / last);
+  if (isFinite(fold) && fold < PSA_NOISE_FOLD) {
+    return 'Total change across these measurements is under ' +
+      Math.round((PSA_NOISE_FOLD - 1) * 100) + '%, which assay and biological ' +
+      'variation alone can produce. Treat the doubling time as provisional.';
+  }
+
+  if (medianOf(pts.map(d => d.psaValue)) < ULTRASENSITIVE_MAX) {
+    return 'At ultrasensitive levels (below ' + ULTRASENSITIVE_MAX + ' ng/mL) assay ' +
+      'variation commonly exceeds 20%, so these values scatter more than the fit ' +
+      'assumes. The doubling time is correspondingly less certain.';
+  }
+
+  return null;
+}
+
+// -------------------------------------------------------------------------
 // Chart
 // -------------------------------------------------------------------------
 
@@ -302,6 +423,7 @@ let psaChart  = null;
 let whiteMode = false;
 let lastData  = null;
 let lastFit   = null;
+let recentFit = null;          // recent-window fit, drawn as a comparison line
 let defaultProjectionYears = 2;
 let yAxisType = 'linear';      // 'linear' (capped) | 'logarithmic'
 let lastDataMs = null;         // last measured date — projection-shading divider
@@ -546,6 +668,26 @@ function renderChart(data, fit) {
       order: 2
     }
   ];
+
+  // Recent-trend line: no CI band of its own — it is a comparison aid against
+  // the main fit, not a second fit with its own uncertainty story to tell.
+  if (recentFit) {
+    datasets.push({
+      label: 'Recent trend',
+      data: buildCurve(recentFit, new Date(recentFit.firstDate), chartEnd).pts,
+      type: 'line',
+      borderColor: '#ffb74d',
+      backgroundColor: 'transparent',
+      fill: false,
+      pointStyle: 'line',
+      pointRadius: 0,
+      pointHitRadius: 0,
+      borderWidth: 2,
+      borderDash: [6, 3],
+      tension: 0,
+      order: 5
+    });
+  }
 
   if (censored.length) {
     // Down-pointing marker at the detection limit: the true value lies below it.
@@ -843,20 +985,42 @@ function toggleWhiteMode() {
 // Copy results as PNG to clipboard
 // -------------------------------------------------------------------------
 
-// Break a string into lines that fit maxWidth in the given ctx's current font.
-// Character-based (URLs have no spaces to wrap on).
+/**
+ * Break a string into lines that fit maxWidth in the given ctx's current font.
+ * Breaks on spaces so prose reads normally, and falls back to character breaks
+ * inside any single run too long to fit — which is how a share URL, with no
+ * spaces to break on, still wraps instead of overflowing the sheet.
+ */
 function wrapTextToWidth(ctx, text, maxWidth) {
   const lines = [];
   let line = '';
-  for (let i = 0; i < text.length; i++) {
-    const test = line + text[i];
-    if (line && ctx.measureText(test).width > maxWidth) {
-      lines.push(line);
-      line = text[i];
-    } else {
-      line = test;
+
+  const words = String(text).split(' ');
+  for (let w = 0; w < words.length; w++) {
+    const word = words[w];
+    const candidate = line ? line + ' ' + word : word;
+
+    if (ctx.measureText(candidate).width <= maxWidth) {
+      line = candidate;
+      continue;
+    }
+    if (line) { lines.push(line); line = ''; }
+
+    if (ctx.measureText(word).width <= maxWidth) {
+      line = word;
+      continue;
+    }
+    for (let i = 0; i < word.length; i++) {
+      const test = line + word[i];
+      if (line && ctx.measureText(test).width > maxWidth) {
+        lines.push(line);
+        line = word[i];
+      } else {
+        line = test;
+      }
     }
   }
+
   if (line) lines.push(line);
   return lines;
 }
@@ -869,24 +1033,56 @@ function copyResults() {
 
   const font = 'Arial, Helvetica, sans-serif';
 
-  // Secondary readouts (CI, R², velocity) for the exported image.
-  const ciText    = (document.getElementById('psaCI') || {}).textContent || '';
-  const statsText = (document.getElementById('psaStats') || {}).textContent || '';
+  // Secondary readouts (CI, R², velocity, recent trend) for the exported image.
+  const ciText     = (document.getElementById('psaCI') || {}).textContent || '';
+  const statsText  = (document.getElementById('psaStats') || {}).textContent || '';
+  const recentText = (document.getElementById('psaRecent') || {}).textContent || '';
 
-  const pad    = 36;
-  const gap    = 24;
-  const rowH   = 34;
-  const W      = chartCanvas.width;
+  // The sheet takes its palette from the chart's own mode. A dark chart on a
+  // white sheet reads as two documents in one frame — whichever mode the user
+  // is in, the exported image has to look like one thing.
+  const lightSheet = whiteMode || isLightTheme();
+  // `faint` still clears WCAG AA (4.5:1) against its own background — the
+  // eyebrow, column heads, and footer are small type, which is exactly where
+  // a "just a bit greyer" choice stops being readable.
+  const sheet = lightSheet
+    ? { bg: '#ffffff', ink: '#111111', muted: '#5a5a63', faint: '#6b6b73',
+        rule: 'rgba(0,0,0,0.10)', accent: '#0277bd', trend: '#c77c14' }
+    : { bg: '#1a1a1a', ink: '#f2f2f4', muted: '#a8a8b0', faint: '#8f8f99',
+        rule: 'rgba(255,255,255,0.12)', accent: '#4fc3f7', trend: '#ffb74d' };
 
-  // Header sizes + a roomier gap between the title and the doubling-time value.
-  const titleSize = Math.max(16, Math.round(W / 28));
-  const valSize   = Math.max(14, Math.round(W / 32));
-  const subSize   = Math.max(11, Math.round(W / 64));
-  const titleY = 42;
-  const valueY = titleY + valSize + 30;              // extra breathing room
-  const ciY    = valueY + subSize + 14;
-  const statsY = ciY + subSize + 8;
-  const headH  = statsY + 18;
+  const pad = 40;
+  const gap = 24;
+  const W   = chartCanvas.width;
+  const contentW = W - pad * 2;
+
+  // Header type scale: one dominant value, everything else clearly subordinate.
+  const eyebrowSize = Math.max(10, Math.round(W / 72));
+  const valSize     = Math.max(22, Math.round(W / 22));
+  const subSize     = Math.max(12, Math.round(W / 56));
+  const metaSize    = Math.max(10, Math.round(W / 68));
+  const rowH        = Math.max(26, Math.round(W / 26));
+
+  const eyebrowY = pad + eyebrowSize;
+  const valueY   = eyebrowY + valSize + 12;
+  const ciY      = valueY + subSize + 14;
+  const statsY   = ciY + metaSize + 12;
+  // The recent-trend line only reserves height when there is one to print.
+  const recentY  = recentText ? statsY + metaSize + 11 : statsY;
+
+  // The caveats travel with the image. A note that only exists on screen never
+  // reaches whoever is handed the PNG, which would leave the exported number
+  // stated more confidently than the page states it.
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  measureCtx.font = `${metaSize}px ${font}`;
+  const noteLineH = metaSize + 7;
+  const noteLines = ['psaNoiseNote', 'psaCensoredNote', 'psaDropNote']
+    .map(id => document.getElementById(id))
+    .filter(el => el && el.style.display !== 'none' && el.textContent)
+    .reduce((acc, el) => acc.concat(wrapTextToWidth(measureCtx, el.textContent, contentW)), []);
+
+  const notesY = recentY + (noteLines.length ? 14 : 0);
+  const headH  = notesY + noteLines.length * noteLineH + 22;
 
   // Shareable link — the same URL the "Copy Link" button produces — so the
   // image can be reopened later to add more measurements. Wrapped to fit width.
@@ -897,80 +1093,127 @@ function copyResults() {
       return acc;
     }, {})).toString();
 
-  const urlSize   = Math.max(10, Math.round(W / 82));
+  const urlSize   = Math.max(10, Math.round(W / 86));
   const urlLineH  = urlSize + 5;
-  const measureCtx = document.createElement('canvas').getContext('2d');
   measureCtx.font = urlSize + 'px monospace';
-  const urlLines = wrapTextToWidth(measureCtx, shareUrl, W - pad * 2);
-  const footerH  = gap + (urlSize + 8) + urlLines.length * urlLineH + pad;
+  const urlLines = wrapTextToWidth(measureCtx, shareUrl, contentW);
+  const footerH  = gap + (metaSize + 10) + urlLines.length * urlLineH + pad;
 
-  const tableH = (lastData.length + 2) * rowH + pad * 2 + gap;
-  const H      = headH + gap + chartCanvas.height + tableH + footerH;
+  // The chart is inset to the sheet's margin instead of bleeding to the edges,
+  // so the figure sits inside the document rather than punching through it.
+  const chartH = Math.round(chartCanvas.height * (contentW / chartCanvas.width));
+  const chartY = headH + gap;
+
+  const tableH = (lastData.length + 2) * rowH + gap * 2;
+  const H      = chartY + chartH + tableH + footerH;
 
   const out = document.createElement('canvas');
   out.width  = W;
   out.height = H;
   const c = out.getContext('2d');
 
-  c.fillStyle = '#ffffff';
+  c.fillStyle = sheet.bg;
   c.fillRect(0, 0, W, H);
 
-  // Title
-  c.fillStyle = '#111111';
-  c.font = `bold ${titleSize}px ${font}`;
-  c.fillText('PSA Doubling Time', pad, titleY);
+  // Letter-spaced small caps for the eyebrow + column heads. Not in every
+  // engine, so set it defensively and always clear it again.
+  const setTracking = px => { if ('letterSpacing' in c) c.letterSpacing = px; };
 
-  // Doubling time value
-  c.fillStyle = '#1565c0';
+  // Eyebrow: names the figure without competing with the number it labels.
+  setTracking('1.4px');
+  c.fillStyle = sheet.faint;
+  c.font = `bold ${eyebrowSize}px ${font}`;
+  c.fillText('PSA DOUBLING TIME', pad, eyebrowY);
+  setTracking('0px');
+
+  // The headline: the one thing this image exists to communicate.
+  c.fillStyle = sheet.accent;
   c.font = `bold ${valSize}px ${font}`;
   c.fillText(dt, pad, valueY);
 
-  // CI + R²/velocity subtitle
-  c.fillStyle = '#555555';
+  c.fillStyle = sheet.muted;
   c.font = `${subSize}px ${font}`;
-  if (ciText)    c.fillText(ciText, pad, ciY);
+  if (ciText) c.fillText(ciText, pad, ciY);
+
+  c.font = `${metaSize}px ${font}`;
+  c.fillStyle = sheet.faint;
   if (statsText) c.fillText(statsText, pad, statsY);
 
-  // Chart
-  c.drawImage(chartCanvas, 0, headH + gap);
+  // Recent trend carries a dash swatch in the chart line's own colour, so the
+  // sentence and the line on the chart read as the same claim.
+  if (recentText) {
+    const dashW = Math.round(metaSize * 1.6);
+    c.strokeStyle = sheet.trend;
+    c.lineWidth = 2;
+    c.setLineDash([4, 3]);
+    c.beginPath();
+    c.moveTo(pad, recentY - metaSize * 0.32);
+    c.lineTo(pad + dashW, recentY - metaSize * 0.32);
+    c.stroke();
+    c.setLineDash([]);
+    c.fillStyle = sheet.muted;
+    c.fillText(recentText, pad + dashW + 8, recentY);
+  }
 
-  // Table
-  let y       = headH + gap + chartCanvas.height + pad + gap;
-  const col2x = pad + Math.round(W * 0.22);
-  const hSize = Math.max(12, Math.round(W / 56));
-  const tSize = Math.max(13, Math.round(W / 48));
+  c.fillStyle = sheet.faint;
+  c.font = `${metaSize}px ${font}`;
+  for (let i = 0; i < noteLines.length; i++) {
+    c.fillText(noteLines[i], pad, notesY + (i + 1) * noteLineH);
+  }
 
-  // Table header
-  c.fillStyle = '#666666';
-  c.font = `bold ${hSize}px ${font}`;
-  c.fillText('PSA (ng/mL)', pad, y);
-  c.fillText('Date', col2x, y);
-  y += 10;
+  // Hairline between the masthead and the figure.
+  c.fillStyle = sheet.rule;
+  c.fillRect(pad, headH - 12, contentW, 1);
 
-  c.fillStyle = '#cccccc';
-  c.fillRect(pad, y, W - pad * 2, 1);
+  c.drawImage(chartCanvas, pad, chartY, contentW, chartH);
+
+  // Table: date left, value right — the numeric column gets a hard right edge
+  // so the digits line up as a column instead of ragging against the dates.
+  let y = chartY + chartH + gap + rowH;
+  const tSize = Math.max(13, Math.round(W / 50));
+  const rightX = W - pad;
+
+  setTracking('1.2px');
+  c.fillStyle = sheet.faint;
+  c.font = `bold ${eyebrowSize}px ${font}`;
+  c.fillText('DATE', pad, y);
+  c.textAlign = 'right';
+  c.fillText('PSA (NG/ML)', rightX, y);
+  c.textAlign = 'left';
+  setTracking('0px');
+
+  y += 12;
+  c.fillStyle = sheet.rule;
+  c.fillRect(pad, y, contentW, 1);
   y += rowH;
 
-  // Table rows
   for (let i = 0; i < lastData.length; i++) {
     const d = lastData[i];
+    const italic = d.censored ? 'italic ' : '';
 
-    // Same treatment as the on-screen table: italic, full contrast.
-    c.fillStyle = '#111111';
-    c.font = `${d.censored ? 'italic ' : ''}${tSize}px ${font}`;
-    c.fillText(fmtPsaCell(d), pad, y);
-    c.fillStyle = '#444444';
-    c.fillText(fmtDate(d.date), col2x, y);
+    c.fillStyle = sheet.muted;
+    c.font = `${italic}${tSize}px ${font}`;
+    c.fillText(fmtDate(d.date), pad, y);
+
+    c.fillStyle = sheet.ink;
+    c.textAlign = 'right';
+    c.fillText(fmtPsaCell(d), rightX, y);
+    c.textAlign = 'left';
+
+    if (i < lastData.length - 1) {
+      c.fillStyle = sheet.rule;
+      c.fillRect(pad, y + Math.round(rowH * 0.3), contentW, 1);
+    }
     y += rowH;
   }
 
-  // Shareable-link footer
+  // Footer: when it was made, then how to reopen it. The chart carries the
+  // wordmark already, so this doesn't repeat the domain as a headline.
   y += gap;
-  c.fillStyle = '#888888';
-  c.font = `${urlSize}px ${font}`;
-  c.fillText('Reopen / add measurements at:', pad, y);
-  y += urlSize + 8;
-  c.fillStyle = '#1565c0';
+  c.fillStyle = sheet.faint;
+  c.font = `${metaSize}px ${font}`;
+  c.fillText('Generated ' + fmtDate(new Date()) + '  ·  reopen or add measurements:', pad, y);
+  y += metaSize + 10;
   c.font = `${urlSize}px monospace`;
   for (let i = 0; i < urlLines.length; i++) {
     c.fillText(urlLines[i], pad, y);
@@ -1084,6 +1327,7 @@ function calculate(keepProjection) {
   autoGrowPsaInput(input);
   const rawData = parseInput(text);
   const data = dedupeMeasurements(rawData);   // hide exact duplicates everywhere
+  recentFit = null;                           // never carry a stale trend line forward
   const dupsRemoved = rawData.length - data.length;
 
   const errEl        = document.getElementById('psaError');
@@ -1145,6 +1389,41 @@ function calculate(keepProjection) {
   setText('psaCI', fmtDoublingTimeCI(ci));
   const velocity = psaVelocity(data);
   setText('psaStats', fmtRSquared(fit) + '  ·  ' + fmtVelocity(velocity));
+
+  // Recent trend vs the earlier values. Descriptive only — see recentWindow.
+  // Computed before renderChart, which draws recentFit as a comparison line.
+  // Shown only when both segments can carry a CI, i.e. the comparison actually
+  // resolves. A bare "recent trend" number with no verdict would invite the
+  // reader to see acceleration in what may be scatter — the number and the
+  // "is this beyond noise?" answer ship together or not at all.
+  recentFit = null;
+  let recentText = '';
+  const win = recentWindow(data);
+  if (win) {
+    const rFit = fitExponential(win.points);
+    const cmp  = compareTrend(rFit, fitExponential(win.earlier));
+    if (cmp) {
+      recentFit = rFit;
+      recentText = 'Recent trend (' + win.points.length + ' values since ' +
+        fmtDate(win.points[0].date) + '): ' + psaShortDt(rFit.doublingTimeDays) +
+        (cmp.differs
+          ? '  ·  growth rate ' + cmp.direction + ' vs the earlier values, beyond measurement noise'
+          : '  ·  no measurable difference from the earlier values');
+    }
+  }
+  const recentEl = document.getElementById('psaRecent');
+  if (recentEl) {
+    recentEl.textContent = recentText;
+    recentEl.style.display = recentText ? 'block' : 'none';
+  }
+
+  // One caveat at most, about reading this series at all.
+  const caveat = noiseCaveat(data);
+  const caveatEl = document.getElementById('psaNoiseNote');
+  if (caveatEl) {
+    caveatEl.textContent = caveat || '';
+    caveatEl.style.display = caveat ? 'block' : 'none';
+  }
 
   // Disclose measurements dropped from the fit for being PSA ≤ 0. Counted
   // directly (not as data.length - fit.n) so censored rows, which the note
