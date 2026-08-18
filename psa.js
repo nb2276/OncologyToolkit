@@ -985,20 +985,42 @@ function toggleWhiteMode() {
 // Copy results as PNG to clipboard
 // -------------------------------------------------------------------------
 
-// Break a string into lines that fit maxWidth in the given ctx's current font.
-// Character-based (URLs have no spaces to wrap on).
+/**
+ * Break a string into lines that fit maxWidth in the given ctx's current font.
+ * Breaks on spaces so prose reads normally, and falls back to character breaks
+ * inside any single run too long to fit — which is how a share URL, with no
+ * spaces to break on, still wraps instead of overflowing the sheet.
+ */
 function wrapTextToWidth(ctx, text, maxWidth) {
   const lines = [];
   let line = '';
-  for (let i = 0; i < text.length; i++) {
-    const test = line + text[i];
-    if (line && ctx.measureText(test).width > maxWidth) {
-      lines.push(line);
-      line = text[i];
-    } else {
-      line = test;
+
+  const words = String(text).split(' ');
+  for (let w = 0; w < words.length; w++) {
+    const word = words[w];
+    const candidate = line ? line + ' ' + word : word;
+
+    if (ctx.measureText(candidate).width <= maxWidth) {
+      line = candidate;
+      continue;
+    }
+    if (line) { lines.push(line); line = ''; }
+
+    if (ctx.measureText(word).width <= maxWidth) {
+      line = word;
+      continue;
+    }
+    for (let i = 0; i < word.length; i++) {
+      const test = line + word[i];
+      if (line && ctx.measureText(test).width > maxWidth) {
+        lines.push(line);
+        line = word[i];
+      } else {
+        line = test;
+      }
     }
   }
+
   if (line) lines.push(line);
   return lines;
 }
@@ -1016,22 +1038,51 @@ function copyResults() {
   const statsText  = (document.getElementById('psaStats') || {}).textContent || '';
   const recentText = (document.getElementById('psaRecent') || {}).textContent || '';
 
-  const pad    = 36;
-  const gap    = 24;
-  const rowH   = 34;
-  const W      = chartCanvas.width;
+  // The sheet takes its palette from the chart's own mode. A dark chart on a
+  // white sheet reads as two documents in one frame — whichever mode the user
+  // is in, the exported image has to look like one thing.
+  const lightSheet = whiteMode || isLightTheme();
+  // `faint` still clears WCAG AA (4.5:1) against its own background — the
+  // eyebrow, column heads, and footer are small type, which is exactly where
+  // a "just a bit greyer" choice stops being readable.
+  const sheet = lightSheet
+    ? { bg: '#ffffff', ink: '#111111', muted: '#5a5a63', faint: '#6b6b73',
+        rule: 'rgba(0,0,0,0.10)', accent: '#0277bd', trend: '#c77c14' }
+    : { bg: '#1a1a1a', ink: '#f2f2f4', muted: '#a8a8b0', faint: '#8f8f99',
+        rule: 'rgba(255,255,255,0.12)', accent: '#4fc3f7', trend: '#ffb74d' };
 
-  // Header sizes + a roomier gap between the title and the doubling-time value.
-  const titleSize = Math.max(16, Math.round(W / 28));
-  const valSize   = Math.max(14, Math.round(W / 32));
-  const subSize   = Math.max(11, Math.round(W / 64));
-  const titleY = 42;
-  const valueY = titleY + valSize + 30;              // extra breathing room
-  const ciY     = valueY + subSize + 14;
-  const statsY  = ciY + subSize + 8;
+  const pad = 40;
+  const gap = 24;
+  const W   = chartCanvas.width;
+  const contentW = W - pad * 2;
+
+  // Header type scale: one dominant value, everything else clearly subordinate.
+  const eyebrowSize = Math.max(10, Math.round(W / 72));
+  const valSize     = Math.max(22, Math.round(W / 22));
+  const subSize     = Math.max(12, Math.round(W / 56));
+  const metaSize    = Math.max(10, Math.round(W / 68));
+  const rowH        = Math.max(26, Math.round(W / 26));
+
+  const eyebrowY = pad + eyebrowSize;
+  const valueY   = eyebrowY + valSize + 12;
+  const ciY      = valueY + subSize + 14;
+  const statsY   = ciY + metaSize + 12;
   // The recent-trend line only reserves height when there is one to print.
-  const recentY = recentText ? statsY + subSize + 8 : statsY;
-  const headH   = recentY + 18;
+  const recentY  = recentText ? statsY + metaSize + 11 : statsY;
+
+  // The caveats travel with the image. A note that only exists on screen never
+  // reaches whoever is handed the PNG, which would leave the exported number
+  // stated more confidently than the page states it.
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  measureCtx.font = `${metaSize}px ${font}`;
+  const noteLineH = metaSize + 7;
+  const noteLines = ['psaNoiseNote', 'psaCensoredNote', 'psaDropNote']
+    .map(id => document.getElementById(id))
+    .filter(el => el && el.style.display !== 'none' && el.textContent)
+    .reduce((acc, el) => acc.concat(wrapTextToWidth(measureCtx, el.textContent, contentW)), []);
+
+  const notesY = recentY + (noteLines.length ? 14 : 0);
+  const headH  = notesY + noteLines.length * noteLineH + 22;
 
   // Shareable link — the same URL the "Copy Link" button produces — so the
   // image can be reopened later to add more measurements. Wrapped to fit width.
@@ -1042,81 +1093,127 @@ function copyResults() {
       return acc;
     }, {})).toString();
 
-  const urlSize   = Math.max(10, Math.round(W / 82));
+  const urlSize   = Math.max(10, Math.round(W / 86));
   const urlLineH  = urlSize + 5;
-  const measureCtx = document.createElement('canvas').getContext('2d');
   measureCtx.font = urlSize + 'px monospace';
-  const urlLines = wrapTextToWidth(measureCtx, shareUrl, W - pad * 2);
-  const footerH  = gap + (urlSize + 8) + urlLines.length * urlLineH + pad;
+  const urlLines = wrapTextToWidth(measureCtx, shareUrl, contentW);
+  const footerH  = gap + (metaSize + 10) + urlLines.length * urlLineH + pad;
 
-  const tableH = (lastData.length + 2) * rowH + pad * 2 + gap;
-  const H      = headH + gap + chartCanvas.height + tableH + footerH;
+  // The chart is inset to the sheet's margin instead of bleeding to the edges,
+  // so the figure sits inside the document rather than punching through it.
+  const chartH = Math.round(chartCanvas.height * (contentW / chartCanvas.width));
+  const chartY = headH + gap;
+
+  const tableH = (lastData.length + 2) * rowH + gap * 2;
+  const H      = chartY + chartH + tableH + footerH;
 
   const out = document.createElement('canvas');
   out.width  = W;
   out.height = H;
   const c = out.getContext('2d');
 
-  c.fillStyle = '#ffffff';
+  c.fillStyle = sheet.bg;
   c.fillRect(0, 0, W, H);
 
-  // Title
-  c.fillStyle = '#111111';
-  c.font = `bold ${titleSize}px ${font}`;
-  c.fillText('PSA Doubling Time', pad, titleY);
+  // Letter-spaced small caps for the eyebrow + column heads. Not in every
+  // engine, so set it defensively and always clear it again.
+  const setTracking = px => { if ('letterSpacing' in c) c.letterSpacing = px; };
 
-  // Doubling time value
-  c.fillStyle = '#1565c0';
+  // Eyebrow: names the figure without competing with the number it labels.
+  setTracking('1.4px');
+  c.fillStyle = sheet.faint;
+  c.font = `bold ${eyebrowSize}px ${font}`;
+  c.fillText('PSA DOUBLING TIME', pad, eyebrowY);
+  setTracking('0px');
+
+  // The headline: the one thing this image exists to communicate.
+  c.fillStyle = sheet.accent;
   c.font = `bold ${valSize}px ${font}`;
   c.fillText(dt, pad, valueY);
 
-  // CI + R²/velocity subtitle
-  c.fillStyle = '#555555';
+  c.fillStyle = sheet.muted;
   c.font = `${subSize}px ${font}`;
-  if (ciText)     c.fillText(ciText, pad, ciY);
-  if (statsText)  c.fillText(statsText, pad, statsY);
-  if (recentText) c.fillText(recentText, pad, recentY);
+  if (ciText) c.fillText(ciText, pad, ciY);
 
-  // Chart
-  c.drawImage(chartCanvas, 0, headH + gap);
+  c.font = `${metaSize}px ${font}`;
+  c.fillStyle = sheet.faint;
+  if (statsText) c.fillText(statsText, pad, statsY);
 
-  // Table
-  let y       = headH + gap + chartCanvas.height + pad + gap;
-  const col2x = pad + Math.round(W * 0.22);
-  const hSize = Math.max(12, Math.round(W / 56));
-  const tSize = Math.max(13, Math.round(W / 48));
+  // Recent trend carries a dash swatch in the chart line's own colour, so the
+  // sentence and the line on the chart read as the same claim.
+  if (recentText) {
+    const dashW = Math.round(metaSize * 1.6);
+    c.strokeStyle = sheet.trend;
+    c.lineWidth = 2;
+    c.setLineDash([4, 3]);
+    c.beginPath();
+    c.moveTo(pad, recentY - metaSize * 0.32);
+    c.lineTo(pad + dashW, recentY - metaSize * 0.32);
+    c.stroke();
+    c.setLineDash([]);
+    c.fillStyle = sheet.muted;
+    c.fillText(recentText, pad + dashW + 8, recentY);
+  }
 
-  // Table header
-  c.fillStyle = '#666666';
-  c.font = `bold ${hSize}px ${font}`;
-  c.fillText('PSA (ng/mL)', pad, y);
-  c.fillText('Date', col2x, y);
-  y += 10;
+  c.fillStyle = sheet.faint;
+  c.font = `${metaSize}px ${font}`;
+  for (let i = 0; i < noteLines.length; i++) {
+    c.fillText(noteLines[i], pad, notesY + (i + 1) * noteLineH);
+  }
 
-  c.fillStyle = '#cccccc';
-  c.fillRect(pad, y, W - pad * 2, 1);
+  // Hairline between the masthead and the figure.
+  c.fillStyle = sheet.rule;
+  c.fillRect(pad, headH - 12, contentW, 1);
+
+  c.drawImage(chartCanvas, pad, chartY, contentW, chartH);
+
+  // Table: date left, value right — the numeric column gets a hard right edge
+  // so the digits line up as a column instead of ragging against the dates.
+  let y = chartY + chartH + gap + rowH;
+  const tSize = Math.max(13, Math.round(W / 50));
+  const rightX = W - pad;
+
+  setTracking('1.2px');
+  c.fillStyle = sheet.faint;
+  c.font = `bold ${eyebrowSize}px ${font}`;
+  c.fillText('DATE', pad, y);
+  c.textAlign = 'right';
+  c.fillText('PSA (NG/ML)', rightX, y);
+  c.textAlign = 'left';
+  setTracking('0px');
+
+  y += 12;
+  c.fillStyle = sheet.rule;
+  c.fillRect(pad, y, contentW, 1);
   y += rowH;
 
-  // Table rows
   for (let i = 0; i < lastData.length; i++) {
     const d = lastData[i];
+    const italic = d.censored ? 'italic ' : '';
 
-    // Same treatment as the on-screen table: italic, full contrast.
-    c.fillStyle = '#111111';
-    c.font = `${d.censored ? 'italic ' : ''}${tSize}px ${font}`;
-    c.fillText(fmtPsaCell(d), pad, y);
-    c.fillStyle = '#444444';
-    c.fillText(fmtDate(d.date), col2x, y);
+    c.fillStyle = sheet.muted;
+    c.font = `${italic}${tSize}px ${font}`;
+    c.fillText(fmtDate(d.date), pad, y);
+
+    c.fillStyle = sheet.ink;
+    c.textAlign = 'right';
+    c.fillText(fmtPsaCell(d), rightX, y);
+    c.textAlign = 'left';
+
+    if (i < lastData.length - 1) {
+      c.fillStyle = sheet.rule;
+      c.fillRect(pad, y + Math.round(rowH * 0.3), contentW, 1);
+    }
     y += rowH;
   }
 
-  // Shareable-link footer
+  // Footer: when it was made, then how to reopen it. The chart carries the
+  // wordmark already, so this doesn't repeat the domain as a headline.
   y += gap;
-  c.fillStyle = '#888888';
-  c.font = `${urlSize}px ${font}`;
-  c.fillText('Reopen / add measurements at:', pad, y);
-  y += urlSize + 8;
-  c.fillStyle = '#1565c0';
+  c.fillStyle = sheet.faint;
+  c.font = `${metaSize}px ${font}`;
+  c.fillText('Generated ' + fmtDate(new Date()) + '  ·  reopen or add measurements:', pad, y);
+  y += metaSize + 10;
   c.font = `${urlSize}px monospace`;
   for (let i = 0; i < urlLines.length; i++) {
     c.fillText(urlLines[i], pad, y);

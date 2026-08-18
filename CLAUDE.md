@@ -55,7 +55,7 @@ All pages share: nav (hamburger on mobile at ≤900 px), theme toggle, site disc
 - `composite.js` — tolerance BED − (prior BED × TDF), warns if prior > tolerance. Validation via shared `applyRangeWarning` (`COMP_RANGES`, max fx=80). History label uses the shared `compositeSummary` from `history.js`.
 - `rert.js` — biggest file (~500 lines). `OAR_DATA` const = 24 OARs (22 serial + 2 parallel). TRF auto-highlights based on months since prior RT. Saves/restores **full state** — plan-level inputs (`pr-fx`, `pr-ab`, `pr-mo`, `custom-fx`) plus the OAR selection (`rert-oars`) and per-OAR doses (`dose-<id>`) — to `history_rert` and to the shareable URL. Saving fires on `change` of any plan input, OAR checkbox, or dose; `restoreRertState(params)` rebuilds the page (resets OARs → sets plan inputs → re-ticks saved OARs → fills doses), guarded by `isRestoring` so the re-ticking doesn't re-save. `serializeRertToUrl` / `initRertFromUrl` / `setupRertCopyLink` replace the generic url-state helpers because the link carries OARs + doses. `RERT_RANGES` + per-OAR `OAR_DOSE_RANGE_GY` / `OAR_DOSE_RANGE_CC` drive `validateRertInputs()` (called from `updateAll`) via shared `applyRangeWarning`.
 - `constraints.js` — fetches `constraints-data.json`, AND-match search, source filter, PubMed links.
-- `tests.js` — test suite. Run with `node tests.js` (no test framework, no build — vanilla DOM-shimmed `node:vm` sandbox). Currently 475 assertions, 0 failures.
+- `tests.js` — test suite. Run with `node tests.js` (no test framework, no build — vanilla DOM-shimmed `node:vm` sandbox). Currently 485 assertions, 0 failures.
 
 ## CSS
 

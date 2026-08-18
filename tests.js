@@ -183,6 +183,7 @@ vm.runInContext(`
   globalThis.compareTrend = compareTrend;
   globalThis.noiseCaveat = noiseCaveat;
   globalThis.medianOf = medianOf;
+  globalThis.wrapTextToWidth = wrapTextToWidth;
   globalThis.psaShortDt = psaShortDt;
 `, sandbox);
 
@@ -218,6 +219,7 @@ var recentWindow = sandbox.recentWindow;
 var compareTrend = sandbox.compareTrend;
 var noiseCaveat = sandbox.noiseCaveat;
 var medianOf = sandbox.medianOf;
+var wrapTextToWidth = sandbox.wrapTextToWidth;
 var psaShortDt = sandbox.psaShortDt;
 var parseUrlParams = sandbox.parseUrlParams;
 var serializeToUrl = sandbox.serializeToUrl;
@@ -989,6 +991,39 @@ assert(/assay and biological/.test(noiseCaveat([dayPt(0, 0.020), dayPt(200, 0.02
   'noiseCaveat: flat ultrasensitive series reports the noise floor, not the scatter note');
 
 assertEqual(noiseCaveat([dayPt(0, 1.0)]), null, 'noiseCaveat: single point → no caveat');
+
+section('=== psa.js: wrapTextToWidth (export image) ===');
+
+// Fake ctx: every character is exactly 10 units wide, so widths are countable.
+var fakeCtx = { measureText: function (s) { return { width: s.length * 10 }; } };
+
+assertEqual(wrapTextToWidth(fakeCtx, 'one two', 200).length, 1,
+  'wrapTextToWidth: text that fits stays on one line');
+var wrapped = wrapTextToWidth(fakeCtx, 'alpha beta gamma delta', 120);
+assert(wrapped.every(function (l) { return l.length <= 12; }),
+  'wrapTextToWidth: no line exceeds the width');
+assert(wrapped.every(function (l) { return l.indexOf(' ') !== 0; }),
+  'wrapTextToWidth: lines do not start with a space');
+assertEqual(wrapped.join(' '), 'alpha beta gamma delta',
+  'wrapTextToWidth: rejoining the lines reproduces the text');
+
+// Prose breaks on spaces — the whole point of the word-aware pass
+assertEqual(wrapTextToWidth(fakeCtx, 'assay variation exceeds', 120)[0], 'assay',
+  'wrapTextToWidth: breaks at a space rather than mid-word');
+
+// A URL has no spaces, so it must still fall back to character wrapping
+var url = 'https://example.com/psa.html?psaInput=2024-01-01+1.0';
+var urlLines = wrapTextToWidth(fakeCtx, url, 200);
+assert(urlLines.length > 1, 'wrapTextToWidth: an unbreakable run still wraps');
+assert(urlLines.every(function (l) { return l.length <= 20; }),
+  'wrapTextToWidth: character fallback respects the width');
+assertEqual(urlLines.join(''), url, 'wrapTextToWidth: character fallback loses nothing');
+
+// A single word longer than the line, mixed with normal words
+var mixed = wrapTextToWidth(fakeCtx, 'see https://example.com/very/long/path now', 150);
+assertEqual(mixed[0], 'see', 'wrapTextToWidth: short leading word keeps its own line');
+assert(mixed[mixed.length - 1].indexOf('now') !== -1,
+  'wrapTextToWidth: trailing word survives the character fallback');
 
 section('=== psa.js: lastFittedDateMs (projection divider) ===');
 
