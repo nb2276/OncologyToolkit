@@ -91,10 +91,15 @@
 
         <!-- RIGHT COLUMN: error + results -->
         <div class="psa-col-right">
-          <div id="psaError" class="error-msg" style="display:none;"></div>
+          <!-- role=alert so a failed calculation is announced, not just drawn. -->
+          <div id="psaError" class="error-msg" role="alert" style="display:none;"></div>
 
           <div id="psaResults" style="display:none;">
-            <div class="result-card">
+            <!-- Live region: on mobile the results sit visually above the parsed
+                 table but after it in the DOM, so a screen reader meets the table
+                 first. Announcing the headline on calculate makes the answer
+                 reach the user regardless of reading position. -->
+            <div class="result-card" aria-live="polite" aria-atomic="true">
               <div class="result-label">PSA Doubling Time</div>
               <div id="doublingTime" class="result-value"></div>
               <div id="psaCI" class="result-ci"></div>
