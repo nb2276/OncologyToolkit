@@ -85,12 +85,18 @@ const CENSOR_PREFIX = /^(?:<=?|≤)/;
 // against a whole field so it can never swallow a "date,value" CSV pair.
 const GROUPED_NUMBER = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/;
 
+// The numeric prefix parseFloat consumes from a token ("4.5ng" → "4.5").
+// Captured so measurements can be echoed back exactly as entered — "0.154"
+// must not re-round to "0.15", and "4.50" keeps its reported trailing zero.
+const NUMERIC_PREFIX = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/;
+
 /**
- * Parse one line of input into { date, psaValue, censored } or null.
+ * Parse one line of input into { date, psaValue, psaText, censored } or null.
  * Skips any token that is exactly "PSA" (case-insensitive).
  *
  * `censored` is true when the value was reported as below the assay's detection
  * limit; psaValue then holds that limit, not a measured concentration.
+ * `psaText` is the value as the user typed it, for display.
  */
 function parseLine(line) {
   line = line.trim();
@@ -118,6 +124,7 @@ function parseLine(line) {
 
   let date = null;
   let psaValue = null;
+  let psaText = null;
   let censored = false;
   let pendingCensor = false;   // a lone "<" applies to the token that follows
 
@@ -138,13 +145,15 @@ function parseLine(line) {
       const n = parseFloat(num);
       if (isFinite(n) && n >= 0) {                   // reject NaN AND Infinity (1e309)
         psaValue = n;
+        const nm = NUMERIC_PREFIX.exec(num);
+        psaText = nm ? nm[0].replace(/^\+/, '').replace(/^\./, '0.') : null;
         censored = pendingCensor || cm !== null;
       }
     }
   }
 
   if (date === null || psaValue === null) return null;
-  return { date, psaValue, censored };
+  return { date, psaValue, psaText, censored };
 }
 
 /**
@@ -528,11 +537,14 @@ function fmtDate(date) {
 }
 
 /**
- * Format a PSA value with precision scaled to its magnitude. Ultrasensitive
- * assays (post-prostatectomy) report to 3+ decimals — 0.008, 0.014 — and a
- * fixed 2-decimal display collapsed all of those to "0.00". Anything below the
- * 0.1 ng/mL "undetectable" threshold therefore gets 3 decimals; below 0.001 we
- * fall back to 2 significant figures so a very low value never prints as zero.
+ * Format a COMPUTED PSA value with precision scaled to its magnitude — fitted
+ * curves, projections, velocity. Measurements are echoed via psaText instead
+ * (see fmtPsaCell); this rounding is only for model outputs, where extra
+ * decimals would be false precision. Ultrasensitive assays (post-prostatectomy)
+ * report to 3+ decimals — 0.008, 0.014 — and a fixed 2-decimal display
+ * collapsed all of those to "0.00". Anything below the 0.1 ng/mL
+ * "undetectable" threshold therefore gets 3 decimals; below 0.001 we fall
+ * back to 2 significant figures so a very low value never prints as zero.
  */
 function fmtPsa(v) {
   if (v == null || !isFinite(v)) return '—';
@@ -543,10 +555,12 @@ function fmtPsa(v) {
   return v.toFixed(2);
 }
 
-// One measurement as a table cell. Below-detection rows keep their "<" so the
-// row never reads as a measured concentration.
+// One measurement as a table cell, echoed at the precision it was entered —
+// the table exists to confirm parsing, and re-rounding an entered "0.154" to
+// "0.15" misreports the number the fit actually uses. Below-detection rows
+// keep their "<" so the row never reads as a measured concentration.
 function fmtPsaCell(d) {
-  return (d.censored ? '< ' : '') + fmtPsa(d.psaValue);
+  return (d.censored ? '< ' : '') + (d.psaText || fmtPsa(d.psaValue));
 }
 
 /**
@@ -984,9 +998,10 @@ function pickNearest(candidates, tol) {
   return best;
 }
 
-/** One readout line. The label is not optional: see hoverTarget. */
+/** One readout line. The label is not optional: see hoverTarget. Measurement
+ *  targets carry psaText and are echoed as entered; curve readouts round. */
 function fmtReadout(t) {
-  return t.label + ': ' + (t.censored ? '< ' : '') + fmtPsa(t.psa) + ' ng/mL';
+  return t.label + ': ' + (t.censored ? '< ' : '') + (t.psaText || fmtPsa(t.psa)) + ' ng/mL';
 }
 
 /**
@@ -1013,7 +1028,7 @@ function hoverTarget(pos, fit) {
       points.push({
         dist: Math.sqrt((pos.x - px) * (pos.x - px) + (pos.y - py) * (pos.y - py)),
         label: d.censored ? 'Below detection' : 'Measured',
-        date: d.date, psa: d.psaValue, censored: d.censored, y: py
+        date: d.date, psa: d.psaValue, psaText: d.psaText, censored: d.censored, y: py
       });
     }
   }
@@ -1108,7 +1123,7 @@ function handleChartClick(evt, fit) {
   const el = document.getElementById('clickInfo');
   el.innerHTML = '<strong>' + fmtDate(target.date) + '</strong> &nbsp;&rarr;&nbsp; ' +
     target.label + ': <strong>' + (target.censored ? '&lt; ' : '') +
-    fmtPsa(target.psa) + ' ng/mL</strong>';
+    (target.psaText || fmtPsa(target.psa)) + ' ng/mL</strong>';
   el.style.display = 'block';
 }
 

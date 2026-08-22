@@ -573,6 +573,18 @@ assertEqual(parseLine('01/15/2023'), null, 'parseLine: no PSA value returns null
 // No valid date
 assertEqual(parseLine('hello 1.5'), null, 'parseLine: no valid date returns null');
 
+// psaText echoes the value as entered — 3-decimal values above 0.1 were
+// re-rounding to 2 decimals in the parsed table ("0.154" shown as "0.15")
+var pt1 = parseLine('01/15/2023 0.154');
+assertEqual(pt1.psaText, '0.154', 'parseLine: psaText keeps 3rd decimal above 0.1');
+assertClose(pt1.psaValue, 0.154, 1e-9, 'parseLine: psaValue matches psaText');
+assertEqual(parseLine('01/15/2023 4.567').psaText, '4.567', 'parseLine: psaText keeps 3 decimals on ordinary values');
+assertEqual(parseLine('01/15/2023 4.50').psaText, '4.50', 'parseLine: psaText keeps entered trailing zero');
+assertEqual(parseLine('2024-01-01 <0.014').psaText, '0.014', 'parseLine: psaText excludes the censor prefix');
+assertEqual(parseLine('01/15/2023 .5').psaText, '0.5', 'parseLine: psaText normalises a bare leading dot');
+assertEqual(parseLine('01/15/2023 1,234').psaText, '1234', 'parseLine: psaText of a grouped number is the parsed digits');
+assertEqual(parseLine('01/15/2023 4.5ng/mL').psaText, '4.5', 'parseLine: psaText stops at the numeric prefix');
+
 section('=== psa.js: parseInput ===');
 
 var input = '01/15/2023 1.20\n06/20/2023 2.40\n2024-06-15 9.1';
@@ -826,6 +838,17 @@ assertEqual(fmtPsa(0), '0.00', 'fmtPsa: exact zero → 0.00');
 assert(!/NaN|Infinity/.test(fmtPsa(NaN)), 'fmtPsa: NaN → no "NaN" text');
 assert(!/NaN|Infinity/.test(fmtPsa(Infinity)), 'fmtPsa: Infinity → no "Infinity" text');
 assert(!/NaN|Infinity/.test(fmtPsa(null)), 'fmtPsa: null → no "NaN" text');
+
+// fmtPsaCell echoes measurements as entered; fmtPsa rounding is only the
+// fallback for points that carry no psaText (e.g. restored older state)
+assertEqual(fmtPsaCell({ psaValue: 0.154, psaText: '0.154', censored: false }), '0.154',
+  'fmtPsaCell: entered 3-decimal value not re-rounded');
+assertEqual(fmtPsaCell({ psaValue: 4.5, psaText: '4.5', censored: false }), '4.5',
+  'fmtPsaCell: entered "4.5" not padded to "4.50"');
+assertEqual(fmtPsaCell({ psaValue: 0.014, psaText: '0.014', censored: true }), '< 0.014',
+  'fmtPsaCell: censored row keeps < with entered text');
+assertEqual(fmtPsaCell({ psaValue: 0.154, censored: false }), '0.15',
+  'fmtPsaCell: no psaText falls back to fmtPsa');
 
 // Velocity shares the same precision rule (an ultrasensitive rise is sub-0.1)
 assert(fmtVelocity(0.004).includes('+0.004'), 'fmtVelocity: tiny rise keeps 3 decimals');
