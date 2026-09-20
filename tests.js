@@ -167,6 +167,7 @@ vm.runInContext(`
   globalThis.parseLine = parseLine;
   globalThis.parseInput = parseInput;
   globalThis.offScaleDate = offScaleDate;
+  globalThis.niceAxisMax = niceAxisMax;
   globalThis.parseText = parseText;
   globalThis.parseLineAll = parseLineAll;
   globalThis.dedupeMeasurements = dedupeMeasurements;
@@ -213,6 +214,7 @@ var makeDate = sandbox.makeDate;
 var parseLine = sandbox.parseLine;
 var parseInput = sandbox.parseInput;
 var offScaleDate = sandbox.offScaleDate;
+var niceAxisMax = sandbox.niceAxisMax;
 var parseText = sandbox.parseText;
 var parseLineAll = sandbox.parseLineAll;
 var dedupeMeasurements = sandbox.dedupeMeasurements;
@@ -1508,6 +1510,35 @@ assertEqual(mixed[0], 'see', 'wrapTextToWidth: short leading word keeps its own 
 assert(mixed[mixed.length - 1].indexOf('now') !== -1,
   'wrapTextToWidth: trailing word survives the character fallback');
 
+section('=== psa.js: niceAxisMax (linear-axis cap rounding) ===');
+
+// Chart.js prints an explicit max as the top tick verbatim, so the cap has to
+// BE a round number: the axis used to read "64.008" over 0/10/…/60.
+assertEqual(niceAxisMax(64.008), 70, 'niceAxisMax: 64.008 → 70 (the reported defect)');
+[[0.0315, 0.035], [1.5, 1.6], [12.8, 14], [8.7, 9], [45.3, 50], [99, 100], [101, 120], [1875, 2000], [0.021, 0.025]]
+  .forEach(function (c) {
+    assertEqual(niceAxisMax(c[0]), c[1], 'niceAxisMax: ' + c[0] + ' → ' + c[1]);
+  });
+// Already-round caps are left alone rather than inflated another whole step.
+[0.0001, 0.008, 0.014, 0.03, 2, 4.5, 6, 70, 100, 250, 100000].forEach(function (v) {
+  assertEqual(niceAxisMax(v), v, 'niceAxisMax: ' + v + ' is already round');
+});
+// It must only ever GROW: shrinking would clip a point the cap was sized for.
+[64.008, 0.0315, 3.0000000001, 0.021, 101, 1e-7, 7.77, 999.9].forEach(function (v) {
+  assert(niceAxisMax(v) >= v, 'niceAxisMax: never returns less than its input (' + v + ')');
+});
+assert(niceAxisMax(3.0000000001) > 3, 'niceAxisMax: a hair over 3 rounds up, not back down to 3');
+// Bad input → null → the axis autoscales, which is the pre-existing fallback.
+[0, -1, Infinity, -Infinity, NaN, null, undefined].forEach(function (v) {
+  assertEqual(niceAxisMax(v), null, 'niceAxisMax: ' + v + ' → null (autoscale)');
+});
+// No float dust in the value Chart.js prints as a tick label.
+[0.0315, 0.021, 1.5, 64.008, 0.15].forEach(function (v) {
+  var r = niceAxisMax(v);
+  assertEqual(String(r).replace(/^-?\d*\.?/, '').length <= 6, true,
+    'niceAxisMax: ' + v + ' → ' + r + ' has no float dust');
+});
+
 section('=== psa.js: offScaleDate (linear-axis cap) ===');
 
 var capCurve = [{ x: new Date(2024, 0, 1), y: 2 }, { x: new Date(2024, 6, 1), y: 9 }, { x: new Date(2025, 0, 1), y: 40 }];
@@ -1515,6 +1546,10 @@ assertEqual(offScaleDate(capCurve, 10).getTime(), new Date(2025, 0, 1).getTime()
   'offScaleDate: first point above the cap');
 assertEqual(offScaleDate(capCurve, 100), null, 'offScaleDate: a curve under the cap never leaves');
 assertEqual(offScaleDate(capCurve, null), null, 'offScaleDate: no cap (log axis) → nothing is off-scale');
+// The off-scale note must judge against the cap actually drawn (the rounded
+// one), or it would announce a line that the rounding brought back on-scale.
+assertEqual(offScaleDate([{ x: new Date(2025, 0, 1), y: 66 }], niceAxisMax(64.008)), null,
+  'offScaleDate: a point under the ROUNDED cap is not off-scale');
 assertEqual(offScaleDate(null, 10), null, 'offScaleDate: no recent-trend curve → null');
 
 // The recent-trend sentence must wrap in the export, not run off the sheet.
