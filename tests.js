@@ -168,6 +168,7 @@ vm.runInContext(`
   globalThis.parseInput = parseInput;
   globalThis.offScaleDate = offScaleDate;
   globalThis.niceAxisMax = niceAxisMax;
+  globalThis.linearAxisCap = linearAxisCap;
   globalThis.parseText = parseText;
   globalThis.parseLineAll = parseLineAll;
   globalThis.dedupeMeasurements = dedupeMeasurements;
@@ -215,6 +216,7 @@ var parseLine = sandbox.parseLine;
 var parseInput = sandbox.parseInput;
 var offScaleDate = sandbox.offScaleDate;
 var niceAxisMax = sandbox.niceAxisMax;
+var linearAxisCap = sandbox.linearAxisCap;
 var parseText = sandbox.parseText;
 var parseLineAll = sandbox.parseLineAll;
 var dedupeMeasurements = sandbox.dedupeMeasurements;
@@ -1538,6 +1540,44 @@ assert(niceAxisMax(3.0000000001) > 3, 'niceAxisMax: a hair over 3 rounds up, not
   assertEqual(String(r).replace(/^-?\d*\.?/, '').length <= 6, true,
     'niceAxisMax: ' + v + ' → ' + r + ' has no float dust');
 });
+
+section('=== psa.js: linearAxisCap ===');
+
+var pts = function (ys) { return ys.map(function (y) { return { x: new Date(2024, 0, 1), y: y }; }); };
+
+// The invariant that matters: everything handed in must fit under the cap.
+// Clipping the fitted curve would draw a trend line that stops mid-air.
+[[980, 3189], [14.8, 42.7], [0.045, 0.105], [6.2, 7.9], [9.0, 9.0], [100, 100], [0.008, 0.0131]]
+  .forEach(function (c) {
+    var cap = linearAxisCap([pts([c[0]]), [], pts([c[1]])]);
+    assert(cap >= c[1], 'linearAxisCap: cap ' + cap + ' contains the curve peak ' + c[1]);
+    assert(cap >= c[0], 'linearAxisCap: cap ' + cap + ' contains the measurement ' + c[0]);
+    assert(cap > c[1], 'linearAxisCap: leaves clear space above the curve (' + c[1] + ' → ' + cap + ')');
+  });
+
+// A decreasing fit peaks at its START, so the cap must scan the whole curve.
+assert(linearAxisCap([pts([9]), [], pts([9, 5, 3, 1.1])]) >= 9,
+  'linearAxisCap: a decreasing curve is capped from its first point, not its last');
+
+// The CI band is excluded by never being passed in: the same measurements and
+// curve give the same cap whether or not a band towers over them.
+assertEqual(linearAxisCap([pts([980]), [], pts([3189])]), 4000,
+  'linearAxisCap: high-volume series caps at 4000, not the 5184 the CI band reaches');
+assert(linearAxisCap([pts([980]), [], pts([3189])]) < 5184,
+  'linearAxisCap: the cap sits below the CI band, which is allowed to clip');
+
+// Below-detection rows are plotted at their limit, so they count too.
+assert(linearAxisCap([[], pts([0.014]), []]) >= 0.014, 'linearAxisCap: censored points are contained');
+
+// Nothing positive to scale to → null → Chart.js autoscales (prior behaviour).
+[[], [[]], [pts([0])], [pts([-5])], [null], [pts([Infinity])], [pts([NaN])]].forEach(function (series, i) {
+  assertEqual(linearAxisCap(series), null, 'linearAxisCap: nothing positive → null (case ' + i + ')');
+});
+
+// Headroom is deliberately tighter than the old 1.5x: the measurements should
+// use the chart, not sit in the bottom fifth.
+assert(980 / linearAxisCap([pts([980]), [], pts([3189])]) > 0.22,
+  'linearAxisCap: the top measurement is not squashed into the bottom fifth');
 
 section('=== psa.js: offScaleDate (linear-axis cap) ===');
 
