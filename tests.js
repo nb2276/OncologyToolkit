@@ -166,6 +166,7 @@ vm.runInContext(`
   globalThis.makeDate = makeDate;
   globalThis.parseLine = parseLine;
   globalThis.parseInput = parseInput;
+  globalThis.offScaleDate = offScaleDate;
   globalThis.parseText = parseText;
   globalThis.parseLineAll = parseLineAll;
   globalThis.dedupeMeasurements = dedupeMeasurements;
@@ -211,6 +212,7 @@ var tryParseDate = sandbox.tryParseDate;
 var makeDate = sandbox.makeDate;
 var parseLine = sandbox.parseLine;
 var parseInput = sandbox.parseInput;
+var offScaleDate = sandbox.offScaleDate;
 var parseText = sandbox.parseText;
 var parseLineAll = sandbox.parseLineAll;
 var dedupeMeasurements = sandbox.dedupeMeasurements;
@@ -1505,6 +1507,23 @@ var mixed = wrapTextToWidth(fakeCtx, 'see https://example.com/very/long/path now
 assertEqual(mixed[0], 'see', 'wrapTextToWidth: short leading word keeps its own line');
 assert(mixed[mixed.length - 1].indexOf('now') !== -1,
   'wrapTextToWidth: trailing word survives the character fallback');
+
+section('=== psa.js: offScaleDate (linear-axis cap) ===');
+
+var capCurve = [{ x: new Date(2024, 0, 1), y: 2 }, { x: new Date(2024, 6, 1), y: 9 }, { x: new Date(2025, 0, 1), y: 40 }];
+assertEqual(offScaleDate(capCurve, 10).getTime(), new Date(2025, 0, 1).getTime(),
+  'offScaleDate: first point above the cap');
+assertEqual(offScaleDate(capCurve, 100), null, 'offScaleDate: a curve under the cap never leaves');
+assertEqual(offScaleDate(capCurve, null), null, 'offScaleDate: no cap (log axis) → nothing is off-scale');
+assertEqual(offScaleDate(null, 10), null, 'offScaleDate: no recent-trend curve → null');
+
+// The recent-trend sentence must wrap in the export, not run off the sheet.
+var narrowCtx = { measureText: function (t) { return { width: t.length * 6 }; } };
+var longRecent = 'Recent trend (4 values since Dec 22, 2022): 4.6 mo  ·  growth rate increased vs the earlier values, by more than the scatter in these values explains';
+var wrapped = wrapTextToWidth(narrowCtx, longRecent, 600);
+assert(wrapped.length >= 2, 'wrapTextToWidth: the recent-trend sentence wraps at export width');
+assert(wrapped.every(function (l) { return l.length * 6 <= 600; }), 'wrapTextToWidth: no wrapped line exceeds the width');
+assertEqual(wrapped.join(' ').replace(/\s+/g, ' '), longRecent.replace(/\s+/g, ' '), 'wrapTextToWidth: wrapping loses no words');
 
 section('=== psa.js: lastFittedDateMs (projection divider) ===');
 

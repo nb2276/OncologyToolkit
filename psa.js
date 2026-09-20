@@ -1023,6 +1023,20 @@ function tValue95(df) {
   return 1.96;
 }
 
+/**
+ * The first date at which a curve leaves the top of a capped linear axis, or
+ * null if it never does. The cap is set from the measured points and the
+ * OVERALL fit so the CI band can't crush the data; a steeper recent-trend line
+ * can therefore run off the top, and a line that silently stops is read as a
+ * line that ends. Naming the date (and the log toggle) is cheaper and more
+ * honest than raising the cap until the measurements are a smear at the bottom.
+ */
+function offScaleDate(curvePts, yMax) {
+  if (yMax == null || !curvePts) return null;
+  for (const p of curvePts) if (isFinite(p.y) && p.y > yMax) return p.x;
+  return null;
+}
+
 function isLightTheme() {
   return document.documentElement.getAttribute('data-theme') === 'light';
 }
@@ -1101,10 +1115,21 @@ function renderChart(data, fit) {
 
   // Recent-trend line: no CI band of its own — it is a comparison aid against
   // the main fit, not a second fit with its own uncertainty story to tell.
+  const recentCurve = recentFit ? buildCurve(recentFit, new Date(recentFit.firstDate), chartEnd).pts : null;
+  const offEl = document.getElementById('psaOffScaleNote');
+  if (offEl) {
+    const off = offScaleDate(recentCurve, yMax);
+    offEl.textContent = off
+      ? 'The recent-trend line leaves the top of this linear scale around ' + fmtDate(off) +
+        '. Switch to Log scale to see it in full.'
+      : '';
+    offEl.style.display = off ? 'block' : 'none';
+  }
+
   if (recentFit) {
     datasets.push({
       label: 'Recent trend',
-      data: buildCurve(recentFit, new Date(recentFit.firstDate), chartEnd).pts,
+      data: recentCurve,
       type: 'line',
       borderColor: '#ffb74d',
       backgroundColor: 'transparent',
@@ -1554,21 +1579,28 @@ function copyResults() {
   const valueY   = eyebrowY + valSize + 12;
   const ciY      = valueY + subSize + 14;
   const statsY   = ciY + metaSize + 12;
-  // The recent-trend line only reserves height when there is one to print.
-  const recentY  = recentText ? statsY + metaSize + 11 : statsY;
+  // The recent-trend sentence is the longest line in the masthead and used to
+  // be drawn with one fillText, so it ran off the right edge of the sheet. It
+  // wraps inside the space left of its dash swatch, and only reserves height
+  // for the lines it actually has.
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  measureCtx.font = `${metaSize}px ${font}`;
+  const noteLineH   = metaSize + 7;
+  const dashW       = Math.round(metaSize * 1.6);
+  const recentX     = pad + dashW + 8;
+  const recentLines = recentText ? wrapTextToWidth(measureCtx, recentText, W - pad - recentX) : [];
+  const recentY     = recentLines.length ? statsY + metaSize + 11 : statsY;
+  const recentEndY  = recentY + Math.max(0, recentLines.length - 1) * noteLineH;
 
   // The caveats travel with the image. A note that only exists on screen never
   // reaches whoever is handed the PNG, which would leave the exported number
   // stated more confidently than the page states it.
-  const measureCtx = document.createElement('canvas').getContext('2d');
-  measureCtx.font = `${metaSize}px ${font}`;
-  const noteLineH = metaSize + 7;
-  const noteLines = ['psaNoiseNote', 'psaCensoredNote', 'psaDropNote', 'psaUnparsedNote', 'psaSameDayNote']
+  const noteLines = ['psaNoiseNote', 'psaOffScaleNote', 'psaCensoredNote', 'psaDropNote', 'psaUnparsedNote', 'psaSameDayNote']
     .map(id => document.getElementById(id))
     .filter(el => el && el.style.display !== 'none' && el.textContent)
     .reduce((acc, el) => acc.concat(wrapTextToWidth(measureCtx, el.textContent, contentW)), []);
 
-  const notesY = recentY + (noteLines.length ? 14 : 0);
+  const notesY = recentEndY + (noteLines.length ? 14 : 0);
   const headH  = notesY + noteLines.length * noteLineH + 22;
 
   // Shareable link — the same URL the "Copy Link" button produces — so the
@@ -1628,8 +1660,7 @@ function copyResults() {
 
   // Recent trend carries a dash swatch in the chart line's own colour, so the
   // sentence and the line on the chart read as the same claim.
-  if (recentText) {
-    const dashW = Math.round(metaSize * 1.6);
+  if (recentLines.length) {
     c.strokeStyle = sheet.trend;
     c.lineWidth = 2;
     c.setLineDash([4, 3]);
@@ -1639,7 +1670,9 @@ function copyResults() {
     c.stroke();
     c.setLineDash([]);
     c.fillStyle = sheet.muted;
-    c.fillText(recentText, pad + dashW + 8, recentY);
+    for (let i = 0; i < recentLines.length; i++) {
+      c.fillText(recentLines[i], recentX, recentY + i * noteLineH);
+    }
   }
 
   c.fillStyle = sheet.faint;
