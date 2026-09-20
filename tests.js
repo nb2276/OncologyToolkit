@@ -1102,6 +1102,13 @@ assertEqual(parseLine('4.5 2024-01-15').psaValue, 4.5, 'parseLine: value-first r
 var twoDates = parseLine('2024-01-15 2024-01-16 4.5');
 assertEqual(twoDates.psaValue, 4.5, 'parseLine: second date is never read as PSA 2024');
 assertEqual(twoDates.date.getDate(), 15, 'parseLine: collected/resulted → first date wins');
+// Collected/resulted dates either side of ONE value is still one result…
+var trailingDate = parseLine('2024-01-15 4.5 2024-01-16');
+assert(trailingDate !== null && trailingDate.psaValue === 4.5 && trailingDate.date.getDate() === 15,
+  'parseLine: "date value date" (a metadata date, no second value) stays readable');
+// …and only a number after that second date makes it two results.
+assertEqual(parseLine('2024-01-15 4.5 2024-02-15 <0.014'), null,
+  'parseLine: "date value date <limit" is two results → refused');
 var spaced = parseLine('PSA < 0.014 2024-01-15');
 assert(spaced.censored === true && spaced.psaValue === 0.014, 'parseLine: "< 0.014" still binds across the space');
 assertEqual(parseLine('2024-01-15 0').psaValue, 0, 'parseLine: a measured 0 is still accepted (and later excluded)');

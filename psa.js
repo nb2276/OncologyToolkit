@@ -127,6 +127,7 @@ function parseLine(line) {
   let psaText = null;
   let censored = false;
   let pendingCensor = false;   // a lone "<" applies to the token that follows
+  let extraDate = false;       // a second date seen after the value was taken
 
   // Anything after the value is taken is ignored on purpose — lab pastes carry
   // units, flags and reference ranges there ("0.2 ng/mL <4.0"), and the first
@@ -139,12 +140,14 @@ function parseLine(line) {
     const asDate = tryParseDate(token);
 
     if (psaValue !== null) {
-      // Value-first rows ("4.5 2024-01-15") still need their date. A date once
-      // BOTH are in hand is "date value date value" — two results on one line,
-      // the second of which would be dropped silently.
+      // Value-first rows ("4.5 2024-01-15") still need their date. A further
+      // date on its own is metadata ("collected … resulted"), but a further
+      // date FOLLOWED BY A NUMBER is "date value date value" — two results on
+      // one line, the second of which would be dropped silently.
       if (asDate !== null) {
-        if (date !== null) return null;
-        date = asDate;
+        if (date === null) date = asDate; else extraDate = true;
+      } else if (extraDate && isFinite(parseFloat(token.replace(/^["']*(?:<=?|≤|>=?|≥)?/, '')))) {
+        return null;
       }
       continue;
     }
@@ -1746,7 +1749,7 @@ function calculate(keepProjection) {
           ? ' ' + (trailingCensored === censoredCount ? (censoredCount === 1 ? 'It is' : 'They are')
                                                      : trailingCensored + ' of them ' + (trailingCensored === 1 ? 'is' : 'are')) +
             ' dated after the last fitted value (' + fmtDate(new Date(lastFittedDateMs(data))) +
-            '), so the doubling time describes the rise up to that date, not the latest result.'
+            '), so the doubling time describes the fitted values up to that date, not the latest result.'
           : '');
       censEl.style.display = 'block';
     } else {
