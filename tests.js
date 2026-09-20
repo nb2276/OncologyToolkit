@@ -188,6 +188,8 @@ vm.runInContext(`
   globalThis.pickNearest = pickNearest;
   globalThis.fmtReadout = fmtReadout;
   globalThis.collapseSameDay = collapseSameDay;
+  globalThis.trailingCensoredCount = trailingCensoredCount;
+  globalThis.dayNumber = dayNumber;
   globalThis.sameDayCollapsedCount = sameDayCollapsedCount;
   globalThis.psaShortDt = psaShortDt;
 `, sandbox);
@@ -223,6 +225,8 @@ var fittablePoints = sandbox.fittablePoints;
 var recentWindow = sandbox.recentWindow;
 var compareTrend = sandbox.compareTrend;
 var noiseCaveat = sandbox.noiseCaveat;
+var trailingCensoredCount = sandbox.trailingCensoredCount;
+var dayNumber = sandbox.dayNumber;
 var medianOf = sandbox.medianOf;
 var wrapTextToWidth = sandbox.wrapTextToWidth;
 var countUnparsedLines = sandbox.countUnparsedLines;
@@ -676,7 +680,10 @@ assert(fit3.covAB !== undefined, 'fitExponential: covAB present for n=3');
 assert(fit3.n === 3, 'fitExponential: n = 3');
 
 // ---- Unweighted fit: noisy data pins the OLS slope (weighted w=y² would differ) ----
-// Reference computed from the unweighted log-linear regression on this set.
+// Reference computed independently (centered OLS, Python) on WHOLE-day offsets
+// 0/59/151/243/334. The earlier expectations were copied from this code running
+// in a DST timezone, where local-midnight subtraction made the offsets fractional
+// — so the suite passed in Los Angeles and failed under TZ=UTC.
 var noisyData = [
   { date: new Date(2023, 0, 1),  psaValue: 1.0 },
   { date: new Date(2023, 2, 1),  psaValue: 2.2 },
@@ -685,8 +692,8 @@ var noisyData = [
   { date: new Date(2023, 11, 1), psaValue: 6.0 },
 ];
 var noisyFit = fitExponential(noisyData);
-assertClose(noisyFit.B, 0.00498336, 1e-6, 'fitExponential: unweighted slope on noisy data (pins OLS, not w=y²)');
-assertClose(noisyFit.doublingTimeDays, 139.0922, 0.01, 'fitExponential: noisy doubling time ~139.1 days');
+assertClose(noisyFit.B, 0.00498304, 1e-7, 'fitExponential: unweighted slope on noisy data (pins OLS, not w=y²)');
+assertClose(noisyFit.doublingTimeDays, 139.1013, 0.001, 'fitExponential: noisy doubling time ~139.1 days');
 assert(noisyFit.rSquaredDefined === true, 'fitExponential: R² defined for n≥3 with spread');
 assertClose(noisyFit.rSquared, 0.874116, 1e-4, 'fitExponential: log-scale R² ~0.874');
 
@@ -724,8 +731,8 @@ section('=== psa.js: doublingTimeCI ===');
 var ciNoisy = doublingTimeCI(noisyFit);
 assert(ciNoisy.estimable === true, 'doublingTimeCI: estimable for clean increasing trend');
 assert(ciNoisy.increasing === true, 'doublingTimeCI: increasing flag set');
-assertClose(ciNoisy.loDays, 81.9552, 0.01, 'doublingTimeCI: lower bound ~82 days');
-assertClose(ciNoisy.hiDays, 459.3131, 0.01, 'doublingTimeCI: upper bound ~459 days');
+assertClose(ciNoisy.loDays, 81.9553, 0.001, 'doublingTimeCI: lower bound ~82 days');
+assertClose(ciNoisy.hiDays, 459.5080, 0.001, 'doublingTimeCI: upper bound ~459.5 days');
 assert(ciNoisy.loDays < noisyFit.doublingTimeDays && noisyFit.doublingTimeDays < ciNoisy.hiDays,
   'doublingTimeCI: point estimate lies inside the interval');
 
@@ -763,6 +770,8 @@ assert(decLabel.indexOf('-') === -1, 'fmtDoublingTimeCI: decreasing shows positi
 // Spans-zero + n<3 messaging
 assert(fmtDoublingTimeCI({ estimable: false, reason: 'spanszero' }).indexOf('not estimable') !== -1,
   'fmtDoublingTimeCI: spans-zero message');
+assert(!/not significant/.test(fmtDoublingTimeCI({ estimable: false, reason: 'degenerate' })),
+  'fmtDoublingTimeCI: a zero-scatter fit is not described as "trend not significant"');
 assert(fmtDoublingTimeCI({ estimable: false, reason: 'need3' }).indexOf('≥3') !== -1,
   'fmtDoublingTimeCI: need-3 message');
 
@@ -773,7 +782,7 @@ assertEqual(psaShortDt(-30), 'decreasing', 'psaShortDt: negative → decreasing'
 
 section('=== psa.js: psaVelocity ===');
 
-assertClose(psaVelocity(noisyData), 5.300128, 1e-4, 'psaVelocity: linear slope ng/mL/yr on noisy data');
+assertClose(psaVelocity(noisyData), 5.299670, 1e-5, 'psaVelocity: linear slope ng/mL/yr on noisy data');
 assertEqual(psaVelocity([{ date: new Date(2023, 0, 1), psaValue: 1 }]), null, 'psaVelocity: <2 points returns null');
 assertEqual(psaVelocity([]), null, 'psaVelocity: empty returns null');
 // Zeros excluded → same as filtered set
@@ -1005,6 +1014,98 @@ assertEqual(compareTrend(
 ), null, 'compareTrend: 2-point segments → null (no estimable noise level)');
 assertEqual(compareTrend(null, fitExponential(longSeries)), null, 'compareTrend: null input → null');
 
+// Welch df. Same T = 3.55 on both readings of this series: the old pooled df
+// (4) called it significant at p≈0.024; Welch gives df≈2.01, p≈0.070. The
+// recent segment is far noisier than the earlier one, so almost all of the
+// uncertainty rides on its 2 residual degrees of freedom.
+var welchCase = [
+  dayPt(0, 1.010050167084168), dayPt(180, 1.1853048513203654),
+  dayPt(360, 1.4190675485932571), dayPt(540, 1.7332530178673953),
+  dayPt(720, 3.5608525623555205), dayPt(810, 3.994825904816633),
+  dayPt(900, 5.473947391727199), dayPt(990, 9.161409111608808),
+];
+var welchWin = recentWindow(welchCase);
+var welchR = fitExponential(welchWin.points), welchE = fitExponential(welchWin.earlier);
+var welchT = (welchR.B - welchE.B) / Math.sqrt(welchR.varB + welchE.varB);
+assertClose(welchT, 3.5531, 1e-3, 'compareTrend: reference case T statistic');
+assert(welchT > tValue95(4), 'compareTrend: reference case WOULD pass the old pooled-df cutoff');
+assertEqual(compareTrend(welchR, welchE).differs, false,
+  'compareTrend: Welch df (≈2) does not flag what pooled df (4) did');
+
+// Exactly exponential on both sides: no scatter, so nothing to test against.
+// Floating-point residue (~1e-35) used to pass the se>0 guard and flag this.
+var exactE = fitExponential([dayPt(0, 1), dayPt(180, 2), dayPt(360, 4)]);
+var exactR = fitExponential([dayPt(540, 8), dayPt(630, 16), dayPt(720, 32)]);
+assertEqual(exactR.varB, 0, 'fitExponential: exact exponential → varB is exactly 0, not roundoff');
+assertEqual(compareTrend(exactR, exactE), null, 'compareTrend: two zero-scatter segments → no verdict');
+assertEqual(doublingTimeCI(exactR).estimable, false, 'doublingTimeCI: exact exponential → no 90.0000–90.0000 CI');
+assertEqual(doublingTimeCI(exactR).reason, 'degenerate', 'doublingTimeCI: exact exponential → degenerate');
+// …but ordinary rounded data keeps its (small, real) scatter
+assert(fitExponential([dayPt(0, 1.0), dayPt(180, 2.0), dayPt(360, 4.1)]).varB > 0,
+  'fitExponential: near-exact series keeps a non-zero varB');
+
+section('=== psa.js: trailing below-detection results ===');
+
+var risenThenGone = [dayPt(0, 0.2), dayPt(120, 0.4), dayPt(240, 0.8), dayPt(360, 0.014, true)];
+assertEqual(trailingCensoredCount(risenThenGone), 1, 'trailingCensoredCount: "<" after the last fitted value');
+assertEqual(trailingCensoredCount([dayPt(0, 0.014, true), dayPt(120, 0.4), dayPt(240, 0.8)]), 0,
+  'trailingCensoredCount: leading "<" is not trailing');
+assertEqual(trailingCensoredCount([dayPt(0, 0.2), dayPt(120, 0.014, true), dayPt(240, 0.8)]), 0,
+  'trailingCensoredCount: interleaved "<" is not trailing');
+assertEqual(trailingCensoredCount([dayPt(0, 0.2), dayPt(120, 0.4), dayPt(240, 0, false)]), 0,
+  'trailingCensoredCount: a trailing PSA=0 row is not a below-detection result');
+assertEqual(trailingCensoredCount([]), 0, 'trailingCensoredCount: empty → 0');
+
+section('=== psa.js: timezone-independent day arithmetic ===');
+
+// Local midnight either side of a DST change is 23 or 25 hours apart in zones
+// that observe it. dayNumber must not care.
+assertEqual(dayNumber(new Date(2024, 2, 11)) - dayNumber(new Date(2024, 2, 9)), 2,
+  'dayNumber: spring-forward weekend is 2 whole days');
+assertEqual(dayNumber(new Date(2024, 10, 4)) - dayNumber(new Date(2024, 10, 2)), 2,
+  'dayNumber: fall-back weekend is 2 whole days');
+fitExponential([dayPt(0, 1), dayPt(100, 2), dayPt(300, 3)]).pts.forEach(function (p) {
+  assertEqual(p.x, Math.round(p.x), 'fitExponential: x offsets are whole days (x=' + p.x + ')');
+});
+
+section('=== psa.js: tValue95 fractional df (Welch) ===');
+
+// Reference: Student-t 0.975 quantiles by numerical integration of the density.
+assertClose(tValue95(1.5), 6.017, 0.01, 'tValue95: df=1.5 → 6.017 (a straight line from 1 to 2 gives 8.50)');
+assertClose(tValue95(2.5), 3.575, 0.01, 'tValue95: df=2.5 → 3.575');
+assertClose(tValue95(1.25), 8.028, 0.01, 'tValue95: df=1.25 → 8.028');
+assertClose(tValue95(5000), 1.98, 1e-9, 'tValue95: df>120 is finite, conservative, never NaN');
+
+section('=== psa.js: parseLine inequality and multi-result hardening ===');
+
+[
+  ['2024-01-15 < -0.014 0.2', 'lone "<" beside a negative must not censor the next number'],
+  ['2024-01-15 <-0.014 0.2',  'glued "<" with a negative limit must not fit the next number as measured'],
+  ['< 2024-01-15 0.014',      '"<" beside a date'],
+  ['2024-01-15 <0',           'zero detection limit'],
+  ['2024-01-15 > 150',        'lone ">" (used to read as a measured 150)'],
+  ['2024-01-15 >150 4.0',     'glued ">" followed by another number'],
+  ['2024-01-15 ≥ 150',        '"≥"'],
+  ['2024-01-15 0.1 2024-02-15 0.2', 'two results on one line'],
+].forEach(function (c) {
+  assertEqual(parseLine(c[0]), null, 'parseLine: refuses ' + c[1]);
+});
+assertEqual(countUnparsedLines('2024-01-15 > 150\n2024-02-15 4.0'), 1,
+  'countUnparsedLines: a refused ">" row is reported, not dropped silently');
+
+// What must keep working: the first value is the result; trailing tokens are
+// units / flags / reference ranges.
+var refRange = parseLine('2024-01-15 0.2 ng/mL <4.0');
+assertEqual(refRange.psaValue, 0.2, 'parseLine: trailing "<4.0" reference range leaves the value alone');
+assertEqual(refRange.censored, false, 'parseLine: trailing reference range does not censor the value');
+assertEqual(parseLine('4.5 2024-01-15').psaValue, 4.5, 'parseLine: value-first row still finds its date');
+var twoDates = parseLine('2024-01-15 2024-01-16 4.5');
+assertEqual(twoDates.psaValue, 4.5, 'parseLine: second date is never read as PSA 2024');
+assertEqual(twoDates.date.getDate(), 15, 'parseLine: collected/resulted → first date wins');
+var spaced = parseLine('PSA < 0.014 2024-01-15');
+assert(spaced.censored === true && spaced.psaValue === 0.014, 'parseLine: "< 0.014" still binds across the space');
+assertEqual(parseLine('2024-01-15 0').psaValue, 0, 'parseLine: a measured 0 is still accepted (and later excluded)');
+
 section('=== psa.js: noiseCaveat ===');
 
 // Under the 20% noise floor across the whole series
@@ -1024,6 +1125,9 @@ assert(/assay and biological/.test(noiseCaveat([dayPt(0, 0.020), dayPt(200, 0.02
   'noiseCaveat: flat ultrasensitive series reports the noise floor, not the scatter note');
 
 assertEqual(noiseCaveat([dayPt(0, 1.0)]), null, 'noiseCaveat: single point → no caveat');
+// First-to-last only, so the wording must not claim "total change" (1 → 10 → 1.01)
+assert(!/total change/i.test(noiseCaveat([dayPt(0, 1), dayPt(200, 10), dayPt(400, 1.01)])),
+  'noiseCaveat: endpoint check is worded as net first-to-last, not total change');
 
 
 

@@ -128,27 +128,58 @@ function parseLine(line) {
   let censored = false;
   let pendingCensor = false;   // a lone "<" applies to the token that follows
 
+  // Anything after the value is taken is ignored on purpose — lab pastes carry
+  // units, flags and reference ranges there ("0.2 ng/mL <4.0"), and the first
+  // value is the result. What must NOT happen is an inequality BEFORE the value
+  // being reinterpreted: every such case below refuses the line (so it is
+  // counted as unreadable) rather than guessing a number the user didn't mean.
   for (const token of tokens) {
     if (/^psa$/i.test(token)) continue;
 
-    if (/^(?:<=?|≤)$/.test(token)) { pendingCensor = true; continue; }
+    const asDate = tryParseDate(token);
 
-    if (date === null) {
-      const d = tryParseDate(token);
-      if (d !== null) { date = d; continue; }
+    if (psaValue !== null) {
+      // Value-first rows ("4.5 2024-01-15") still need their date. A date once
+      // BOTH are in hand is "date value date value" — two results on one line,
+      // the second of which would be dropped silently.
+      if (asDate !== null) {
+        if (date !== null) return null;
+        date = asDate;
+      }
+      continue;
     }
 
-    if (psaValue === null) {
-      const bare = token.replace(/^["']+|["']+$/g, '');   // quoted CSV paste
-      const cm   = CENSOR_PREFIX.exec(bare);
-      const num  = cm ? bare.slice(cm[0].length) : bare;
-      const n = parseFloat(num);
-      if (isFinite(n) && n >= 0) {                   // reject NaN AND Infinity (1e309)
-        psaValue = n;
-        const nm = NUMERIC_PREFIX.exec(num);
-        psaText = nm ? nm[0].replace(/^\+/, '').replace(/^\./, '0.') : null;
-        censored = pendingCensor || cm !== null;
-      }
+    if (/^(?:<=?|≤)$/.test(token)) { pendingCensor = true; continue; }
+
+    // Above-range results (">150") are not measurements. "> 150" used to read
+    // as a measured 150 while ">150" was refused — refuse both.
+    if (/^["']*(?:>=?|≥)/.test(token)) return null;
+
+    if (asDate !== null) {
+      // "< 2024-01-15 0.014": the "<" is beside a date, not a limit. And a date
+      // token must never reach parseFloat, which reads "2024-01-16" as 2024.
+      if (pendingCensor) return null;
+      // A second date before the value (collected / resulted): keep the first.
+      if (date === null) date = asDate;
+      continue;
+    }
+
+    const bare = token.replace(/^["']+|["']+$/g, '');   // quoted CSV paste
+    const cm   = CENSOR_PREFIX.exec(bare);
+    const num  = cm ? bare.slice(cm[0].length) : bare;
+    const n = parseFloat(num);
+    const isCensor = pendingCensor || cm !== null;
+
+    if (isFinite(n) && n >= 0 && !(isCensor && n === 0)) {   // rejects NaN AND Infinity (1e309)
+      psaValue = n;
+      const nm = NUMERIC_PREFIX.exec(num);
+      psaText = nm ? nm[0].replace(/^\+/, '').replace(/^\./, '0.') : null;
+      censored = isCensor;
+    } else if (isCensor) {
+      // "<" must bind to a positive limit right beside it. "< -0.014 0.2" used
+      // to carry the "<" past the bad number and censor the 0.2; "<-0.014 0.2"
+      // (one space fewer) fitted the 0.2 as measured. Neither is what was typed.
+      return null;
     }
   }
 
@@ -202,6 +233,17 @@ function dedupeMeasurements(data) {
 // -------------------------------------------------------------------------
 
 const MS_PER_DAY = 86400000;
+
+/**
+ * Whole calendar-day number for a date. Measurements are parsed to LOCAL
+ * midnight, so subtracting raw timestamps across a daylight-saving change gives
+ * 89.96 or 90.04 days instead of 90 — and a doubling time that depends on the
+ * viewer's timezone. Reading the calendar fields back and re-anchoring them to
+ * UTC makes every elapsed-days figure an integer everywhere.
+ */
+function dayNumber(date) {
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / MS_PER_DAY;
+}
 
 /**
  * Fit y = A * exp(B * x) to the data using UNWEIGHTED ordinary least squares
@@ -280,7 +322,7 @@ function fitExponential(data) {
   const firstDate = valid[0].date;
 
   const pts = valid.map(d => ({
-    x: (d.date.getTime() - firstDate.getTime()) / MS_PER_DAY,
+    x: dayNumber(d.date) - dayNumber(firstDate),
     y: d.psaValue,
     date: d.date
   }));
@@ -314,6 +356,12 @@ function fitExponential(data) {
     ssRes += r * r;
     ssTot += (lny - meanLnY) * (lny - meanLnY);
   }
+  // A series that is EXACTLY exponential (1, 2, 4, 8 — what people type to try
+  // the tool) leaves ssRes at floating-point residue (~1e-31), not zero. Left
+  // alone that residue becomes a "90.0000–90.0000 day" CI and a significant
+  // trend change. Relative to ssTot, so the cutoff is independent of PSA scale
+  // and time units; it says nothing about assay noise, only about roundoff.
+  if (ssRes <= 1e-20 * ssTot) ssRes = 0;
   const s2 = n > 2 ? ssRes / (n - 2) : 0;
 
   // Variance-covariance of (lnA, B)
@@ -388,10 +436,10 @@ function psaVelocity(data) {
   const valid = collapseSameDay(fittablePoints(data), 'arithmetic');
   if (valid.length < 2) return null;
 
-  const t0 = valid[0].date.getTime();
+  const t0 = dayNumber(valid[0].date);
   let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
   for (const d of valid) {
-    const x = (d.date.getTime() - t0) / MS_PER_DAY;
+    const x = dayNumber(d.date) - t0;
     const y = d.psaValue;
     n++; sx += x; sy += y; sxx += x * x; sxy += x * y;
   }
@@ -433,11 +481,11 @@ function recentWindow(data) {
   const pts = collapseSameDay(fittablePoints(data), 'geometric');
   if (pts.length < RECENT_MIN_POINTS + 1) return null;
 
-  const lastMs   = pts[pts.length - 1].date.getTime();
-  const inWindow = ms => (lastMs - ms) <= RECENT_WINDOW_DAYS * MS_PER_DAY;
-  const spanOk   = i  => (lastMs - pts[i].date.getTime()) >= RECENT_MIN_SPAN_DAYS * MS_PER_DAY;
+  const lastDay  = dayNumber(pts[pts.length - 1].date);
+  const inWindow = d => (lastDay - dayNumber(d.date)) <= RECENT_WINDOW_DAYS;
+  const spanOk   = i => (lastDay - dayNumber(pts[i].date)) >= RECENT_MIN_SPAN_DAYS;
 
-  let start = pts.findIndex(d => inWindow(d.date.getTime()));
+  let start = pts.findIndex(inWindow);
   if (start === -1) start = pts.length - 1;
 
   // Widen backwards until the window holds enough points across enough time.
@@ -457,7 +505,8 @@ function recentWindow(data) {
  * shared points and overstate the difference.
  *
  * Returns { differs, direction } or null when either side can't carry a CI
- * (n < 3 leaves no residual degrees of freedom, so varB would be a fake zero).
+ * (n < 3 leaves no residual degrees of freedom, so varB would be a fake zero)
+ * or when neither side shows any scatter at all (se = 0: nothing to test with).
  */
 function compareTrend(recentFit, earlierFit) {
   if (!recentFit || !earlierFit) return null;
@@ -467,7 +516,17 @@ function compareTrend(recentFit, earlierFit) {
   if (!isFinite(se) || se <= 0) return null;
 
   const diff = recentFit.B - earlierFit.B;
-  const df   = (recentFit.n - 2) + (earlierFit.n - 2);
+
+  // Welch–Satterthwaite degrees of freedom. `se` above is the UNPOOLED sum of
+  // variances, and pairing that with the pooled df (n_r + n_e − 4) is neither
+  // test: with a long history and a short recent window — the usual clinical
+  // shape — it flagged ~16% of constant-rate series at a nominal 5%. A pooled
+  // variance is not the fix either (35% when the recent values are noisier,
+  // which ultrasensitive-to-measurable series are by nature). Component df is
+  // n − 2 (a regression slope), not the n − 1 of a sample mean.
+  const vr = recentFit.varB, ve = earlierFit.varB;
+  const df = (vr + ve) * (vr + ve) /
+             (vr * vr / (recentFit.n - 2) + ve * ve / (earlierFit.n - 2));
   return {
     differs: Math.abs(diff / se) > tValue95(df),
     // "rate constant increased" stays true whether the series is rising faster
@@ -503,15 +562,18 @@ function noiseCaveat(data) {
   const last  = pts[pts.length - 1].psaValue;
   const fold  = Math.max(last / first, first / last);
   if (isFinite(fold) && fold < PSA_NOISE_FOLD) {
-    return 'Total change across these measurements is under ' +
-      Math.round((PSA_NOISE_FOLD - 1) * 100) + '%, which assay and biological ' +
-      'variation alone can produce. Treat the doubling time as provisional.';
+    // First-to-last only: 1 → 10 → 1.01 trips this too, and "total change"
+    // would be false there. The fold is symmetric in log space (×1.2 or ÷1.2),
+    // so it is worded as a ratio rather than a percent — ÷1.2 is a 17% fall.
+    return 'The last value is within ' + PSA_NOISE_FOLD + '× of the first, a net change ' +
+      'that assay and biological variation alone can produce. Treat the doubling ' +
+      'time as provisional.';
   }
 
   if (medianOf(pts.map(d => d.psaValue)) < ULTRASENSITIVE_MAX) {
     return 'At ultrasensitive levels (below ' + ULTRASENSITIVE_MAX + ' ng/mL) assay ' +
-      'variation commonly exceeds 20%, so these values scatter more than the fit ' +
-      'assumes. The doubling time is correspondingly less certain.';
+      'variation commonly exceeds 20% and depends on the assay. The doubling ' +
+      'time is correspondingly less certain.';
   }
 
   return null;
@@ -577,6 +639,18 @@ function lastFittedDateMs(data) {
   return data[data.length - 1].date.getTime();
 }
 
+/**
+ * Below-detection results dated AFTER the last value the fit used. A rise
+ * followed by "<0.014" is a patient whose PSA has since gone undetectable —
+ * usually because something was done about it. The fit cannot see that row, so
+ * without this the page reports the old rise as the "recent trend".
+ */
+function trailingCensoredCount(data) {
+  if (!data.length) return 0;
+  const lastMs = lastFittedDateMs(data);
+  return data.filter(d => d.censored && d.date.getTime() > lastMs).length;
+}
+
 // A "doubling time" longer than a human lifetime is, clinically, no trend at all
 // (and catches B≈0 floating-point noise that would otherwise print absurd values).
 const DT_STABLE_DAYS = 100 * 365.25;
@@ -605,7 +679,10 @@ function fmtDurationShort(days) {
 function fmtDoublingTimeCI(ci) {
   if (!ci || !ci.estimable) {
     if (ci && ci.reason === 'need3') return '95% CI: needs ≥3 measurements';
-    return '95% CI: not estimable (trend not significant)';   // spanszero / degenerate
+    // A perfect fit (1, 2, 4, 8) or a flat line has no residual scatter to build
+    // an interval from. Calling that "trend not significant" would be backwards.
+    if (ci && ci.reason === 'degenerate') return '95% CI: not estimable (values show no scatter around the fit)';
+    return '95% CI: not estimable (trend not significant)';   // spanszero
   }
   if (ci.increasing) {
     return `95% CI ${fmtDurationShort(ci.loDays)} – ${fmtDurationShort(ci.hiDays)}`;
@@ -679,11 +756,15 @@ function buildCurve(fit, startDate, endDate) {
 /**
  * Approximate two-tailed t critical value at 95% for given degrees of freedom.
  * Uses a small lookup + linear interpolation; accurate enough for CI bands.
+ * The fractional rows below 3 exist for compareTrend's Welch df, which is
+ * rarely an integer and usually small — the curve is steep there, and a
+ * straight line from df=1 to df=2 reads 8.50 at 1.5 where the truth is 6.02.
  */
 function tValue95(df) {
   if (df <= 0) return 12.706;
   const table = [
-    [1, 12.706], [2, 4.303], [3, 3.182], [4, 2.776], [5, 2.571],
+    [1, 12.706], [1.25, 8.028], [1.5, 6.017], [1.75, 4.949],
+    [2, 4.303], [2.5, 3.575], [3, 3.182], [4, 2.776], [5, 2.571],
     [6, 2.447], [7, 2.365], [8, 2.306], [9, 2.262], [10, 2.228],
     [15, 2.131], [20, 2.086], [30, 2.042], [60, 2.000], [120, 1.980],
     [Infinity, 1.960]
@@ -693,6 +774,7 @@ function tValue95(df) {
       if (i === 0) return table[0][1];
       const [d0, t0] = table[i - 1];
       const [d1, t1] = table[i];
+      if (d1 === Infinity) return t0;   // (df − 120)/∞ = 0 anyway; say so
       const frac = (df - d0) / (d1 - d0);
       return t0 + frac * (t1 - t0);
     }
@@ -1599,10 +1681,16 @@ function calculate(keepProjection) {
   // Shown only when both segments can carry a CI, i.e. the comparison actually
   // resolves. A bare "recent trend" number with no verdict would invite the
   // reader to see acceleration in what may be scatter — the number and the
-  // "is this beyond noise?" answer ship together or not at all.
+  // "is this beyond noise?" answer ship together or not at all. The wording
+  // claims only what the test shows: "more than the scatter explains" is a
+  // statement about these residuals, not about assay noise in general, and
+  // "no clear difference" is absence of evidence, not evidence of equivalence.
   recentFit = null;
   let recentText = '';
-  const win = recentWindow(data);
+  // A later below-detection result means the "recent" window is no longer the
+  // latest clinical epoch; an acceleration verdict about it would be stale.
+  const trailingCensored = trailingCensoredCount(data);
+  const win = trailingCensored > 0 ? null : recentWindow(data);
   if (win) {
     const rFit = fitExponential(win.points);
     const cmp  = compareTrend(rFit, fitExponential(win.earlier));
@@ -1611,8 +1699,8 @@ function calculate(keepProjection) {
       recentText = 'Recent trend (' + win.points.length + ' values since ' +
         fmtDate(win.points[0].date) + '): ' + psaShortDt(rFit.doublingTimeDays) +
         (cmp.differs
-          ? '  ·  growth rate ' + cmp.direction + ' vs the earlier values, beyond measurement noise'
-          : '  ·  no measurable difference from the earlier values');
+          ? '  ·  growth rate ' + cmp.direction + ' vs the earlier values, by more than the scatter in these values explains'
+          : '  ·  no clear difference from the earlier values');
     }
   }
   const recentEl = document.getElementById('psaRecent');
@@ -1653,7 +1741,13 @@ function calculate(keepProjection) {
     if (censoredCount > 0) {
       censEl.textContent = censoredCount + ' below-detection result' +
         (censoredCount === 1 ? '' : 's') + ' (reported as "<") listed but excluded from ' +
-        'the fit — the true value is unknown below the assay limit.';
+        'the fit — the true value is unknown below the assay limit.' +
+        (trailingCensored > 0
+          ? ' ' + (trailingCensored === censoredCount ? (censoredCount === 1 ? 'It is' : 'They are')
+                                                     : trailingCensored + ' of them ' + (trailingCensored === 1 ? 'is' : 'are')) +
+            ' dated after the last fitted value (' + fmtDate(new Date(lastFittedDateMs(data))) +
+            '), so the doubling time describes the rise up to that date, not the latest result.'
+          : '');
       censEl.style.display = 'block';
     } else {
       censEl.style.display = 'none';
