@@ -55,11 +55,14 @@ Calculates PSA doubling time from serial PSA measurements using unweighted log-l
 - Doubling time with a 95% confidence interval, log-scale R², and PSA velocity (ng/mL/yr, a separate linear regression)
 - **Recent-trend comparison** — the last stretch of measurements fitted separately and compared against the earlier ones, so an accelerating series doesn't hide inside a single all-history average. Tested with Welch–Satterthwaite degrees of freedom (a long history against a short recent window is the usual shape, and the naive pooled df over-calls change there). Shown only when the difference test resolves, withheld when a later below-detection result means the window is no longer the latest epoch, and worded descriptively: treatment changes, testosterone recovery, and benign post-radiotherapy bounce all produce the same signal and are invisible to the page
 - A caution when the net first-to-last change falls inside the range assay and biological variation alone can produce
+- Two draws on the same day are averaged into one observation (geometrically, matching the log-linear fit) rather than counted as two points in time, which would narrow the confidence interval on precision the data does not have. The table still lists every value as entered
 
 **Chart**
 - Interactive Chart.js plot with a configurable projection and a 95% confidence band on the trend (trend CI, not a prediction interval)
 - Hover or tap anything on the chart for a labelled readout — `Measured`, `Fitted trend`, or `Recent trend` — so a value is never mistaken for the other curve's
 - Linear / log y-axis toggle; shaded projection region beginning at the last fitted point
+- **The linear axis is capped to what it must contain** — the measurements and the fitted curve, never the confidence band. The band grows exponentially into the projection, so scaling to it would squash the measurements onto the bottom edge; it is allowed to clip instead. The cap is rounded up to a round number so the top of the axis reads as a tick, not as a data point
+- When the recent-trend line leaves the top of the linear scale, a note says so and names the date, rather than letting a line that runs off the chart look like a line that ended
 - White background toggle and light/dark adaptation
 
 **Export**
@@ -90,7 +93,7 @@ Fast full-text search of ICD-10 diagnostic codes with oncology-focused filters.
 ## Tech Stack
 
 - **Vanilla HTML / CSS / JavaScript** — no frameworks, no build step
-- **Test suite** — `node tests.js` runs 523 assertions against a DOM-shimmed sandbox; no framework, no dependencies
+- **Test suite** — `node tests.js` runs 776 assertions against a DOM-shimmed sandbox; no framework, no dependencies. It must pass in any timezone (`TZ=UTC node tests.js`) — calendar dates are whole-day values, not local-midnight timestamps
 - **Chart.js 4.4.0** + **chartjs-adapter-date-fns 3.0.0** — vendored under `vendor/` so the PSA page works offline
 - **Google Fonts** — DM Sans (body) + Outfit (headings), loaded from `fonts.googleapis.com`
 - **ICD-10 data** stored locally as XML (`icd10.xml`, `imrt_codes.xml`) — all search is client-side

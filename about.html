@@ -73,7 +73,7 @@
             <strong>PSA Doubling Time Calculator</strong> &mdash; Calculates PSA doubling
             time from serial PSA measurements by log-linear regression, with a 95%
             confidence interval, log-scale goodness of fit (R&sup2;), and PSA velocity.
-            Accepts flexible date and value input formats, plots an interactive growth
+            Reads pasted lab-portal and clinic-note text, plots an interactive growth
             curve with a confidence band and a shaded projection region, toggles between
             linear and log y-axes, and allows date-point querying directly on the graph.
             See <a href="#psa-method">how the doubling time is calculated</a> below.
@@ -155,6 +155,73 @@
           describes uncertainty in the fitted curve, not the range where an individual
           future PSA measurement is expected to fall. The shaded region to the right of
           your last measurement is extrapolation.
+        </p>
+        <h3 id="psa-recent-trend">The recent-trend comparison</h3>
+        <p>
+          A single fit over an entire history averages away a change in pace: a series
+          that has recently sped up can look much like one that never did. The
+          calculator therefore also fits the most recent stretch of measurements on its
+          own &mdash; a trailing twelve months where possible, widened until it holds at
+          least three values spanning at least ninety days &mdash; and compares its
+          growth rate against the earlier values.
+        </p>
+        <p>
+          The two sets share no measurements, so the comparison uses
+          <strong>Welch&ndash;Satterthwaite degrees of freedom</strong>. This matters in
+          practice: the usual clinical shape is a long history against a short recent
+          window, and the simpler pooled form flags a change in roughly 16% of simulated
+          series whose growth rate never actually changed. The row appears only when the
+          test resolves, because a &ldquo;recent trend&rdquo; number with no verdict
+          invites the reader to see acceleration in what may be scatter.
+        </p>
+        <p>
+          The wording is deliberately <strong>descriptive, never causal</strong>.
+          Starting or stopping treatment, 5-&alpha;-reductase inhibitors, testosterone
+          recovery, benign post-radiotherapy bounce, and a change of assay all produce
+          the same signal, and none of them is visible to this page. A rise that is
+          followed by a below-detection result is no longer the latest chapter, so the
+          comparison is withheld entirely and the doubling time states which dates it
+          describes.
+        </p>
+
+        <h3 id="psa-input">How your input is read</h3>
+        <p>
+          Text pasted from a lab portal or a note carries far more than a date and a
+          value. The calculator finds the dates first, then sets aside what is
+          recognisably not a result &mdash; clock times (with or without a colon), ages
+          and durations, accession and record numbers, list markers, and reference
+          ranges &mdash; and chooses among what remains by evidence: a number carrying a
+          PSA unit, then one following a &ldquo;PSA&rdquo; label, then the only
+          remaining candidate. It does not simply take the first number on the line,
+          which would read <code>1/15/24 0830 4.5</code> as a PSA of 830.
+        </p>
+        <p>
+          Lines about a different test (testosterone, free PSA, PSA density) are
+          skipped. An above-range result (<code>&gt;150</code>), a <code>&lt;</code>
+          that is not beside a valid detection limit, and an impossible date are refused
+          rather than guessed at. <strong>Anything that could not be read is counted and
+          reported</strong>, never dropped silently &mdash; but the parsed-measurements
+          table is the record of what was actually used, and is worth a glance against
+          your source.
+        </p>
+        <p>
+          Two draws on the same day are two reads of one value rather than two points in
+          time, so they are averaged into a single observation before fitting. Counted
+          separately they would anchor the curve to that date and narrow the confidence
+          interval on precision the data does not have. The table still lists every
+          value exactly as entered.
+        </p>
+
+        <h3 id="psa-chart">Reading the chart</h3>
+        <p>
+          On the linear scale the axis is sized to hold the measurements and the fitted
+          curve; the confidence band is allowed to run off the top rather than set the
+          scale, since a band that grows exponentially into the projection would squash
+          the measurements onto the bottom edge. For a fast-doubling series a long
+          projection compresses the measured history for the same reason &mdash;
+          shortening the projection, or switching to the log scale, restores that
+          detail. If the recent-trend line leaves the top of the scale, a note says so
+          and names the date.
         </p>
         <p>
           Measurements with a PSA of zero (or below the assay detection limit) cannot
