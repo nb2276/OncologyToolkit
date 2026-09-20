@@ -342,15 +342,26 @@ function parseLineAll(line) {
     return picks.map(function (p, i) { return p && toResult(scan.dates[marks[i].dateIndex], p); }).filter(Boolean);
   }
 
-  // Several dates, one value. Dates within a week of each other are one
-  // event's metadata (collected / resulted) and the first is the draw. Dates
-  // further apart are different events in a sentence ("started ADT 1/15/24;
-  // PSA 5.2 on 4/20/24"), and the value goes with the date it sits beside.
+  // Not every date got a value. Dates within a week of each other are one
+  // event's metadata (collected / resulted) and the first is the draw.
   const v = chooseValue(nums);
   if (!v || v.above) return [];
   const days = marks.map(function (mk) { return dayNumber(scan.dates[mk.dateIndex]); });
+  const sameEvent = Math.max.apply(null, days) - Math.min.apply(null, days) <= 7;
+
+  // Different events with as many values as dates, just not interleaved the
+  // way either reading expects ("1/15/24 4.5 and 5.2 on 4/20/24"): pair them
+  // in order rather than keep one and drop the other without a word.
+  const usable = nums.filter(function (c) { return !c.otherUnit && !c.zeroPadded && !c.listMarker; });
+  if (!sameEvent && usable.length === marks.length) {
+    if (usable.some(function (c) { return c.above; })) return [];
+    return usable.map(function (c, i) { return toResult(scan.dates[marks[i].dateIndex], c); });
+  }
+
+  // One value among several events ("started ADT 1/15/24; PSA 5.2 on
+  // 4/20/24"): it goes with the date it sits beside.
   let best = marks[0];
-  if (Math.max.apply(null, days) - Math.min.apply(null, days) > 7) {
+  if (!sameEvent) {
     const gap = function (mk) { return mk.end <= v.idx ? v.idx - mk.end : mk.idx - v.end; };
     marks.forEach(function (mk) { if (gap(mk) < gap(best)) best = mk; });
   }
@@ -380,6 +391,8 @@ function parseText(text) {
   String(text).split('\n').forEach(function (raw) {
     const s = raw.trim();
     if (!s || s.charAt(0) === '#') return;
+    // No digit, no result: a header ("Date  PSA") or a heading, not a lost row.
+    if (!/\d/.test(s) && !pendingDates) return;
 
     const scan = scanLine(raw);
     const nums = scan.refuse ? [] : scan.cands.filter(function (c) { return c.dateIndex === undefined; });

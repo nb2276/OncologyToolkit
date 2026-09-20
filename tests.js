@@ -1289,6 +1289,10 @@ var ymd = function (r) {
     ['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']],
   ['1/15/24 4.5; 4/20/24 5.2; 7/1/24 6.8', ['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']],
   ['nadir 0.2 on 6/1/23, now 0.8 on 1/15/24', ['2023-06-01 0.2', '2024-01-15 0.8']],
+  ['PSA 4.5 on 1/15/24 (was 3.9 on 10/1/23)', ['2024-01-15 4.5', '2023-10-01 3.9']],
+  ['PSA 1/15/24 4.5 and 5.2 on 4/20/24', ['2024-01-15 4.5', '2024-04-20 5.2']],   // not interleaved either way
+  ['1/15/24 4.5; 1/20/24 4.6', ['2024-01-15 4.5', '2024-01-20 4.6']],             // a repeat inside a week is still two
+  ['Collected 01/15/2024 Resulted 01/16/2024 PSA 4.5 (prior 3.9)', '2024-01-15 4.5'],
   // several dates, one value
   ['Collected 01/15/2024 Resulted 01/16/2024 PSA 4.5 ng/mL', '2024-01-15 4.5'],
   ['started ADT 1/15/24; PSA 5.2 on 4/20/24', '2024-04-20 5.2'],
@@ -1312,6 +1316,10 @@ var mismatch = parseText('1/15/24 4/20/24 7/1/24\n4.5 5.2');
 assertEqual(mismatch.data.length, 0, 'parseText: 3 dates over 2 values pairs nothing (no guessing which is missing)');
 assertEqual(mismatch.unreadable, 2, 'parseText: …and reports both lines');
 assertEqual(parseText('1/15/24 4/20/24').unreadable, 1, 'parseText: a dates row with nothing under it is reported');
+assertEqual(parseText('Date\tPSA (ng/mL)\n01/15/2024\t4.5').unreadable, 0,
+  'parseText: a header row with no digits is not a lost result');
+assertEqual(parseText('PSA undetectable 01/15/2024').unreadable, 1,
+  'parseText: a dated row with no numeric result IS reported');
 assertEqual(parseInput('2024-02-01 5\n2024-01-01 4').map(ymd).join('|'), '2024-01-01 4|2024-02-01 5',
   'parseInput: still sorted chronologically');
 
@@ -1323,8 +1331,10 @@ assertEqual(countUnparsedLines('2024-01-15 4.5\n2024-06-15 undetectable'), 1,
   'countUnparsedLines: a non-numeric result is counted');
 assertEqual(countUnparsedLines('2024-01-15 4.5\n\n   \n# a comment'), 0,
   'countUnparsedLines: blanks and comments are not failures');
-assertEqual(countUnparsedLines('2024-01-15 >100\nhello\n2024-06-15 9.0'), 2,
-  'countUnparsedLines: counts every unreadable line');
+assertEqual(countUnparsedLines('2024-01-15 >100\nPSA 4.5\n2024-06-15 9.0'), 2,
+  'countUnparsedLines: counts every unreadable line (an above-range result, a value with no date)');
+assertEqual(countUnparsedLines('Date PSA\n2024-01-15 4.5\nhello'), 0,
+  'countUnparsedLines: a line with no digit cannot hold a result, so it is not a lost one');
 
 section('=== psa.js: hover readout targeting ===');
 
