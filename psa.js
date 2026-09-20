@@ -1024,6 +1024,31 @@ function tValue95(df) {
 }
 
 /**
+ * Round an axis cap up to a number the eye reads as round: a multiple of
+ * 2, 5 or 10 times the appropriate power of ten.
+ *
+ * Chart.js takes an explicit `max` literally and appends it as the final tick,
+ * so a raw cap printed the top of the axis as "64.008" above an otherwise
+ * clean 0/10/…/60 ladder. Rounding up keeps the cap above everything it was
+ * sized to contain (it only ever grows) and lands it on the tick ladder.
+ *
+ * Returns null for anything unusable, which leaves the axis to autoscale.
+ */
+function niceAxisMax(v) {
+  if (!(v > 0) || !isFinite(v)) return null;
+  const mag   = Math.pow(10, Math.floor(Math.log10(v)));
+  const mant  = v / mag;
+  // Steps of 2/5/10 × 10^k: the result is then a multiple of whatever spacing
+  // Chart.js picks for a range of this size, so no odd tick is appended.
+  const step  = mant < 2 ? mag / 5 : mant < 5 ? mag / 2 : mag;
+  const ratio = v / step;
+  // Relative epsilon: absorbs float noise (0.03/0.005 = 6.000000000000001)
+  // without rounding a genuinely-just-over value back down under the data.
+  const n = Math.ceil(ratio - ratio * 1e-12);
+  return parseFloat((n * step).toPrecision(12));
+}
+
+/**
  * The first date at which a curve leaves the top of a capped linear axis, or
  * null if it never does. The cap is set from the measured points and the
  * OVERALL fit so the CI band can't crush the data; a steeper recent-trend line
@@ -1071,14 +1096,15 @@ function renderChart(data, fit) {
   // Linear axis cap: the CI band grows exponentially into the projection and
   // would otherwise force autoscale to a huge max, crushing the data. Cap to
   // 1.5x the largest *finite, positive* value over the WHOLE sampled curve plus
-  // measured points (not just fit-at-end — a decreasing fit peaks at the start).
+  // measured points (not just fit-at-end — a decreasing fit peaks at the start),
+  // then round that up to a clean number so it reads as a tick, not a data point.
   let yMax = null;
   if (yAxisType === 'linear') {
     let m = 0;
     for (const p of measured) if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
     for (const p of censored) if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
     for (const p of curve)    if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
-    if (m > 0 && isFinite(m)) yMax = m * 1.5;
+    if (m > 0 && isFinite(m)) yMax = niceAxisMax(m * 1.5);
   }
   const isLog = yAxisType === 'logarithmic';
 
