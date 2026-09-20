@@ -59,7 +59,9 @@
             <p class="help-text">
               Each line should contain a <strong style="color:#ccc;">date</strong> and a <strong style="color:#ccc;">PSA value</strong>.
               Dates are detected automatically in most common formats. Values may optionally include the label "PSA".
-              Lines are separated by commas, spaces, semicolons, or pipes.
+              Fields may be separated by commas, spaces, tabs, semicolons, or pipes.
+              Pasting straight from a lab portal or a note is fine: times, units, reference ranges, flags, ages and ID numbers are ignored,
+              and lines about other tests (testosterone, free PSA) are skipped. Always check the parsed table against your source.
               Ultrasensitive values (e.g. 0.008) are supported and displayed to three decimals.
               Below-detection results (e.g. &lt;0.014) are listed but excluded from the fit.
             </p>

@@ -166,6 +166,8 @@ vm.runInContext(`
   globalThis.makeDate = makeDate;
   globalThis.parseLine = parseLine;
   globalThis.parseInput = parseInput;
+  globalThis.parseText = parseText;
+  globalThis.parseLineAll = parseLineAll;
   globalThis.dedupeMeasurements = dedupeMeasurements;
   globalThis.fitExponential = fitExponential;
   globalThis.doublingTimeCI = doublingTimeCI;
@@ -209,6 +211,8 @@ var tryParseDate = sandbox.tryParseDate;
 var makeDate = sandbox.makeDate;
 var parseLine = sandbox.parseLine;
 var parseInput = sandbox.parseInput;
+var parseText = sandbox.parseText;
+var parseLineAll = sandbox.parseLineAll;
 var dedupeMeasurements = sandbox.dedupeMeasurements;
 var fitExponential = sandbox.fitExponential;
 var doublingTimeCI = sandbox.doublingTimeCI;
@@ -1198,9 +1202,118 @@ assertEqual(parseLine('2024-01-15,123').date.getDate(), 15,
   'parseLine: "date,123" keeps the date intact');
 assertClose(parseLine('2024-01-15,4.5').psaValue, 4.5, 1e-9,
   'parseLine: ordinary CSV pair unaffected');
-// European decimal comma stays ambiguous by design (needs exactly 3 digits)
-assertClose(parseLine('2024-01-15 4,5').psaValue, 4, 1e-9,
-  'parseLine: "4,5" is not treated as a grouped number');
+// "4,5" is not a grouped number (45) — and not 4 either, which is what the
+// first-number reader made of it: a European 4.5 silently fitted as 4.
+assertClose(parseLine('2024-01-15 4,5').psaValue, 4.5, 1e-9,
+  'parseLine: "4,5" as a whole field is a decimal comma');
+assertClose(parseLine('2024-01-15,4,5').psaValue, 4, 1e-9,
+  'parseLine: inside a CSV row the comma is still a separator');
+
+section('=== psa.js: picking the date and PSA out of a noisy line ===');
+
+// Every row here was run against the first-number-wins reader: 15 produced a
+// silently wrong PSA (830 from a clock time, 67 from an age, 1 from a list
+// marker, 0 from a reference range, 12345678 from an accession number) and 9
+// were refused. `null` = must be refused, array = several results on one line.
+var ymd = function (r) {
+  var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  return r.date.getFullYear() + '-' + p2(r.date.getMonth() + 1) + '-' + p2(r.date.getDate()) +
+    ' ' + (r.censored ? '<' : '') + r.psaText;
+};
+[
+  ['PSA 4.5 ng/mL 01/15/2024', '2024-01-15 4.5'],
+  ['Jan 15, 2024 PSA, TOTAL 4.5 ng/mL (Ref range: 0.0 - 4.0)', '2024-01-15 4.5'],
+  ['01/15/2024 4.5 H', '2024-01-15 4.5'],
+  // clock times without a colon
+  ['PSA 4.5 (H) 1/15/24 0830', '2024-01-15 4.5'],
+  ['1/15/24 0830 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 0830 PSA 4.5 ng/mL', '2024-01-15 4.5'],
+  ['01/15/2024 1430 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 1250', '2024-01-15 1250'],            // alone, a 4-digit number IS the PSA
+  ['01/15/2024 0830 1250', '2024-01-15 1250'],
+  ['01/15/2024 0830', null],                         // zero-padded is never a PSA
+  // reference ranges, before or after the value
+  ['PROSTATE SPECIFIC AG\t4.52\tng/mL\t0.00-4.00\t01/15/2024', '2024-01-15 4.52'],
+  ['PSA 0.00-4.00 ng/mL 4.5 01/15/2024', '2024-01-15 4.5'],
+  ['01/15/2024 0.0-4.0 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 PSA 4.5 ng/mL [0.0-4.0]', '2024-01-15 4.5'],
+  ['01/15/2024 PSA 4.5 ng/mL Ref: <4.0', '2024-01-15 4.5'],
+  ['01/15/2024 4.5-5.0', null],                      // a range is not a result
+  // ages, identifiers, list markers
+  ['67 y.o. PSA 4.5 on 1/15/24', '2024-01-15 4.5'],
+  ['72yo M, PSA 6.1 ng/mL 3/2/2024', '2024-03-02 6.1'],
+  ['Acc# 12345678 01/15/2024 PSA 4.5', '2024-01-15 4.5'],
+  ['MRN 0045671 01/15/2024 PSA 4.5', '2024-01-15 4.5'],
+  ['12345678 01/15/2024 4.5', '2024-01-15 4.5'],
+  ['1. 01/15/2024 4.5', '2024-01-15 4.5'],
+  ['2) 04/20/2024 5.2', '2024-04-20 5.2'],
+  ['- 01/15/2024 4.5', '2024-01-15 4.5'],
+  // other numbers in a clinical sentence
+  ['Gleason 4+3=7, PSA 5.2 ng/mL on 1/15/24', '2024-01-15 5.2'],
+  ['4/12 cores positive, PSA 6.1 on 3/2/2024', '2024-03-02 6.1'],
+  ['01/15/2024 prostate 45 cc PSA 6.2', '2024-01-15 6.2'],
+  ['01/15/2024 PSA 4.5 ng/mL (prior 3.9)', '2024-01-15 4.5'],
+  // date shapes
+  ['PSA (01/15/24) = 4.5', '2024-01-15 4.5'],
+  ['PSA (1/15/2024): 4.5 ng/mL', '2024-01-15 4.5'],
+  ['15-Jan-2024 4.5', '2024-01-15 4.5'],
+  ['15-Jan-24\t4.5', '2024-01-15 4.5'],
+  ['Jan-15-2024 4.5', '2024-01-15 4.5'],
+  ['2024/01/15 4.5', '2024-01-15 4.5'],
+  ['2024-01-15T08:30:00-08:00 4.5', '2024-01-15 4.5'],
+  ['2024-01-15 08:30:00.000 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 08:30 AM PST 4.5', '2024-01-15 4.5'],
+  ['Monday, January 15, 2024 4.5', '2024-01-15 4.5'],
+  ['January 15th, 2024 4.5', '2024-01-15 4.5'],
+  ['PSA 4.5 ug/L 15.01.2024', '2024-01-15 4.5'],
+  ['02/31/2024 4.5', null],
+  ['Jan 2024 4.5', null],
+  ['1/15 4.5', null],
+  // value shapes
+  ['01/15/2024 4.5ng/mL', '2024-01-15 4.5'],
+  ['01/15/2024 4.5*', '2024-01-15 4.5'],
+  ['01/15/2024 0.05 (L)', '2024-01-15 0.05'],
+  ['PSA-4.5 01/15/2024', '2024-01-15 4.5'],
+  ['01/15/2024 PSA <0.1 ng/mL', '2024-01-15 <0.1'],
+  ['01/15/2024 PSA < 0.014 ng/mL (ref <4.0)', '2024-01-15 <0.014'],
+  ['PSA, ultrasensitive 0.023 ng/mL 01/15/2024', '2024-01-15 0.023'],
+  ['2024-01-15 < ng 0.2', null],                     // a "<" that never reached a number
+  // not total PSA
+  ['01/15/2024 Testosterone 15 ng/dL', null],
+  ['01/15/2024 PSA, free 0.8 ng/mL', null],
+  ['01/15/2024 % free PSA 18', null],
+  ['01/15/2024 PSA density 0.18', null],
+  ['01/15/2024 PSA undetectable', null],
+  // several results on one line
+  ['PSA was 4.5 on 1/15/24, then 5.2 on 4/20/24 and 6.8 on 7/1/24',
+    ['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']],
+  ['1/15/24 4.5; 4/20/24 5.2; 7/1/24 6.8', ['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']],
+  ['nadir 0.2 on 6/1/23, now 0.8 on 1/15/24', ['2023-06-01 0.2', '2024-01-15 0.8']],
+  // several dates, one value
+  ['Collected 01/15/2024 Resulted 01/16/2024 PSA 4.5 ng/mL', '2024-01-15 4.5'],
+  ['started ADT 1/15/24; PSA 5.2 on 4/20/24', '2024-04-20 5.2'],
+].forEach(function (c) {
+  var got = parseLineAll(c[0]).map(ymd);
+  var want = c[1] === null ? [] : [].concat(c[1]);
+  assertEqual(JSON.stringify(got), JSON.stringify(want), 'noisy line: ' + JSON.stringify(c[0]));
+});
+
+section('=== psa.js: parseText (tables split across lines) ===');
+
+var flowsheet = parseText('1/15/24\t4/20/24\t7/1/24\nPSA\t4.5\t5.2\t6.8');
+assertEqual(JSON.stringify(flowsheet.data.map(ymd)), JSON.stringify(['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']),
+  'parseText: a row of dates over a row of values pairs up in order');
+assertEqual(flowsheet.unreadable, 0, 'parseText: both flowsheet rows count as read');
+assertEqual(JSON.stringify(parseText('01/15/2024\n4.5 ng/mL\n04/20/2024\n5.2 ng/mL').data.map(ymd)),
+  JSON.stringify(['2024-01-15 4.5', '2024-04-20 5.2']), 'parseText: date line / value line alternation');
+assertEqual(JSON.stringify(parseText('1/15/24 4/20/24\n<0.014 0.03').data.map(ymd)),
+  JSON.stringify(['2024-01-15 <0.014', '2024-04-20 0.03']), 'parseText: "<" survives the pairing');
+var mismatch = parseText('1/15/24 4/20/24 7/1/24\n4.5 5.2');
+assertEqual(mismatch.data.length, 0, 'parseText: 3 dates over 2 values pairs nothing (no guessing which is missing)');
+assertEqual(mismatch.unreadable, 2, 'parseText: …and reports both lines');
+assertEqual(parseText('1/15/24 4/20/24').unreadable, 1, 'parseText: a dates row with nothing under it is reported');
+assertEqual(parseInput('2024-02-01 5\n2024-01-01 4').map(ymd).join('|'), '2024-01-01 4|2024-02-01 5',
+  'parseInput: still sorted chronologically');
 
 section('=== psa.js: countUnparsedLines ===');
 
