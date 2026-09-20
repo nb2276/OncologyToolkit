@@ -1291,6 +1291,9 @@ var ymd = function (r) {
   ['nadir 0.2 on 6/1/23, now 0.8 on 1/15/24', ['2023-06-01 0.2', '2024-01-15 0.8']],
   ['PSA 4.5 on 1/15/24 (was 3.9 on 10/1/23)', ['2024-01-15 4.5', '2023-10-01 3.9']],
   ['PSA 1/15/24 4.5 and 5.2 on 4/20/24', ['2024-01-15 4.5', '2024-04-20 5.2']],   // not interleaved either way
+  // pairing by position must not promote noise to a result
+  ['1/15/24 1430 PSA 4.5 on 4/20/24', '2024-04-20 4.5'],
+  ['12345678 1/15/24 PSA 4.5 on 4/20/24', '2024-04-20 4.5'],
   ['1/15/24 4.5; 1/20/24 4.6', ['2024-01-15 4.5', '2024-01-20 4.6']],             // a repeat inside a week is still two
   ['Collected 01/15/2024 Resulted 01/16/2024 PSA 4.5 (prior 3.9)', '2024-01-15 4.5'],
   // several dates, one value

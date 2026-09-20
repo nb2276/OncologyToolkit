@@ -282,21 +282,27 @@ function scanNumbers(s) {
   return out;
 }
 
-/** The PSA among one date's candidate numbers, or null. */
-function chooseValue(nums) {
-  let pool = nums.filter(function (c) { return !c.otherUnit && !c.zeroPadded; });
-  if (pool.length > 1) {
-    // Only when something else is on offer: a lone "1250" after a date is a
-    // PSA of 1250; next to "4.5" it is ten to one.
-    const rest = pool.filter(function (c) {
-      return !c.listMarker && !c.longInt && !(c.afterDate && c.clockLike);
-    });
-    if (rest.length) pool = rest;
+const isUsable     = c => !c.otherUnit && !c.zeroPadded;
+const isSuspicious = c => c.listMarker || c.longInt || (c.afterDate && c.clockLike);
+
+/**
+ * The PSA among one date's candidate numbers, or null. `lineNums` is every
+ * number on the line: a clock-like or long integer is only believed when the
+ * WHOLE LINE offers nothing better — a lone "1250" after a date is a PSA of
+ * 1250; with "4.5" anywhere on the line it is ten to one, even if the 4.5
+ * belongs to another date's segment.
+ */
+function chooseValue(nums, lineNums) {
+  const pool  = nums.filter(isUsable);
+  const plain = pool.filter(c => !isSuspicious(c));
+  let from = plain;
+  if (!plain.length) {
+    const betterElsewhere = (lineNums || nums).filter(isUsable).some(c => !isSuspicious(c));
+    if (betterElsewhere) return null;
+    from = pool;
   }
-  if (!pool.length) return null;
-  return pool.filter(function (c) { return c.psaUnit; })[0] ||
-         pool.filter(function (c) { return c.afterLabel; })[0] ||
-         pool[0];
+  if (!from.length) return null;
+  return from.filter(c => c.psaUnit)[0] || from.filter(c => c.afterLabel)[0] || from[0];
 }
 
 function toResult(date, c) {
@@ -335,7 +341,7 @@ function parseLineAll(line) {
     if (c.dateIndex !== undefined) { cur = marks.indexOf(c) + (valueFirst ? 1 : 0); return; }
     owned[Math.min(Math.max(cur, 0), marks.length - 1)].push(c);
   });
-  const picks = owned.map(chooseValue);
+  const picks = owned.map(function (o) { return chooseValue(o, nums); });
 
   if (picks.filter(Boolean).length >= 2) {
     if (picks.some(function (p) { return p && p.above; })) return [];
@@ -352,7 +358,10 @@ function parseLineAll(line) {
   // Different events with as many values as dates, just not interleaved the
   // way either reading expects ("1/15/24 4.5 and 5.2 on 4/20/24"): pair them
   // in order rather than keep one and drop the other without a word.
-  const usable = nums.filter(function (c) { return !c.otherUnit && !c.zeroPadded && !c.listMarker; });
+  // Same noise rules as chooseValue, applied unconditionally: pairing by
+  // position has no unit or label to fall back on, so a clock time or an ID
+  // must never be one of the things paired ("1/15/24 1430 PSA 4.5 on 4/20/24").
+  const usable = nums.filter(function (c) { return isUsable(c) && !isSuspicious(c); });
   if (!sameEvent && usable.length === marks.length) {
     if (usable.some(function (c) { return c.above; })) return [];
     return usable.map(function (c, i) { return toResult(scan.dates[marks[i].dateIndex], c); });
@@ -396,7 +405,7 @@ function parseText(text) {
 
     const scan = scanLine(raw);
     const nums = scan.refuse ? [] : scan.cands.filter(function (c) { return c.dateIndex === undefined; });
-    const usable = nums.filter(function (c) { return !c.otherUnit && !c.zeroPadded; });
+    const usable = nums.filter(isUsable);
 
     if (pendingDates) {
       const held = pendingDates;
