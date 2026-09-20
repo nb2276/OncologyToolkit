@@ -166,6 +166,8 @@ vm.runInContext(`
   globalThis.makeDate = makeDate;
   globalThis.parseLine = parseLine;
   globalThis.parseInput = parseInput;
+  globalThis.parseText = parseText;
+  globalThis.parseLineAll = parseLineAll;
   globalThis.dedupeMeasurements = dedupeMeasurements;
   globalThis.fitExponential = fitExponential;
   globalThis.doublingTimeCI = doublingTimeCI;
@@ -188,6 +190,8 @@ vm.runInContext(`
   globalThis.pickNearest = pickNearest;
   globalThis.fmtReadout = fmtReadout;
   globalThis.collapseSameDay = collapseSameDay;
+  globalThis.trailingCensoredCount = trailingCensoredCount;
+  globalThis.dayNumber = dayNumber;
   globalThis.sameDayCollapsedCount = sameDayCollapsedCount;
   globalThis.psaShortDt = psaShortDt;
 `, sandbox);
@@ -207,6 +211,8 @@ var tryParseDate = sandbox.tryParseDate;
 var makeDate = sandbox.makeDate;
 var parseLine = sandbox.parseLine;
 var parseInput = sandbox.parseInput;
+var parseText = sandbox.parseText;
+var parseLineAll = sandbox.parseLineAll;
 var dedupeMeasurements = sandbox.dedupeMeasurements;
 var fitExponential = sandbox.fitExponential;
 var doublingTimeCI = sandbox.doublingTimeCI;
@@ -223,6 +229,8 @@ var fittablePoints = sandbox.fittablePoints;
 var recentWindow = sandbox.recentWindow;
 var compareTrend = sandbox.compareTrend;
 var noiseCaveat = sandbox.noiseCaveat;
+var trailingCensoredCount = sandbox.trailingCensoredCount;
+var dayNumber = sandbox.dayNumber;
 var medianOf = sandbox.medianOf;
 var wrapTextToWidth = sandbox.wrapTextToWidth;
 var countUnparsedLines = sandbox.countUnparsedLines;
@@ -676,7 +684,10 @@ assert(fit3.covAB !== undefined, 'fitExponential: covAB present for n=3');
 assert(fit3.n === 3, 'fitExponential: n = 3');
 
 // ---- Unweighted fit: noisy data pins the OLS slope (weighted w=y² would differ) ----
-// Reference computed from the unweighted log-linear regression on this set.
+// Reference computed independently (centered OLS, Python) on WHOLE-day offsets
+// 0/59/151/243/334. The earlier expectations were copied from this code running
+// in a DST timezone, where local-midnight subtraction made the offsets fractional
+// — so the suite passed in Los Angeles and failed under TZ=UTC.
 var noisyData = [
   { date: new Date(2023, 0, 1),  psaValue: 1.0 },
   { date: new Date(2023, 2, 1),  psaValue: 2.2 },
@@ -685,8 +696,8 @@ var noisyData = [
   { date: new Date(2023, 11, 1), psaValue: 6.0 },
 ];
 var noisyFit = fitExponential(noisyData);
-assertClose(noisyFit.B, 0.00498336, 1e-6, 'fitExponential: unweighted slope on noisy data (pins OLS, not w=y²)');
-assertClose(noisyFit.doublingTimeDays, 139.0922, 0.01, 'fitExponential: noisy doubling time ~139.1 days');
+assertClose(noisyFit.B, 0.00498304, 1e-7, 'fitExponential: unweighted slope on noisy data (pins OLS, not w=y²)');
+assertClose(noisyFit.doublingTimeDays, 139.1013, 0.001, 'fitExponential: noisy doubling time ~139.1 days');
 assert(noisyFit.rSquaredDefined === true, 'fitExponential: R² defined for n≥3 with spread');
 assertClose(noisyFit.rSquared, 0.874116, 1e-4, 'fitExponential: log-scale R² ~0.874');
 
@@ -724,8 +735,8 @@ section('=== psa.js: doublingTimeCI ===');
 var ciNoisy = doublingTimeCI(noisyFit);
 assert(ciNoisy.estimable === true, 'doublingTimeCI: estimable for clean increasing trend');
 assert(ciNoisy.increasing === true, 'doublingTimeCI: increasing flag set');
-assertClose(ciNoisy.loDays, 81.9552, 0.01, 'doublingTimeCI: lower bound ~82 days');
-assertClose(ciNoisy.hiDays, 459.3131, 0.01, 'doublingTimeCI: upper bound ~459 days');
+assertClose(ciNoisy.loDays, 81.9553, 0.001, 'doublingTimeCI: lower bound ~82 days');
+assertClose(ciNoisy.hiDays, 459.5080, 0.001, 'doublingTimeCI: upper bound ~459.5 days');
 assert(ciNoisy.loDays < noisyFit.doublingTimeDays && noisyFit.doublingTimeDays < ciNoisy.hiDays,
   'doublingTimeCI: point estimate lies inside the interval');
 
@@ -763,6 +774,8 @@ assert(decLabel.indexOf('-') === -1, 'fmtDoublingTimeCI: decreasing shows positi
 // Spans-zero + n<3 messaging
 assert(fmtDoublingTimeCI({ estimable: false, reason: 'spanszero' }).indexOf('not estimable') !== -1,
   'fmtDoublingTimeCI: spans-zero message');
+assert(!/not significant/.test(fmtDoublingTimeCI({ estimable: false, reason: 'degenerate' })),
+  'fmtDoublingTimeCI: a zero-scatter fit is not described as "trend not significant"');
 assert(fmtDoublingTimeCI({ estimable: false, reason: 'need3' }).indexOf('≥3') !== -1,
   'fmtDoublingTimeCI: need-3 message');
 
@@ -773,7 +786,7 @@ assertEqual(psaShortDt(-30), 'decreasing', 'psaShortDt: negative → decreasing'
 
 section('=== psa.js: psaVelocity ===');
 
-assertClose(psaVelocity(noisyData), 5.300128, 1e-4, 'psaVelocity: linear slope ng/mL/yr on noisy data');
+assertClose(psaVelocity(noisyData), 5.299670, 1e-5, 'psaVelocity: linear slope ng/mL/yr on noisy data');
 assertEqual(psaVelocity([{ date: new Date(2023, 0, 1), psaValue: 1 }]), null, 'psaVelocity: <2 points returns null');
 assertEqual(psaVelocity([]), null, 'psaVelocity: empty returns null');
 // Zeros excluded → same as filtered set
@@ -1005,6 +1018,105 @@ assertEqual(compareTrend(
 ), null, 'compareTrend: 2-point segments → null (no estimable noise level)');
 assertEqual(compareTrend(null, fitExponential(longSeries)), null, 'compareTrend: null input → null');
 
+// Welch df. Same T = 3.55 on both readings of this series: the old pooled df
+// (4) called it significant at p≈0.024; Welch gives df≈2.01, p≈0.070. The
+// recent segment is far noisier than the earlier one, so almost all of the
+// uncertainty rides on its 2 residual degrees of freedom.
+var welchCase = [
+  dayPt(0, 1.010050167084168), dayPt(180, 1.1853048513203654),
+  dayPt(360, 1.4190675485932571), dayPt(540, 1.7332530178673953),
+  dayPt(720, 3.5608525623555205), dayPt(810, 3.994825904816633),
+  dayPt(900, 5.473947391727199), dayPt(990, 9.161409111608808),
+];
+var welchWin = recentWindow(welchCase);
+var welchR = fitExponential(welchWin.points), welchE = fitExponential(welchWin.earlier);
+var welchT = (welchR.B - welchE.B) / Math.sqrt(welchR.varB + welchE.varB);
+assertClose(welchT, 3.5531, 1e-3, 'compareTrend: reference case T statistic');
+assert(welchT > tValue95(4), 'compareTrend: reference case WOULD pass the old pooled-df cutoff');
+assertEqual(compareTrend(welchR, welchE).differs, false,
+  'compareTrend: Welch df (≈2) does not flag what pooled df (4) did');
+
+// Exactly exponential on both sides: no scatter, so nothing to test against.
+// Floating-point residue (~1e-35) used to pass the se>0 guard and flag this.
+var exactE = fitExponential([dayPt(0, 1), dayPt(180, 2), dayPt(360, 4)]);
+var exactR = fitExponential([dayPt(540, 8), dayPt(630, 16), dayPt(720, 32)]);
+assertEqual(exactR.varB, 0, 'fitExponential: exact exponential → varB is exactly 0, not roundoff');
+assertEqual(compareTrend(exactR, exactE), null, 'compareTrend: two zero-scatter segments → no verdict');
+assertEqual(doublingTimeCI(exactR).estimable, false, 'doublingTimeCI: exact exponential → no 90.0000–90.0000 CI');
+assertEqual(doublingTimeCI(exactR).reason, 'degenerate', 'doublingTimeCI: exact exponential → degenerate');
+// …but ordinary rounded data keeps its (small, real) scatter
+assert(fitExponential([dayPt(0, 1.0), dayPt(180, 2.0), dayPt(360, 4.1)]).varB > 0,
+  'fitExponential: near-exact series keeps a non-zero varB');
+
+section('=== psa.js: trailing below-detection results ===');
+
+var risenThenGone = [dayPt(0, 0.2), dayPt(120, 0.4), dayPt(240, 0.8), dayPt(360, 0.014, true)];
+assertEqual(trailingCensoredCount(risenThenGone), 1, 'trailingCensoredCount: "<" after the last fitted value');
+assertEqual(trailingCensoredCount([dayPt(0, 0.014, true), dayPt(120, 0.4), dayPt(240, 0.8)]), 0,
+  'trailingCensoredCount: leading "<" is not trailing');
+assertEqual(trailingCensoredCount([dayPt(0, 0.2), dayPt(120, 0.014, true), dayPt(240, 0.8)]), 0,
+  'trailingCensoredCount: interleaved "<" is not trailing');
+assertEqual(trailingCensoredCount([dayPt(0, 0.2), dayPt(120, 0.4), dayPt(240, 0, false)]), 0,
+  'trailingCensoredCount: a trailing PSA=0 row is not a below-detection result');
+assertEqual(trailingCensoredCount([]), 0, 'trailingCensoredCount: empty → 0');
+
+section('=== psa.js: timezone-independent day arithmetic ===');
+
+// Local midnight either side of a DST change is 23 or 25 hours apart in zones
+// that observe it. dayNumber must not care.
+assertEqual(dayNumber(new Date(2024, 2, 11)) - dayNumber(new Date(2024, 2, 9)), 2,
+  'dayNumber: spring-forward weekend is 2 whole days');
+assertEqual(dayNumber(new Date(2024, 10, 4)) - dayNumber(new Date(2024, 10, 2)), 2,
+  'dayNumber: fall-back weekend is 2 whole days');
+fitExponential([dayPt(0, 1), dayPt(100, 2), dayPt(300, 3)]).pts.forEach(function (p) {
+  assertEqual(p.x, Math.round(p.x), 'fitExponential: x offsets are whole days (x=' + p.x + ')');
+});
+
+section('=== psa.js: tValue95 fractional df (Welch) ===');
+
+// Reference: Student-t 0.975 quantiles by numerical integration of the density.
+assertClose(tValue95(1.5), 6.017, 0.01, 'tValue95: df=1.5 → 6.017 (a straight line from 1 to 2 gives 8.50)');
+assertClose(tValue95(2.5), 3.575, 0.01, 'tValue95: df=2.5 → 3.575');
+assertClose(tValue95(1.25), 8.028, 0.01, 'tValue95: df=1.25 → 8.028');
+assertClose(tValue95(5000), 1.98, 1e-9, 'tValue95: df>120 is finite, conservative, never NaN');
+
+section('=== psa.js: parseLine inequality and multi-result hardening ===');
+
+[
+  ['2024-01-15 < -0.014 0.2', 'lone "<" beside a negative must not censor the next number'],
+  ['2024-01-15 <-0.014 0.2',  'glued "<" with a negative limit must not fit the next number as measured'],
+  ['< 2024-01-15 0.014',      '"<" beside a date'],
+  ['2024-01-15 <0',           'zero detection limit'],
+  ['2024-01-15 > 150',        'lone ">" (used to read as a measured 150)'],
+  ['2024-01-15 >150 4.0',     'glued ">" followed by another number'],
+  ['2024-01-15 ≥ 150',        '"≥"'],
+  ['2024-01-15 0.1 2024-02-15 0.2', 'two results on one line'],
+].forEach(function (c) {
+  assertEqual(parseLine(c[0]), null, 'parseLine: refuses ' + c[1]);
+});
+assertEqual(countUnparsedLines('2024-01-15 > 150\n2024-02-15 4.0'), 1,
+  'countUnparsedLines: a refused ">" row is reported, not dropped silently');
+
+// What must keep working: the first value is the result; trailing tokens are
+// units / flags / reference ranges.
+var refRange = parseLine('2024-01-15 0.2 ng/mL <4.0');
+assertEqual(refRange.psaValue, 0.2, 'parseLine: trailing "<4.0" reference range leaves the value alone');
+assertEqual(refRange.censored, false, 'parseLine: trailing reference range does not censor the value');
+assertEqual(parseLine('4.5 2024-01-15').psaValue, 4.5, 'parseLine: value-first row still finds its date');
+var twoDates = parseLine('2024-01-15 2024-01-16 4.5');
+assertEqual(twoDates.psaValue, 4.5, 'parseLine: second date is never read as PSA 2024');
+assertEqual(twoDates.date.getDate(), 15, 'parseLine: collected/resulted → first date wins');
+// Collected/resulted dates either side of ONE value is still one result…
+var trailingDate = parseLine('2024-01-15 4.5 2024-01-16');
+assert(trailingDate !== null && trailingDate.psaValue === 4.5 && trailingDate.date.getDate() === 15,
+  'parseLine: "date value date" (a metadata date, no second value) stays readable');
+// …and only a number after that second date makes it two results.
+assertEqual(parseLine('2024-01-15 4.5 2024-02-15 <0.014'), null,
+  'parseLine: "date value date <limit" is two results → refused');
+var spaced = parseLine('PSA < 0.014 2024-01-15');
+assert(spaced.censored === true && spaced.psaValue === 0.014, 'parseLine: "< 0.014" still binds across the space');
+assertEqual(parseLine('2024-01-15 0').psaValue, 0, 'parseLine: a measured 0 is still accepted (and later excluded)');
+
 section('=== psa.js: noiseCaveat ===');
 
 // Under the 20% noise floor across the whole series
@@ -1024,6 +1136,9 @@ assert(/assay and biological/.test(noiseCaveat([dayPt(0, 0.020), dayPt(200, 0.02
   'noiseCaveat: flat ultrasensitive series reports the noise floor, not the scatter note');
 
 assertEqual(noiseCaveat([dayPt(0, 1.0)]), null, 'noiseCaveat: single point → no caveat');
+// First-to-last only, so the wording must not claim "total change" (1 → 10 → 1.01)
+assert(!/total change/i.test(noiseCaveat([dayPt(0, 1), dayPt(200, 10), dayPt(400, 1.01)])),
+  'noiseCaveat: endpoint check is worded as net first-to-last, not total change');
 
 
 
@@ -1087,9 +1202,129 @@ assertEqual(parseLine('2024-01-15,123').date.getDate(), 15,
   'parseLine: "date,123" keeps the date intact');
 assertClose(parseLine('2024-01-15,4.5').psaValue, 4.5, 1e-9,
   'parseLine: ordinary CSV pair unaffected');
-// European decimal comma stays ambiguous by design (needs exactly 3 digits)
-assertClose(parseLine('2024-01-15 4,5').psaValue, 4, 1e-9,
-  'parseLine: "4,5" is not treated as a grouped number');
+// "4,5" is not a grouped number (45) — and not 4 either, which is what the
+// first-number reader made of it: a European 4.5 silently fitted as 4.
+assertClose(parseLine('2024-01-15 4,5').psaValue, 4.5, 1e-9,
+  'parseLine: "4,5" as a whole field is a decimal comma');
+assertClose(parseLine('2024-01-15,4,5').psaValue, 4, 1e-9,
+  'parseLine: inside a CSV row the comma is still a separator');
+
+section('=== psa.js: picking the date and PSA out of a noisy line ===');
+
+// Every row here was run against the first-number-wins reader: 15 produced a
+// silently wrong PSA (830 from a clock time, 67 from an age, 1 from a list
+// marker, 0 from a reference range, 12345678 from an accession number) and 9
+// were refused. `null` = must be refused, array = several results on one line.
+var ymd = function (r) {
+  var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  return r.date.getFullYear() + '-' + p2(r.date.getMonth() + 1) + '-' + p2(r.date.getDate()) +
+    ' ' + (r.censored ? '<' : '') + r.psaText;
+};
+[
+  ['PSA 4.5 ng/mL 01/15/2024', '2024-01-15 4.5'],
+  ['Jan 15, 2024 PSA, TOTAL 4.5 ng/mL (Ref range: 0.0 - 4.0)', '2024-01-15 4.5'],
+  ['01/15/2024 4.5 H', '2024-01-15 4.5'],
+  // clock times without a colon
+  ['PSA 4.5 (H) 1/15/24 0830', '2024-01-15 4.5'],
+  ['1/15/24 0830 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 0830 PSA 4.5 ng/mL', '2024-01-15 4.5'],
+  ['01/15/2024 1430 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 1250', '2024-01-15 1250'],            // alone, a 4-digit number IS the PSA
+  ['01/15/2024 0830 1250', '2024-01-15 1250'],
+  ['01/15/2024 0830', null],                         // zero-padded is never a PSA
+  // reference ranges, before or after the value
+  ['PROSTATE SPECIFIC AG\t4.52\tng/mL\t0.00-4.00\t01/15/2024', '2024-01-15 4.52'],
+  ['PSA 0.00-4.00 ng/mL 4.5 01/15/2024', '2024-01-15 4.5'],
+  ['01/15/2024 0.0-4.0 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 PSA 4.5 ng/mL [0.0-4.0]', '2024-01-15 4.5'],
+  ['01/15/2024 PSA 4.5 ng/mL Ref: <4.0', '2024-01-15 4.5'],
+  ['01/15/2024 4.5-5.0', null],                      // a range is not a result
+  // ages, identifiers, list markers
+  ['67 y.o. PSA 4.5 on 1/15/24', '2024-01-15 4.5'],
+  ['72yo M, PSA 6.1 ng/mL 3/2/2024', '2024-03-02 6.1'],
+  ['Acc# 12345678 01/15/2024 PSA 4.5', '2024-01-15 4.5'],
+  ['MRN 0045671 01/15/2024 PSA 4.5', '2024-01-15 4.5'],
+  ['12345678 01/15/2024 4.5', '2024-01-15 4.5'],
+  ['1. 01/15/2024 4.5', '2024-01-15 4.5'],
+  ['2) 04/20/2024 5.2', '2024-04-20 5.2'],
+  ['- 01/15/2024 4.5', '2024-01-15 4.5'],
+  // other numbers in a clinical sentence
+  ['Gleason 4+3=7, PSA 5.2 ng/mL on 1/15/24', '2024-01-15 5.2'],
+  ['4/12 cores positive, PSA 6.1 on 3/2/2024', '2024-03-02 6.1'],
+  ['01/15/2024 prostate 45 cc PSA 6.2', '2024-01-15 6.2'],
+  ['01/15/2024 PSA 4.5 ng/mL (prior 3.9)', '2024-01-15 4.5'],
+  // date shapes
+  ['PSA (01/15/24) = 4.5', '2024-01-15 4.5'],
+  ['PSA (1/15/2024): 4.5 ng/mL', '2024-01-15 4.5'],
+  ['15-Jan-2024 4.5', '2024-01-15 4.5'],
+  ['15-Jan-24\t4.5', '2024-01-15 4.5'],
+  ['Jan-15-2024 4.5', '2024-01-15 4.5'],
+  ['2024/01/15 4.5', '2024-01-15 4.5'],
+  ['2024-01-15T08:30:00-08:00 4.5', '2024-01-15 4.5'],
+  ['2024-01-15 08:30:00.000 4.5', '2024-01-15 4.5'],
+  ['01/15/2024 08:30 AM PST 4.5', '2024-01-15 4.5'],
+  ['Monday, January 15, 2024 4.5', '2024-01-15 4.5'],
+  ['January 15th, 2024 4.5', '2024-01-15 4.5'],
+  ['PSA 4.5 ug/L 15.01.2024', '2024-01-15 4.5'],
+  ['02/31/2024 4.5', null],
+  ['Jan 2024 4.5', null],
+  ['1/15 4.5', null],
+  // value shapes
+  ['01/15/2024 4.5ng/mL', '2024-01-15 4.5'],
+  ['01/15/2024 4.5*', '2024-01-15 4.5'],
+  ['01/15/2024 0.05 (L)', '2024-01-15 0.05'],
+  ['PSA-4.5 01/15/2024', '2024-01-15 4.5'],
+  ['01/15/2024 PSA <0.1 ng/mL', '2024-01-15 <0.1'],
+  ['01/15/2024 PSA < 0.014 ng/mL (ref <4.0)', '2024-01-15 <0.014'],
+  ['PSA, ultrasensitive 0.023 ng/mL 01/15/2024', '2024-01-15 0.023'],
+  ['2024-01-15 < ng 0.2', null],                     // a "<" that never reached a number
+  // not total PSA
+  ['01/15/2024 Testosterone 15 ng/dL', null],
+  ['01/15/2024 PSA, free 0.8 ng/mL', null],
+  ['01/15/2024 % free PSA 18', null],
+  ['01/15/2024 PSA density 0.18', null],
+  ['01/15/2024 PSA undetectable', null],
+  // several results on one line
+  ['PSA was 4.5 on 1/15/24, then 5.2 on 4/20/24 and 6.8 on 7/1/24',
+    ['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']],
+  ['1/15/24 4.5; 4/20/24 5.2; 7/1/24 6.8', ['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']],
+  ['nadir 0.2 on 6/1/23, now 0.8 on 1/15/24', ['2023-06-01 0.2', '2024-01-15 0.8']],
+  ['PSA 4.5 on 1/15/24 (was 3.9 on 10/1/23)', ['2024-01-15 4.5', '2023-10-01 3.9']],
+  ['PSA 1/15/24 4.5 and 5.2 on 4/20/24', ['2024-01-15 4.5', '2024-04-20 5.2']],   // not interleaved either way
+  // pairing by position must not promote noise to a result
+  ['1/15/24 1430 PSA 4.5 on 4/20/24', '2024-04-20 4.5'],
+  ['12345678 1/15/24 PSA 4.5 on 4/20/24', '2024-04-20 4.5'],
+  ['1/15/24 4.5; 1/20/24 4.6', ['2024-01-15 4.5', '2024-01-20 4.6']],             // a repeat inside a week is still two
+  ['Collected 01/15/2024 Resulted 01/16/2024 PSA 4.5 (prior 3.9)', '2024-01-15 4.5'],
+  // several dates, one value
+  ['Collected 01/15/2024 Resulted 01/16/2024 PSA 4.5 ng/mL', '2024-01-15 4.5'],
+  ['started ADT 1/15/24; PSA 5.2 on 4/20/24', '2024-04-20 5.2'],
+].forEach(function (c) {
+  var got = parseLineAll(c[0]).map(ymd);
+  var want = c[1] === null ? [] : [].concat(c[1]);
+  assertEqual(JSON.stringify(got), JSON.stringify(want), 'noisy line: ' + JSON.stringify(c[0]));
+});
+
+section('=== psa.js: parseText (tables split across lines) ===');
+
+var flowsheet = parseText('1/15/24\t4/20/24\t7/1/24\nPSA\t4.5\t5.2\t6.8');
+assertEqual(JSON.stringify(flowsheet.data.map(ymd)), JSON.stringify(['2024-01-15 4.5', '2024-04-20 5.2', '2024-07-01 6.8']),
+  'parseText: a row of dates over a row of values pairs up in order');
+assertEqual(flowsheet.unreadable, 0, 'parseText: both flowsheet rows count as read');
+assertEqual(JSON.stringify(parseText('01/15/2024\n4.5 ng/mL\n04/20/2024\n5.2 ng/mL').data.map(ymd)),
+  JSON.stringify(['2024-01-15 4.5', '2024-04-20 5.2']), 'parseText: date line / value line alternation');
+assertEqual(JSON.stringify(parseText('1/15/24 4/20/24\n<0.014 0.03').data.map(ymd)),
+  JSON.stringify(['2024-01-15 <0.014', '2024-04-20 0.03']), 'parseText: "<" survives the pairing');
+var mismatch = parseText('1/15/24 4/20/24 7/1/24\n4.5 5.2');
+assertEqual(mismatch.data.length, 0, 'parseText: 3 dates over 2 values pairs nothing (no guessing which is missing)');
+assertEqual(mismatch.unreadable, 2, 'parseText: …and reports both lines');
+assertEqual(parseText('1/15/24 4/20/24').unreadable, 1, 'parseText: a dates row with nothing under it is reported');
+assertEqual(parseText('Date\tPSA (ng/mL)\n01/15/2024\t4.5').unreadable, 0,
+  'parseText: a header row with no digits is not a lost result');
+assertEqual(parseText('PSA undetectable 01/15/2024').unreadable, 1,
+  'parseText: a dated row with no numeric result IS reported');
+assertEqual(parseInput('2024-02-01 5\n2024-01-01 4').map(ymd).join('|'), '2024-01-01 4|2024-02-01 5',
+  'parseInput: still sorted chronologically');
 
 section('=== psa.js: countUnparsedLines ===');
 
@@ -1099,8 +1334,10 @@ assertEqual(countUnparsedLines('2024-01-15 4.5\n2024-06-15 undetectable'), 1,
   'countUnparsedLines: a non-numeric result is counted');
 assertEqual(countUnparsedLines('2024-01-15 4.5\n\n   \n# a comment'), 0,
   'countUnparsedLines: blanks and comments are not failures');
-assertEqual(countUnparsedLines('2024-01-15 >100\nhello\n2024-06-15 9.0'), 2,
-  'countUnparsedLines: counts every unreadable line');
+assertEqual(countUnparsedLines('2024-01-15 >100\nPSA 4.5\n2024-06-15 9.0'), 2,
+  'countUnparsedLines: counts every unreadable line (an above-range result, a value with no date)');
+assertEqual(countUnparsedLines('Date PSA\n2024-01-15 4.5\nhello'), 0,
+  'countUnparsedLines: a line with no digit cannot hold a result, so it is not a lost one');
 
 section('=== psa.js: hover readout targeting ===');
 

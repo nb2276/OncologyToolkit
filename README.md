@@ -42,16 +42,19 @@ Calculates PSA doubling time from serial PSA measurements using unweighted log-l
 
 **Reading the input**
 - Flexible date parsing — `MM/DD/YYYY`, `YYYY-MM-DD`, `DD.MM.YYYY`, two-digit years, and month names (`Jan 15, 2024`)
-- Tolerates real lab exports: timestamps, quoted CSV from Excel, pipe- or comma-delimited fields, stray units and reference ranges
+- **Reads pasted portal and note text.** Dates are found first, recognisable noise is stripped (clock times with or without a colon, ages, accession/MRN numbers, list markers, reference ranges), and the PSA is chosen by evidence — a PSA unit, then a PSA label, then the only number left — never just "the first number on the line". Lines about other analytes (testosterone, free PSA, PSA density) are skipped
+- Several results in one sentence (`4.5 on 1/15/24, then 5.2 on 4/20/24`), a flowsheet's row of dates over a row of values, and a phone portal's date-line/value-line alternation all parse; a count mismatch reads nothing rather than guessing
+- Quoted CSV from Excel, pipe-, tab- or comma-delimited fields, decimal commas (`4,5`)
 - **Ultrasensitive values** (0.008, 0.014) display to three decimals instead of collapsing to 0.00
 - **Below-detection results** (`<0.014`, `≤0.02`) are listed and plotted at the reported limit, but excluded from the fit — fitting them at their limit would bias the slope toward it
 - Values with thousands separators (`1,234`) read correctly
+- Above-range results (`>150`), a `<` that isn't beside a positive limit, and two results on one line are refused rather than guessed at
 - Lines that can't be read are counted and reported, never dropped silently
 
 **What it reports**
 - Doubling time with a 95% confidence interval, log-scale R², and PSA velocity (ng/mL/yr, a separate linear regression)
-- **Recent-trend comparison** — the last stretch of measurements fitted separately and compared against the earlier ones, so an accelerating series doesn't hide inside a single all-history average. Shown only when the difference test resolves, and worded descriptively: treatment changes, testosterone recovery, and benign post-radiotherapy bounce all produce the same signal and are invisible to the page
-- A caution when the total change falls inside the range assay and biological variation alone can produce
+- **Recent-trend comparison** — the last stretch of measurements fitted separately and compared against the earlier ones, so an accelerating series doesn't hide inside a single all-history average. Tested with Welch–Satterthwaite degrees of freedom (a long history against a short recent window is the usual shape, and the naive pooled df over-calls change there). Shown only when the difference test resolves, withheld when a later below-detection result means the window is no longer the latest epoch, and worded descriptively: treatment changes, testosterone recovery, and benign post-radiotherapy bounce all produce the same signal and are invisible to the page
+- A caution when the net first-to-last change falls inside the range assay and biological variation alone can produce
 
 **Chart**
 - Interactive Chart.js plot with a configurable projection and a 95% confidence band on the trend (trend CI, not a prediction interval)

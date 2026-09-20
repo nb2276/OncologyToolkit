@@ -77,93 +77,368 @@ function makeDate(year, month, day) {
   return d;
 }
 
-// A below-detection result: "<0.014", "< 0.014", "<=0.014", "≤0.014". Labs
-// report ultrasensitive PSA this way when the assay can't resolve a value.
-const CENSOR_PREFIX = /^(?:<=?|≤)/;
-
 // A number written with thousands separators ("1,234", "1,234.5"). Matched
 // against a whole field so it can never swallow a "date,value" CSV pair.
 const GROUPED_NUMBER = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/;
 
-// The numeric prefix parseFloat consumes from a token ("4.5ng" → "4.5").
-// Captured so measurements can be echoed back exactly as entered — "0.154"
-// must not re-round to "0.15", and "4.50" keeps its reported trailing zero.
-const NUMERIC_PREFIX = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/;
+// A decimal comma ("4,5"), again only as a whole field.
+const DECIMAL_COMMA = /^\d+,\d{1,2}$/;
+
+// -------------------------------------------------------------------------
+// Line reader
+//
+// Real input is pasted out of lab portals and clinic notes, so a line carries
+// far more than a date and a PSA: clock times, ages, accession numbers, list
+// markers, reference ranges, other analytes. The original reader took the
+// FIRST number on the line, which turned "1/15/24 0830 4.5" into a PSA of 830
+// and "67 y.o. PSA 4.5" into 67 — a confident doubling time from a number the
+// user never entered, the worst failure this tool has.
+//
+// The reader now works in the opposite order: find the dates, strip what is
+// recognisably not a result, and choose among the numbers left by EVIDENCE —
+// a PSA unit beats a PSA label beats position. Where the evidence runs out it
+// refuses the line (which is counted and reported) rather than guessing.
+// -------------------------------------------------------------------------
+
+const MONTH_WORD = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|' +
+                   'aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+
+const monthOf = word => MONTH_NAMES[word.slice(0, 3).toLowerCase()];
+
+// No lookbehind anywhere here: older Safari treats it as a syntax error, which
+// would take the whole script down. A captured prefix does the same job.
+const DATE_SCANNERS = [
+  // 2024-01-15, optionally with a time and zone glued on (…T08:30:00.000-08:00)
+  { re: new RegExp('(^|[^\\d./-])(\\d{4})-(\\d{2})-(\\d{2})' +
+                   '(?:[T ]\\d{1,2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?\\s*(?:Z|[+-]\\d{2}:?\\d{2})?)?' +
+                   '(?!\\d|[./-]\\d)', 'gi'),
+    build: m => makeDate(+m[2], +m[3], +m[4]) },
+  // 15-Jan-24 / Jan-15-24: a two-digit year only in the hyphenated lab form,
+  // where it cannot be a stray number that happens to follow a date.
+  { re: new RegExp('(^|[^A-Za-z\\d])(\\d{1,2})-(' + MONTH_WORD + ')-(\\d{2})(?!\\d|[./-]\\d)', 'gi'),
+    build: m => makeDate(2000 + +m[4], monthOf(m[3]), +m[2]) },
+  { re: new RegExp('(^|[^A-Za-z\\d])(' + MONTH_WORD + ')-(\\d{1,2})-(\\d{2})(?!\\d|[./-]\\d)', 'gi'),
+    build: m => makeDate(2000 + +m[4], monthOf(m[2]), +m[3]) },
+  // Jan 15, 2024 / January 15th 2024 / Jan-15-2024
+  { re: new RegExp('(^|[^A-Za-z])(' + MONTH_WORD + ')\\.?[\\s-]+(\\d{1,2})(?:st|nd|rd|th)?[\\s,-]+(\\d{4})(?!\\d)', 'gi'),
+    build: m => makeDate(+m[4], monthOf(m[2]), +m[3]) },
+  // 15 Jan 2024 / 15-Jan-2024 / 15th of January, 2024
+  { re: new RegExp('(^|[^\\d./-])(\\d{1,2})(?:st|nd|rd|th)?[\\s-]+(?:of\\s+)?(' + MONTH_WORD + ')\\.?,?[\\s-]+(\\d{4})(?!\\d)', 'gi'),
+    build: m => makeDate(+m[4], monthOf(m[3]), +m[2]) },
+  // 01/15/2024, 15.01.2024, 2024/01/15, 1/15/24 — tryParseDate owns the rules
+  { re: /(^|[^\d.\/-])(\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{2,4})(?!\d|[\/\-.]\d)/g,
+    build: m => tryParseDate(m[2]) },
+];
+
+// Sentinels standing in for a date lifted out of the line. Control characters,
+// so they can't collide with anything typed; stripped from the input first.
+const DATE_MARK = String.fromCharCode(1);   // wraps the index of a lifted date
+const BAD_DATE  = String.fromCharCode(2);   // shaped like a date but isn't one (Feb 31)
+const SENTINELS = new RegExp('[' + DATE_MARK + BAD_DATE + ']', 'g');
+
+// Lines about something that is not total PSA. "free" covers free PSA and
+// % free; a bare "%" is a ratio or a change, never a concentration; density,
+// velocity and doubling time are derived from PSA but are not PSA.
+const NOT_TOTAL_PSA = /testosterone|\bfree\b|%|density|velocity|doubling|\bpsa(?:d|dt|v)\b|\bphi\b|\b4k\s?score|\bpca3\b|\bcea\b|creatinine|h(?:a?emo)?globin|\bhgb\b|alk(?:aline)?\.?\s*phos/i;
+
+const PSA_LABEL  = /\bpsa\b|prostate[\s-]*specific/i;
+const PSA_UNIT   = /^\s*(?:ng\s*\/\s*ml|[uµμ]g\s*\/\s*l|mcg\s*\/\s*l)(?![a-z])/i;
+const OTHER_UNIT = /^\s*(?:ng\s*\/\s*dl|pg\s*\/|mg\s*\/|g\s*\/\s*d?l|nmol|pmol|mmol|[uµμ]mol|m?iu\b|u\s*\/\s*l|k\s*\/|x\s*10)/i;
+
+const REF_RANGE = new RegExp('\\b(?:ref(?:erence)?|range|normal|nl|limits?)\\b[^\\d<>≤≥' + DATE_MARK + ']*' +
+  '(?:[<>≤≥]=?\\s*)?\\d+(?:\\.\\d+)?(?:\\s*[-–—]\\s*\\d+(?:\\.\\d+)?)?', 'gi');
+const OP_BESIDE_DATE = new RegExp('(?:<=?|≤)\\s*' + DATE_MARK);
+const NUMBER_OR_DATE = new RegExp(DATE_MARK + '(\\d+)' + DATE_MARK +
+  '|((?:<=?|≤|>=?|≥)\\s*)?([+-]?)((?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?)', 'g');
 
 /**
- * Parse one line of input into { date, psaValue, psaText, censored } or null.
- * Skips any token that is exactly "PSA" (case-insensitive).
+ * Lift every date out of `line`. Returns the line with each date replaced by
+ * a marker, plus the dates in marker order.
+ */
+function extractDates(line) {
+  const dates = [];
+  for (const scanner of DATE_SCANNERS) {
+    line = line.replace(scanner.re, function () {
+      const m = Array.prototype.slice.call(arguments, 0, -2);
+      const d = scanner.build(m);
+      if (d === null) return m[1] + ' ' + BAD_DATE + ' ';
+      dates.push(d);
+      return m[1] + ' ' + DATE_MARK + (dates.length - 1) + DATE_MARK + ' ';
+    });
+  }
+  return { line, dates };
+}
+
+/** Remove what is recognisably not a result. Runs after the dates are out. */
+function stripNoise(s) {
+  return s
+    // clock times ("08:30", "8:30:00.000 PM")
+    .replace(/\b\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?\s*(?:[ap]\.?m\.?(?![a-z]))?/gi, ' ')
+    // labelled identifiers ("Acc# 12345678", "MRN: 0045671", "#4471")
+    .replace(/\b(?:acc(?:ession)?|mrn|fin|csn|encounter|order|specimen|id)\b\s*(?:#|no\.?|number)?\s*[:#]?\s*\d[\d-]*/gi, ' ')
+    .replace(/#\s*\d[\d-]*/g, ' ')
+    // ages and durations ("67 y.o.", "72yo", "age 67", "3 months")
+    .replace(/\bage[d:]?\s*\d{1,3}\b/gi, ' ')
+    .replace(/\b\d{1,3}\s*-?\s*(?:y\.?\s?o\.?|y\/o|yrs?|years?|year-old|months?|mos?|weeks?|wks?|days?)(?![a-z])/gi, ' ')
+    // labelled reference ranges ("Ref range: 0.0 - 4.0", "ref <4.0", "normal ≤ 4")
+    .replace(REF_RANGE, ' ')
+    // bare ranges ("0.00-4.00"). Safe now that dates are gone.
+    .replace(/(^|[^\d.])\d+(?:\.\d+)?\s*[-–—]\s*\d+(?:\.\d+)?(?![\d.])/g, '$1 ');
+}
+
+/**
+ * Everything the line could mean: its dates, and — in `cands`, in reading
+ * order — date markers interleaved with the numbers that survive as possible
+ * PSA values. `refuse` is set when the line is about another analyte or holds
+ * something that must not be guessed at (an impossible date, a loose "<").
+ */
+function scanLine(rawLine) {
+  const none = { dates: [], cands: [], refuse: true };
+  let line = String(rawLine).replace(SENTINELS, ' ').trim();
+  if (!line || line.charAt(0) === '#') return none;
+  if (NOT_TOTAL_PSA.test(line)) return none;
+
+  line = line.replace(/["'`]/g, ' ');            // quoted CSV paste
+  const lifted = extractDates(line);
+  if (lifted.line.indexOf(BAD_DATE) !== -1) return none;
+  if (OP_BESIDE_DATE.test(lifted.line)) return none;   // "<" beside a date is not a limit
+
+  const cands = scanNumbers(stripNoise(lifted.line));
+  if (cands === null) return none;
+  return { dates: lifted.dates, cands: cands, refuse: false };
+}
+
+/**
+ * Candidate PSA values in a noise-stripped line, in order, each tagged with
+ * what surrounds it. Date markers come back as { dateIndex } entries so the
+ * caller can see how numbers and dates interleave. Returns null when the line
+ * must be refused.
+ */
+function scanNumbers(s) {
+  // Separators first; then per-field comma handling, so "1,234" and "4,5"
+  // survive while "2024-01-15,123" still splits.
+  s = s.replace(/[;|]+/g, ' ').split(/\s+/).map(function (field) {
+    if (GROUPED_NUMBER.test(field)) return field.replace(/,/g, '');
+    if (DECIMAL_COMMA.test(field))  return field.replace(',', '.');
+    return field;
+  }).join(' ').replace(/,/g, ' ');
+
+  const labelAt = s.search(PSA_LABEL);
+  const out = [];
+  const re = new RegExp(NUMBER_OR_DATE.source, 'g');
+  let m;
+
+  while ((m = re.exec(s)) !== null) {
+    if (m[1] !== undefined) { out.push({ dateIndex: +m[1], idx: m.index, end: re.lastIndex }); continue; }
+
+    const op = m[2] ? m[2].trim() : '';
+    let sign = m[3];
+    const numText = m[4];
+    const before = s.charAt(m.index - 1);
+    const rest = s.slice(re.lastIndex);
+
+    // Part of a word or a longer number ("B12", "x3", "4+3")…
+    let glued = /[A-Za-z\d._]/.test(before);
+    // …except "PSA-4.5": a hyphen hanging off a word is a separator, not a minus.
+    if (sign === '-' && !op && /[A-Za-z]/.test(before)) { sign = ''; glued = false; }
+    if (glued && !op) continue;
+    // …a fraction ("4/5 cores"), or an ordinal ("2nd").
+    if (before === '/' || /^\/\s*\d/.test(rest) || /^(?:st|nd|rd|th)\b/i.test(rest)) continue;
+
+    const value = parseFloat(sign + numText);
+    const censored = op.charAt(0) === '<' || op === '≤';
+    if (censored && !(value > 0)) return null;        // "<0", "< -0.014": no such limit
+    if (!isFinite(value) || value < 0) continue;      // NaN, Infinity (1e309), negatives
+
+    const prev = out.length ? out[out.length - 1] : null;
+    const bare = numText.replace(/\.$/, '');
+    out.push({
+      value: value,
+      text: numText.replace(/^\./, '0.'),
+      censored: censored,
+      above: op.charAt(0) === '>' || op === '≥',
+      idx: m.index, end: re.lastIndex,
+      psaUnit: PSA_UNIT.test(rest),
+      otherUnit: OTHER_UNIT.test(rest),
+      afterLabel: labelAt !== -1 && m.index > labelAt,
+      // "0830", "0045671": a leading-zero integer is a time or an ID
+      zeroPadded: /^0\d+$/.test(numText),
+      // "1430" straight after a date, in clock range
+      afterDate: !!(prev && prev.dateIndex !== undefined && /^\s*$/.test(s.slice(prev.end, m.index))),
+      clockLike: /^(?:[01]\d|2[0-3])[0-5]\d$/.test(numText),
+      longInt: /^\d{5,}$/.test(numText),
+      // "1." / "2)" / "(3)" opening the line
+      listMarker: !op && /^\s*\(?$/.test(s.slice(0, m.index)) && /^\d{1,3}$/.test(bare) &&
+                  /^[.)]\s/.test(s.slice(m.index + bare.length))
+    });
+  }
+
+  // An inequality that never attached to a number, ahead of the first value
+  // ("< ng 0.2"). One trailing the value ("0.2 <") is dropped with the rest.
+  const firstNum = out.filter(function (c) { return c.dateIndex === undefined; })[0];
+  const looseOp = s.search(/(?:<=?|≤|>=?|≥)(?!\s*[+-]?[\d.])/);
+  if (looseOp !== -1 && (!firstNum || looseOp < firstNum.idx)) return null;
+
+  return out;
+}
+
+const isUsable     = c => !c.otherUnit && !c.zeroPadded;
+const isSuspicious = c => c.listMarker || c.longInt || (c.afterDate && c.clockLike);
+
+/**
+ * The PSA among one date's candidate numbers, or null. `lineNums` is every
+ * number on the line: a clock-like or long integer is only believed when the
+ * WHOLE LINE offers nothing better — a lone "1250" after a date is a PSA of
+ * 1250; with "4.5" anywhere on the line it is ten to one, even if the 4.5
+ * belongs to another date's segment.
+ */
+function chooseValue(nums, lineNums) {
+  const pool  = nums.filter(isUsable);
+  const plain = pool.filter(c => !isSuspicious(c));
+  let from = plain;
+  if (!plain.length) {
+    const betterElsewhere = (lineNums || nums).filter(isUsable).some(c => !isSuspicious(c));
+    if (betterElsewhere) return null;
+    from = pool;
+  }
+  if (!from.length) return null;
+  return from.filter(c => c.psaUnit)[0] || from.filter(c => c.afterLabel)[0] || from[0];
+}
+
+function toResult(date, c) {
+  return { date: date, psaValue: c.value, psaText: c.text, censored: c.censored };
+}
+
+/**
+ * Every { date, psaValue, psaText, censored } on one line — usually one,
+ * several for "4.5 on 1/15/24, then 5.2 on 4/20/24", none when unreadable.
  *
  * `censored` is true when the value was reported as below the assay's detection
  * limit; psaValue then holds that limit, not a measured concentration.
  * `psaText` is the value as the user typed it, for display.
  */
-function parseLine(line) {
-  line = line.trim();
-  if (!line || line.startsWith('#')) return null;
+function parseLineAll(line) {
+  const scan = scanLine(line);
+  if (scan.refuse || !scan.dates.length) return [];
 
-  // Strip clock times BEFORE tokenising. A lab line like "2024-01-15 08:30 4.5"
-  // otherwise splits on the colon and reads 08 as the PSA value — a wrong
-  // number, silently, which is worse than refusing the line.
-  line = line
-    .replace(/(\d{4}-\d{2}-\d{2})T\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?/gi, '$1')
-    .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\s*(?:[ap]\.?m\.?)?/gi, ' ');
+  const items = scan.cands;
+  const nums  = items.filter(function (c) { return c.dateIndex === undefined; });
+  const marks = items.filter(function (c) { return c.dateIndex !== undefined; });
+  if (!nums.length) return [];
 
-  // Glue a spelled-out date into one token so the field splitter keeps it whole.
-  line = line.replace(/\b([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})\b/g, '$1$2$3')
-             .replace(/\b(\d{1,2})\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})\b/g, '$1$2$3');
-
-  // Whitespace, semicolons and pipes split fields. Commas are handled per
-  // field so a grouped number ("1,234") survives, while a CSV field
-  // ("2024-01-15,123") still splits into a date and a value.
-  const tokens = [];
-  line.split(/[\s;|]+/).filter(Boolean).forEach(field => {
-    if (GROUPED_NUMBER.test(field)) { tokens.push(field.replace(/,/g, '')); return; }
-    field.split(/[,:]+/).filter(Boolean).forEach(t => tokens.push(t));
-  });
-
-  let date = null;
-  let psaValue = null;
-  let psaText = null;
-  let censored = false;
-  let pendingCensor = false;   // a lone "<" applies to the token that follows
-
-  for (const token of tokens) {
-    if (/^psa$/i.test(token)) continue;
-
-    if (/^(?:<=?|≤)$/.test(token)) { pendingCensor = true; continue; }
-
-    if (date === null) {
-      const d = tryParseDate(token);
-      if (d !== null) { date = d; continue; }
-    }
-
-    if (psaValue === null) {
-      const bare = token.replace(/^["']+|["']+$/g, '');   // quoted CSV paste
-      const cm   = CENSOR_PREFIX.exec(bare);
-      const num  = cm ? bare.slice(cm[0].length) : bare;
-      const n = parseFloat(num);
-      if (isFinite(n) && n >= 0) {                   // reject NaN AND Infinity (1e309)
-        psaValue = n;
-        const nm = NUMERIC_PREFIX.exec(num);
-        psaText = nm ? nm[0].replace(/^\+/, '').replace(/^\./, '0.') : null;
-        censored = pendingCensor || cm !== null;
-      }
-    }
+  // One date: everything on the line is about it.
+  if (marks.length === 1) {
+    const only = chooseValue(nums);
+    return only && !only.above ? [toResult(scan.dates[marks[0].dateIndex], only)] : [];
   }
 
-  if (date === null || psaValue === null) return null;
-  return { date, psaValue, psaText, censored };
+  // Several dates. Numbers belong to the date they follow ("d v d v") or, when
+  // the line opens with a number, the date they precede ("v on d, v on d").
+  const valueFirst = items[0].dateIndex === undefined;
+  const owned = marks.map(function () { return []; });
+  let cur = valueFirst ? 0 : -1;
+  items.forEach(function (c) {
+    if (c.dateIndex !== undefined) { cur = marks.indexOf(c) + (valueFirst ? 1 : 0); return; }
+    owned[Math.min(Math.max(cur, 0), marks.length - 1)].push(c);
+  });
+  const picks = owned.map(function (o) { return chooseValue(o, nums); });
+
+  if (picks.filter(Boolean).length >= 2) {
+    if (picks.some(function (p) { return p && p.above; })) return [];
+    return picks.map(function (p, i) { return p && toResult(scan.dates[marks[i].dateIndex], p); }).filter(Boolean);
+  }
+
+  // Not every date got a value. Dates within a week of each other are one
+  // event's metadata (collected / resulted) and the first is the draw.
+  const v = chooseValue(nums);
+  if (!v || v.above) return [];
+  const days = marks.map(function (mk) { return dayNumber(scan.dates[mk.dateIndex]); });
+  const sameEvent = Math.max.apply(null, days) - Math.min.apply(null, days) <= 7;
+
+  // Different events with as many values as dates, just not interleaved the
+  // way either reading expects ("1/15/24 4.5 and 5.2 on 4/20/24"): pair them
+  // in order rather than keep one and drop the other without a word.
+  // Same noise rules as chooseValue, applied unconditionally: pairing by
+  // position has no unit or label to fall back on, so a clock time or an ID
+  // must never be one of the things paired ("1/15/24 1430 PSA 4.5 on 4/20/24").
+  const usable = nums.filter(function (c) { return isUsable(c) && !isSuspicious(c); });
+  if (!sameEvent && usable.length === marks.length) {
+    if (usable.some(function (c) { return c.above; })) return [];
+    return usable.map(function (c, i) { return toResult(scan.dates[marks[i].dateIndex], c); });
+  }
+
+  // One value among several events ("started ADT 1/15/24; PSA 5.2 on
+  // 4/20/24"): it goes with the date it sits beside.
+  let best = marks[0];
+  if (!sameEvent) {
+    const gap = function (mk) { return mk.end <= v.idx ? v.idx - mk.end : mk.idx - v.end; };
+    marks.forEach(function (mk) { if (gap(mk) < gap(best)) best = mk; });
+  }
+  return [toResult(scan.dates[best.dateIndex], v)];
+}
+
+/** One result from a line, or null — also null when the line holds several. */
+function parseLine(line) {
+  const all = parseLineAll(line);
+  return all.length === 1 ? all[0] : null;
+}
+
+/**
+ * Read the whole textarea. Besides one-result-per-line input this pairs a line
+ * of dates with the line of values under it — the shape a flowsheet copies as
+ * ("1/15/24  4/20/24  7/1/24" over "4.5  5.2  6.8"), and the date-then-value
+ * alternation a phone portal produces. Counts must match exactly or neither
+ * line is read.
+ *
+ * Returns { data (sorted), unreadable (count of lines that gave nothing) }.
+ */
+function parseText(text) {
+  const data = [];
+  let unreadable = 0;
+  let pendingDates = null;       // a dates-only line waiting for its values
+
+  String(text).split('\n').forEach(function (raw) {
+    const s = raw.trim();
+    if (!s || s.charAt(0) === '#') return;
+    // No digit, no result: a header ("Date  PSA") or a heading, not a lost row.
+    if (!/\d/.test(s) && !pendingDates) return;
+
+    const scan = scanLine(raw);
+    const nums = scan.refuse ? [] : scan.cands.filter(function (c) { return c.dateIndex === undefined; });
+    const usable = nums.filter(isUsable);
+
+    if (pendingDates) {
+      const held = pendingDates;
+      pendingDates = null;
+      if (!scan.refuse && !scan.dates.length && usable.length === held.length &&
+          !usable.some(function (c) { return c.above; })) {
+        usable.forEach(function (c, i) { data.push(toResult(held[i], c)); });
+        return;
+      }
+      unreadable++;              // the dates line never found its values
+    }
+
+    if (!scan.refuse && scan.dates.length && !nums.length) {
+      pendingDates = scan.cands.map(function (c) { return scan.dates[c.dateIndex]; });
+      return;
+    }
+
+    const found = parseLineAll(raw);
+    if (found.length) found.forEach(function (r) { data.push(r); });
+    else unreadable++;
+  });
+  if (pendingDates) unreadable++;
+
+  data.sort(function (a, b) { return a.date - b.date; });
+  return { data: data, unreadable: unreadable };
 }
 
 /**
  * Parse the full textarea input, returning an array of
- * { date, psaValue, censored } sorted chronologically.
+ * { date, psaValue, psaText, censored } sorted chronologically.
  */
 function parseInput(text) {
-  const data = text.split('\n').map(parseLine).filter(Boolean);
-  data.sort((a, b) => a.date - b.date);
-  return data;
+  return parseText(text).data;
 }
 
 /**
@@ -172,10 +447,7 @@ function parseInput(text) {
  * 10 without the user noticing which two went missing.
  */
 function countUnparsedLines(text) {
-  return String(text).split('\n').filter(function (l) {
-    const s = l.trim();
-    return s && s.charAt(0) !== '#' && parseLine(l) === null;
-  }).length;
+  return parseText(text).unreadable;
 }
 
 /**
@@ -202,6 +474,17 @@ function dedupeMeasurements(data) {
 // -------------------------------------------------------------------------
 
 const MS_PER_DAY = 86400000;
+
+/**
+ * Whole calendar-day number for a date. Measurements are parsed to LOCAL
+ * midnight, so subtracting raw timestamps across a daylight-saving change gives
+ * 89.96 or 90.04 days instead of 90 — and a doubling time that depends on the
+ * viewer's timezone. Reading the calendar fields back and re-anchoring them to
+ * UTC makes every elapsed-days figure an integer everywhere.
+ */
+function dayNumber(date) {
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / MS_PER_DAY;
+}
 
 /**
  * Fit y = A * exp(B * x) to the data using UNWEIGHTED ordinary least squares
@@ -280,7 +563,7 @@ function fitExponential(data) {
   const firstDate = valid[0].date;
 
   const pts = valid.map(d => ({
-    x: (d.date.getTime() - firstDate.getTime()) / MS_PER_DAY,
+    x: dayNumber(d.date) - dayNumber(firstDate),
     y: d.psaValue,
     date: d.date
   }));
@@ -314,6 +597,12 @@ function fitExponential(data) {
     ssRes += r * r;
     ssTot += (lny - meanLnY) * (lny - meanLnY);
   }
+  // A series that is EXACTLY exponential (1, 2, 4, 8 — what people type to try
+  // the tool) leaves ssRes at floating-point residue (~1e-31), not zero. Left
+  // alone that residue becomes a "90.0000–90.0000 day" CI and a significant
+  // trend change. Relative to ssTot, so the cutoff is independent of PSA scale
+  // and time units; it says nothing about assay noise, only about roundoff.
+  if (ssRes <= 1e-20 * ssTot) ssRes = 0;
   const s2 = n > 2 ? ssRes / (n - 2) : 0;
 
   // Variance-covariance of (lnA, B)
@@ -388,10 +677,10 @@ function psaVelocity(data) {
   const valid = collapseSameDay(fittablePoints(data), 'arithmetic');
   if (valid.length < 2) return null;
 
-  const t0 = valid[0].date.getTime();
+  const t0 = dayNumber(valid[0].date);
   let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
   for (const d of valid) {
-    const x = (d.date.getTime() - t0) / MS_PER_DAY;
+    const x = dayNumber(d.date) - t0;
     const y = d.psaValue;
     n++; sx += x; sy += y; sxx += x * x; sxy += x * y;
   }
@@ -433,11 +722,11 @@ function recentWindow(data) {
   const pts = collapseSameDay(fittablePoints(data), 'geometric');
   if (pts.length < RECENT_MIN_POINTS + 1) return null;
 
-  const lastMs   = pts[pts.length - 1].date.getTime();
-  const inWindow = ms => (lastMs - ms) <= RECENT_WINDOW_DAYS * MS_PER_DAY;
-  const spanOk   = i  => (lastMs - pts[i].date.getTime()) >= RECENT_MIN_SPAN_DAYS * MS_PER_DAY;
+  const lastDay  = dayNumber(pts[pts.length - 1].date);
+  const inWindow = d => (lastDay - dayNumber(d.date)) <= RECENT_WINDOW_DAYS;
+  const spanOk   = i => (lastDay - dayNumber(pts[i].date)) >= RECENT_MIN_SPAN_DAYS;
 
-  let start = pts.findIndex(d => inWindow(d.date.getTime()));
+  let start = pts.findIndex(inWindow);
   if (start === -1) start = pts.length - 1;
 
   // Widen backwards until the window holds enough points across enough time.
@@ -457,7 +746,8 @@ function recentWindow(data) {
  * shared points and overstate the difference.
  *
  * Returns { differs, direction } or null when either side can't carry a CI
- * (n < 3 leaves no residual degrees of freedom, so varB would be a fake zero).
+ * (n < 3 leaves no residual degrees of freedom, so varB would be a fake zero)
+ * or when neither side shows any scatter at all (se = 0: nothing to test with).
  */
 function compareTrend(recentFit, earlierFit) {
   if (!recentFit || !earlierFit) return null;
@@ -467,7 +757,17 @@ function compareTrend(recentFit, earlierFit) {
   if (!isFinite(se) || se <= 0) return null;
 
   const diff = recentFit.B - earlierFit.B;
-  const df   = (recentFit.n - 2) + (earlierFit.n - 2);
+
+  // Welch–Satterthwaite degrees of freedom. `se` above is the UNPOOLED sum of
+  // variances, and pairing that with the pooled df (n_r + n_e − 4) is neither
+  // test: with a long history and a short recent window — the usual clinical
+  // shape — it flagged ~16% of constant-rate series at a nominal 5%. A pooled
+  // variance is not the fix either (35% when the recent values are noisier,
+  // which ultrasensitive-to-measurable series are by nature). Component df is
+  // n − 2 (a regression slope), not the n − 1 of a sample mean.
+  const vr = recentFit.varB, ve = earlierFit.varB;
+  const df = (vr + ve) * (vr + ve) /
+             (vr * vr / (recentFit.n - 2) + ve * ve / (earlierFit.n - 2));
   return {
     differs: Math.abs(diff / se) > tValue95(df),
     // "rate constant increased" stays true whether the series is rising faster
@@ -503,15 +803,18 @@ function noiseCaveat(data) {
   const last  = pts[pts.length - 1].psaValue;
   const fold  = Math.max(last / first, first / last);
   if (isFinite(fold) && fold < PSA_NOISE_FOLD) {
-    return 'Total change across these measurements is under ' +
-      Math.round((PSA_NOISE_FOLD - 1) * 100) + '%, which assay and biological ' +
-      'variation alone can produce. Treat the doubling time as provisional.';
+    // First-to-last only: 1 → 10 → 1.01 trips this too, and "total change"
+    // would be false there. The fold is symmetric in log space (×1.2 or ÷1.2),
+    // so it is worded as a ratio rather than a percent — ÷1.2 is a 17% fall.
+    return 'The last value is within ' + PSA_NOISE_FOLD + '× of the first, a net change ' +
+      'that assay and biological variation alone can produce. Treat the doubling ' +
+      'time as provisional.';
   }
 
   if (medianOf(pts.map(d => d.psaValue)) < ULTRASENSITIVE_MAX) {
     return 'At ultrasensitive levels (below ' + ULTRASENSITIVE_MAX + ' ng/mL) assay ' +
-      'variation commonly exceeds 20%, so these values scatter more than the fit ' +
-      'assumes. The doubling time is correspondingly less certain.';
+      'variation commonly exceeds 20% and depends on the assay. The doubling ' +
+      'time is correspondingly less certain.';
   }
 
   return null;
@@ -577,6 +880,18 @@ function lastFittedDateMs(data) {
   return data[data.length - 1].date.getTime();
 }
 
+/**
+ * Below-detection results dated AFTER the last value the fit used. A rise
+ * followed by "<0.014" is a patient whose PSA has since gone undetectable —
+ * usually because something was done about it. The fit cannot see that row, so
+ * without this the page reports the old rise as the "recent trend".
+ */
+function trailingCensoredCount(data) {
+  if (!data.length) return 0;
+  const lastMs = lastFittedDateMs(data);
+  return data.filter(d => d.censored && d.date.getTime() > lastMs).length;
+}
+
 // A "doubling time" longer than a human lifetime is, clinically, no trend at all
 // (and catches B≈0 floating-point noise that would otherwise print absurd values).
 const DT_STABLE_DAYS = 100 * 365.25;
@@ -605,7 +920,10 @@ function fmtDurationShort(days) {
 function fmtDoublingTimeCI(ci) {
   if (!ci || !ci.estimable) {
     if (ci && ci.reason === 'need3') return '95% CI: needs ≥3 measurements';
-    return '95% CI: not estimable (trend not significant)';   // spanszero / degenerate
+    // A perfect fit (1, 2, 4, 8) or a flat line has no residual scatter to build
+    // an interval from. Calling that "trend not significant" would be backwards.
+    if (ci && ci.reason === 'degenerate') return '95% CI: not estimable (values show no scatter around the fit)';
+    return '95% CI: not estimable (trend not significant)';   // spanszero
   }
   if (ci.increasing) {
     return `95% CI ${fmtDurationShort(ci.loDays)} – ${fmtDurationShort(ci.hiDays)}`;
@@ -679,11 +997,15 @@ function buildCurve(fit, startDate, endDate) {
 /**
  * Approximate two-tailed t critical value at 95% for given degrees of freedom.
  * Uses a small lookup + linear interpolation; accurate enough for CI bands.
+ * The fractional rows below 3 exist for compareTrend's Welch df, which is
+ * rarely an integer and usually small — the curve is steep there, and a
+ * straight line from df=1 to df=2 reads 8.50 at 1.5 where the truth is 6.02.
  */
 function tValue95(df) {
   if (df <= 0) return 12.706;
   const table = [
-    [1, 12.706], [2, 4.303], [3, 3.182], [4, 2.776], [5, 2.571],
+    [1, 12.706], [1.25, 8.028], [1.5, 6.017], [1.75, 4.949],
+    [2, 4.303], [2.5, 3.575], [3, 3.182], [4, 2.776], [5, 2.571],
     [6, 2.447], [7, 2.365], [8, 2.306], [9, 2.262], [10, 2.228],
     [15, 2.131], [20, 2.086], [30, 2.042], [60, 2.000], [120, 1.980],
     [Infinity, 1.960]
@@ -693,6 +1015,7 @@ function tValue95(df) {
       if (i === 0) return table[0][1];
       const [d0, t0] = table[i - 1];
       const [d1, t1] = table[i];
+      if (d1 === Infinity) return t0;   // (df − 120)/∞ = 0 anyway; say so
       const frac = (df - d0) / (d1 - d0);
       return t0 + frac * (t1 - t0);
     }
@@ -1489,7 +1812,8 @@ function calculate(keepProjection) {
   input.value = input.value.split('\n').filter(l => l.trim()).join('\n');
   const text = input.value;
   autoGrowPsaInput(input);
-  const rawData = parseInput(text);
+  const parsed  = parseText(text);
+  const rawData = parsed.data;
   const data = dedupeMeasurements(rawData);   // hide exact duplicates everywhere
   recentFit = null;                           // never carry a stale trend line forward
   const dupsRemoved = rawData.length - data.length;
@@ -1525,7 +1849,7 @@ function calculate(keepProjection) {
   // Lines the parser could not read at all. Without this they vanish between
   // the textarea and the table, and the fit quietly covers fewer measurements
   // than the user pasted.
-  const unreadable = countUnparsedLines(text);
+  const unreadable = parsed.unreadable;
   const badEl = document.getElementById('psaUnparsedNote');
   if (badEl) {
     if (unreadable > 0) {
@@ -1599,10 +1923,16 @@ function calculate(keepProjection) {
   // Shown only when both segments can carry a CI, i.e. the comparison actually
   // resolves. A bare "recent trend" number with no verdict would invite the
   // reader to see acceleration in what may be scatter — the number and the
-  // "is this beyond noise?" answer ship together or not at all.
+  // "is this beyond noise?" answer ship together or not at all. The wording
+  // claims only what the test shows: "more than the scatter explains" is a
+  // statement about these residuals, not about assay noise in general, and
+  // "no clear difference" is absence of evidence, not evidence of equivalence.
   recentFit = null;
   let recentText = '';
-  const win = recentWindow(data);
+  // A later below-detection result means the "recent" window is no longer the
+  // latest clinical epoch; an acceleration verdict about it would be stale.
+  const trailingCensored = trailingCensoredCount(data);
+  const win = trailingCensored > 0 ? null : recentWindow(data);
   if (win) {
     const rFit = fitExponential(win.points);
     const cmp  = compareTrend(rFit, fitExponential(win.earlier));
@@ -1611,8 +1941,8 @@ function calculate(keepProjection) {
       recentText = 'Recent trend (' + win.points.length + ' values since ' +
         fmtDate(win.points[0].date) + '): ' + psaShortDt(rFit.doublingTimeDays) +
         (cmp.differs
-          ? '  ·  growth rate ' + cmp.direction + ' vs the earlier values, beyond measurement noise'
-          : '  ·  no measurable difference from the earlier values');
+          ? '  ·  growth rate ' + cmp.direction + ' vs the earlier values, by more than the scatter in these values explains'
+          : '  ·  no clear difference from the earlier values');
     }
   }
   const recentEl = document.getElementById('psaRecent');
@@ -1653,7 +1983,13 @@ function calculate(keepProjection) {
     if (censoredCount > 0) {
       censEl.textContent = censoredCount + ' below-detection result' +
         (censoredCount === 1 ? '' : 's') + ' (reported as "<") listed but excluded from ' +
-        'the fit — the true value is unknown below the assay limit.';
+        'the fit — the true value is unknown below the assay limit.' +
+        (trailingCensored > 0
+          ? ' ' + (trailingCensored === censoredCount ? (censoredCount === 1 ? 'It is' : 'They are')
+                                                     : trailingCensored + ' of them ' + (trailingCensored === 1 ? 'is' : 'are')) +
+            ' dated after the last fitted value (' + fmtDate(new Date(lastFittedDateMs(data))) +
+            '), so the doubling time describes the fitted values up to that date, not the latest result.'
+          : '');
       censEl.style.display = 'block';
     } else {
       censEl.style.display = 'none';
