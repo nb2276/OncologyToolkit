@@ -169,6 +169,7 @@ vm.runInContext(`
   globalThis.offScaleDate = offScaleDate;
   globalThis.niceAxisMax = niceAxisMax;
   globalThis.linearAxisCap = linearAxisCap;
+  globalThis.defaultProjection = defaultProjection;
   globalThis.parseText = parseText;
   globalThis.parseLineAll = parseLineAll;
   globalThis.dedupeMeasurements = dedupeMeasurements;
@@ -217,6 +218,7 @@ var parseInput = sandbox.parseInput;
 var offScaleDate = sandbox.offScaleDate;
 var niceAxisMax = sandbox.niceAxisMax;
 var linearAxisCap = sandbox.linearAxisCap;
+var defaultProjection = sandbox.defaultProjection;
 var parseText = sandbox.parseText;
 var parseLineAll = sandbox.parseLineAll;
 var dedupeMeasurements = sandbox.dedupeMeasurements;
@@ -1540,6 +1542,52 @@ assert(niceAxisMax(3.0000000001) > 3, 'niceAxisMax: a hair over 3 rounds up, not
   assertEqual(String(r).replace(/^-?\d*\.?/, '').length <= 6, true,
     'niceAxisMax: ' + v + ' → ' + r + ' has no float dust');
 });
+
+section('=== psa.js: defaultProjection ===');
+
+var projSeries = function (txt) {
+  var d = dedupeMeasurements(parseInput(txt));
+  return { data: d, fit: fitExponential(d) };
+};
+
+// Half the observed history, to the nearest half-year, is still the basis.
+var tenYr = projSeries('2014-01-01 0.9\n2015-01-01 1.1\n2016-01-01 1.3\n2017-01-01 1.6\n2018-01-01 2.0\n' +
+  '2019-01-01 2.4\n2020-01-01 3.0\n2021-01-01 3.7\n2022-01-01 4.6\n2023-01-01 5.7\n2024-01-01 7.1');
+assertEqual(defaultProjection(tenYr.data, tenYr.fit), 5,
+  'defaultProjection: a slow 10-year history still gets the full 5-year forecast');
+
+// …but a fast doubling time is held back, because on a linear axis the curve
+// would otherwise swallow the history it was fitted to.
+var fast = projSeries('2021-01-01 <0.014\n2021-06-30 <0.014\n2021-12-27 0.03\n2022-06-25 0.09\n' +
+  '2022-12-22 0.31\n2023-06-01 0.95');
+assertEqual(defaultProjection(fast.data, fast.fit), 0.5,
+  'defaultProjection: a 3.4-month doubling time is clamped to 0.5 yr (span alone gave 1)');
+
+// The clamp only ever shortens: it must never extend past half the history.
+[['2021-01-01 1.0\n2021-07-01 1.4\n2022-01-01 2.0\n2022-07-01 2.8\n2023-01-01 3.9\n2023-07-01 5.5', 1],
+ ['2022-01-01 1.2\n2022-07-01 2.0\n2023-01-01 3.1', 0.5]].forEach(function (c) {
+  var p = projSeries(c[0]);
+  assertEqual(defaultProjection(p.data, p.fit), c[1], 'defaultProjection: unchanged at ' + c[1] + ' yr');
+});
+
+// A falling or flat fit shrinks into its own projection, so no growth limit
+// applies — and ln2/B there is negative or meaningless.
+var falling = projSeries('2021-01-01 9.0\n2021-06-30 5.5\n2021-12-27 3.2\n2022-06-25 1.9\n2022-12-22 1.1');
+assertEqual(defaultProjection(falling.data, falling.fit), 1, 'defaultProjection: a halving series is not clamped');
+var flat = projSeries('2021-01-01 4.10\n2021-06-30 4.05\n2021-12-27 4.18\n2022-06-25 4.02\n2022-12-22 4.12');
+assertEqual(defaultProjection(flat.data, flat.fit), 1, 'defaultProjection: a flat series is not clamped');
+
+// Always inside the range the projectionYears input itself accepts.
+[tenYr, fast, falling, flat].forEach(function (p) {
+  var y = defaultProjection(p.data, p.fit);
+  assert(y >= 0.5 && y <= 5, 'defaultProjection: ' + y + ' is within the input min/max');
+  assertEqual(y, Math.round(y * 2) / 2, 'defaultProjection: ' + y + ' lands on the 0.5 step');
+});
+
+// Degenerate input must not produce NaN in the projection box.
+assertEqual(defaultProjection([], null), 0.5, 'defaultProjection: no data → the 0.5 floor');
+assertEqual(defaultProjection(null, null), 0.5, 'defaultProjection: null data → the 0.5 floor');
+assertEqual(defaultProjection(fast.data, null), 1, 'defaultProjection: no fit → span rule alone (no growth to clamp against)');
 
 section('=== psa.js: linearAxisCap ===');
 

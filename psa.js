@@ -1048,6 +1048,48 @@ function niceAxisMax(v) {
   return parseFloat((n * step).toPrecision(12));
 }
 
+// How far past the measurements the DEFAULT projection is allowed to carry the
+// fitted curve, as a multiple of the largest value actually measured. The axis
+// has to contain that curve, so this is what decides how much of the chart the
+// measured history gets: at 4x it keeps roughly a quarter, which is about where
+// a series stops reading as a flat line along the bottom.
+const PROJECTION_MAX_GROWTH = 4;
+
+/**
+ * Default length of the projection, in years.
+ *
+ * Half the observed history is the starting point — a decade of PSA earns a
+ * longer forecast than three draws. But span alone ignores how fast the series
+ * is moving, and on a linear axis an exponential swallows its own history:
+ * a year projected on a 3.4-month doubling time is ~3.5 doublings, which left
+ * the measurements as a flat line in the bottom 8% of the chart. So a rising
+ * fit is additionally held to the point where it reaches
+ * PROJECTION_MAX_GROWTH x the largest measured value.
+ *
+ * Only the default moves; any value the user types is kept, as is one restored
+ * from history or a shared link.
+ */
+function defaultProjection(data, fit) {
+  if (!data || data.length < 2) return 0.5;
+  const firstDay = dayNumber(data[0].date);
+  const lastDay  = dayNumber(data[data.length - 1].date);
+  let years = Math.round(((lastDay - firstDay) / 365.25) * 0.5 * 2) / 2;   // half the span, to the nearest 1/2 yr
+
+  // A falling or flat fit shrinks into the projection instead of dominating it,
+  // so it needs no growth limit — and ln2/B would be negative or meaningless.
+  if (fit && fit.B > 0 && isFinite(fit.B) && fit.A > 0) {
+    let peak = 0;
+    for (const d of data) if (d.psaValue > 0 && isFinite(d.psaValue)) peak = Math.max(peak, d.psaValue);
+    if (peak > 0) {
+      // Day (from the fit's own origin) at which the curve reaches the ceiling.
+      const limitDay = Math.log(PROJECTION_MAX_GROWTH * peak / fit.A) / fit.B;
+      const allowed  = (limitDay - (lastDay - dayNumber(fit.firstDate))) / 365.25;
+      years = Math.min(years, Math.round(allowed * 2) / 2);
+    }
+  }
+  return Math.max(0.5, Math.min(5, years));   // 0.5 matches the input's own min
+}
+
 // Headroom above the tallest thing the cap has to contain. Small because
 // niceAxisMax rounds up on top of it: together they clear ~10-20% above the
 // curve. A bare 1.5x (from before the rounding existed) spent up to half the
@@ -1974,13 +2016,10 @@ function calculate(keepProjection) {
   lastData = data;
   lastFit  = fit;
 
-  // Default projection: 50% of the input date range, clamped between 0.5 and 5
-  // years. Skipped when restoring (keepProjection) so a recalled/shared
+  // Skipped when restoring (keepProjection) so a recalled/shared
   // projectionYears isn't clobbered by the auto-default.
   if (!keepProjection) {
-    const dataSpanMs = data[data.length - 1].date.getTime() - data[0].date.getTime();
-    const dataSpanYrs = dataSpanMs / (365.25 * MS_PER_DAY);
-    defaultProjectionYears = Math.max(0.5, Math.min(5, Math.round(dataSpanYrs * 0.5 * 2) / 2)); // round to nearest 0.5
+    defaultProjectionYears = defaultProjection(data, fit);
     document.getElementById('projectionYears').value = defaultProjectionYears;
   }
 
