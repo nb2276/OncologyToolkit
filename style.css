@@ -304,6 +304,24 @@ body > *:not(script):not(nav) {
   background: var(--text-tertiary);
 }
 
+/* Present to assistive technology, absent on screen. Every page needs an <h1>
+   naming it — a screen reader lands on "PSA Doubling Time Calculator" instead
+   of a bare input — but the calculators are designed to open straight into the
+   form, with the nav's active link carrying the visual title. Not
+   display:none, which would take it out of the accessibility tree too. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Page load animation */
 @keyframes fadeInUp {
   from {
@@ -1073,7 +1091,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   box-shadow: var(--shadow-card);
 }
 
-.about-card h2 {
+.about-card h1 {
   margin: 0 0 6px;
   font-size: 28px;
   color: var(--text-primary);
@@ -1101,7 +1119,7 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   margin: 0 0 16px;
 }
 
-.about-card h3 {
+.about-card h2 {
   color: var(--text-primary);
   font-size: 16px;
   font-family: var(--font-display);
