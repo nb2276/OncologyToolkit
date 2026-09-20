@@ -118,6 +118,7 @@ When adding styles, find the right numbered section and add there — don't appe
 - **ReRT TRF buckets** (UMich): serial `<3mo→0, 3–6mo→0.1, 6mo–1yr→0.25, 1–3yr→0.5, >3yr→0.5`; parallel `<3mo→0, 3–6mo→0, 6mo–2yr→0.25 or 0.5, >2yr→0.5 or 1`. Active bucket auto-highlights from months-since-RT input.
 - **Composite TDF**: 0 = full recovery, 1 = no recovery. Empirical, not from a specific paper.
 - **Lungs V16 / Liver V32**: volumetric (cc), not Gy. Different math from serial OARs.
+- **PSA linear-axis readability** — how much of the chart the measurements occupy is set by `projectionYears ÷ doubling time`, not by the cap. A 1-year projection on a 3.4-month doubling time is ~3.5 doublings, so the measured history renders as a flat line in the bottom ~8% of the axis. The cap is already as tight as it can be without clipping the fitted curve (see `linearAxisCap`); the remaining lever is the *default* projection (50% of the data span, clamped 0.5–5 yr in `calculate`), which takes no account of how fast the series doubles. Measured shares across 12 simulated series run 8% (DT 3.4 mo) to 84% (flat). Clamping the default by doublings rather than span alone would fix it; the log toggle is the current escape hatch.
 
 ## Things to know before touching things
 

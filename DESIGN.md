@@ -106,6 +106,7 @@ Content is inset by a consistent page margin; figures sit inside that margin rat
 - **Result card** — label, value, CI. The value is the largest element on the page. Carries `aria-live="polite"`.
 - **Notes** (`.psa-drop-note` and friends) — 12 px, tertiary, one line each, directly under the result they qualify.
 - **Chart wrapper** (`.psa-chart-wrap`) owns the chart's height (360 px desktop, 300 px mobile) with Chart.js `maintainAspectRatio: false`. A fixed aspect ratio left ~100 px of plot on a phone with every point collapsed onto one line.
+- **Axes state what they contain.** A chart's scale is sized to the data it is asserting, not to the widest thing drawn on it: the PSA linear cap covers the measurements and the fitted curve and lets the confidence band clip, because scaling to a band that grows exponentially into the projection would squash the measurements onto the bottom edge. An explicit `max` is rounded to a round number — Chart.js prints it verbatim as the top tick, and `64.008` sitting above `0/10/…/60` reads as a data point. When a curve does leave the scale, say so in words and name the date: a line that runs off the top otherwise looks like a line that ended.
 
 Cards earn their place. A card that only groups text is a border for its own sake.
 
@@ -134,6 +135,7 @@ The PSA "Copy Results" PNG is a document, not a screenshot, and it leaves the si
 - Tables lead with the key column (Date) and right-align numerics against a hard edge, matching the on-screen order.
 - Every caveat visible on screen is printed on the image.
 - The footer states when it was generated, then how to reopen it — quietly.
+- **Every line that can grow must wrap.** Canvas `fillText` does not wrap, so it prints straight off the edge of the sheet with no error and no clipping to notice in review. Anything whose wording can change — a verdict sentence, a caveat — goes through `wrapTextToWidth` and reserves height per wrapped line. This shipped broken once: rewording the recent-trend verdict pushed it past the sheet.
 
 ---
 
