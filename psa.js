@@ -1048,6 +1048,31 @@ function niceAxisMax(v) {
   return parseFloat((n * step).toPrecision(12));
 }
 
+// Headroom above the tallest thing the cap has to contain. Small because
+// niceAxisMax rounds up on top of it: together they clear ~10-20% above the
+// curve. A bare 1.5x (from before the rounding existed) spent up to half the
+// chart on empty space, pushing the measurements into the bottom fifth.
+const LINEAR_CAP_HEADROOM = 1.1;
+
+/**
+ * The linear y-axis cap, or null to let the axis autoscale.
+ *
+ * `series` is every set of points the axis must actually contain: the
+ * measurements and the fitted curve. The CI band is deliberately NOT among
+ * them — it grows exponentially into the projection, so scaling to it would
+ * squash the measurements onto the bottom edge. It is allowed to run off the
+ * top instead, which is the whole reason this cap is set explicitly rather
+ * than left to Chart.js.
+ */
+function linearAxisCap(series) {
+  let m = 0;
+  for (const set of series) {
+    if (!set) continue;
+    for (const p of set) if (p && isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
+  }
+  return m > 0 && isFinite(m) ? niceAxisMax(m * LINEAR_CAP_HEADROOM) : null;
+}
+
 /**
  * The first date at which a curve leaves the top of a capped linear axis, or
  * null if it never does. The cap is set from the measured points and the
@@ -1093,19 +1118,9 @@ function renderChart(data, fit) {
   // Projection-region divider, used by the shading plugin.
   lastDataMs = lastFittedDateMs(data);
 
-  // Linear axis cap: the CI band grows exponentially into the projection and
-  // would otherwise force autoscale to a huge max, crushing the data. Cap to
-  // 1.5x the largest *finite, positive* value over the WHOLE sampled curve plus
-  // measured points (not just fit-at-end — a decreasing fit peaks at the start),
-  // then round that up to a clean number so it reads as a tick, not a data point.
-  let yMax = null;
-  if (yAxisType === 'linear') {
-    let m = 0;
-    for (const p of measured) if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
-    for (const p of censored) if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
-    for (const p of curve)    if (isFinite(p.y) && p.y > 0) m = Math.max(m, p.y);
-    if (m > 0 && isFinite(m)) yMax = niceAxisMax(m * 1.5);
-  }
+  // The WHOLE sampled curve, not just fit-at-end: a decreasing fit peaks at
+  // the start. The CI band is not passed in — see linearAxisCap.
+  const yMax = yAxisType === 'linear' ? linearAxisCap([measured, censored, curve]) : null;
   const isLog = yAxisType === 'logarithmic';
 
   if (psaChart) { psaChart.destroy(); psaChart = null; }
