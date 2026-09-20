@@ -122,6 +122,7 @@ Non-negotiable, because the audience is clinical:
 - Never encode meaning in colour alone — the recent-trend line is amber **and** dashed **and** labelled.
 - State changes announce themselves: the result card is `aria-live="polite"`, `#psaError` is `role="alert"`. Before that, calculating produced no announcement at all.
 - Visual reordering must not break focus order (see §4).
+- **Every page carries exactly one `<h1>`, and sections are real headings.** The calculators are designed to open straight into the form, with the nav's active link as the only visual title — which left five pages with no headings at all, so a screen reader landed on a bare input with nothing naming the page. The `h1` is `.visually-hidden` (clipped, not `display:none`, which would drop it from the accessibility tree too) where the design has no visible title, and visible where it does. A section header that looks like a heading is marked up as one: `.bed-card-header` sets its own font size, weight and margin, so it is an `<h2>` with no visual change.
 
 ---
 

@@ -101,6 +101,7 @@ When adding styles, find the right numbered section and add there — don't appe
 - **OAR DOM IDs** — `oar-card-{id}`, `dose-{id}`, `eqd2disp-{id}`, `trf-chip-{id}-{idx}`.
 - **Calculator pattern** — input → validate → `update()` → re-render results + push to history + sync URL.
 - **Nav active state** — set `.active` on the matching `.nav-link` in each page's nav block.
+- **Page headings** — every page opens its container with exactly one `<h1>`, `.visually-hidden` on the calculators (they have no visible title by design) and visible on about. Section headers use `<h2 class="bed-card-header">`, not `<div>`. A new page needs both.
 
 ## Clinically non-obvious logic
 
