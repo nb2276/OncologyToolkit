@@ -204,6 +204,7 @@ vm.runInContext(`
 var fmt = sandbox.fmt;
 var calcBED = sandbox.calcBED;
 var calcEQD2 = sandbox.calcEQD2;
+var bedToEQD2 = sandbox.bedToEQD2;
 var isoeffDose = sandbox.isoeffDose;
 var physicalToEqd2 = sandbox.physicalToEqd2;
 var eqd2ToPhysical = sandbox.eqd2ToPhysical;
@@ -319,6 +320,38 @@ assertClose(calcEQD2(20, 5, 3), 28, 0.001, 'EQD2: 20Gy/5fx ab=3');
 
 // 50 Gy in 25 fx (2 Gy/fx), ab=3: EQD2 = 50 (identity)
 assertClose(calcEQD2(50, 25, 3), 50, 0.001, 'EQD2: 50Gy/25fx ab=3 (identity at 2Gy/fx)');
+
+section('=== math.js: bedToEQD2 ===');
+
+// EQD2 = BED * ab/(2+ab). Expectations derived from that identity by hand,
+// then cross-checked against calcEQD2 on the same regimen.
+// 45 Gy/25 fx ab=3: BED = 45*(1+1.8/3) = 72; EQD2 = 72*3/5 = 43.2
+assertClose(bedToEQD2(72, 3), 43.2, 0.001, 'bedToEQD2: BED 72 ab=3 = 43.2');
+assertClose(bedToEQD2(calcBED(45, 25, 3), 3), calcEQD2(45, 25, 3), 0.001,
+  'bedToEQD2 matches calcEQD2: 45Gy/25fx ab=3');
+assertClose(bedToEQD2(calcBED(55, 20, 10), 10), calcEQD2(55, 20, 10), 0.001,
+  'bedToEQD2 matches calcEQD2: 55Gy/20fx ab=10');
+assertClose(bedToEQD2(calcBED(20, 1, 2), 2), calcEQD2(20, 1, 2), 0.001,
+  'bedToEQD2 matches calcEQD2: 20Gy/1fx ab=2 (SBRT)');
+
+// Round-trip against ReRT's inverse: EQD2 -> BED -> EQD2
+assertClose(bedToEQD2(calcBED(30, 10, 3), 3), physicalToEqd2(30, 10, 3), 0.001,
+  'bedToEQD2 agrees with physicalToEqd2');
+
+// Linear in BED, which is what lets the TDF-scaled BED be converted directly
+assertClose(bedToEQD2(72 * 0.5, 3), 0.5 * bedToEQD2(72, 3), 1e-9,
+  'bedToEQD2: linear in BED (TDF can be applied on either side)');
+
+// A negative remaining BED converts rather than being clamped — the composite
+// page reports the overage, it does not hide it
+assertClose(bedToEQD2(-10, 3), -6, 0.001, 'bedToEQD2: negative BED converts (no clamp)');
+
+// Edge cases
+assertEqual(bedToEQD2(null, 3), null, 'bedToEQD2: null BED returns null');
+assertEqual(bedToEQD2(NaN, 3), null, 'bedToEQD2: NaN BED returns null');
+assertEqual(bedToEQD2(72, 0), null, 'bedToEQD2: ab=0 returns null');
+assertEqual(bedToEQD2(72, NaN), null, 'bedToEQD2: NaN ab returns null');
+assertClose(bedToEQD2(0, 3), 0, 0.001, 'bedToEQD2: zero BED is zero EQD2');
 
 section('=== math.js: isoeffDose ===');
 

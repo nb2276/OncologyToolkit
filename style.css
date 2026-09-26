@@ -1449,10 +1449,19 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 .comp-bed-row {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 4px 20px;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--border-subtle);
+}
+
+/* Each label + value + unit travels together, so the BED and EQD2 readouts
+   wrap as whole units on a phone instead of splitting a number off its label. */
+.comp-bed-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .comp-bed-label {
@@ -1468,6 +1477,12 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   font-weight: 700;
   color: var(--accent);
   font-family: var(--font-display);
+}
+
+/* EQD2 sits beside the BED at the same size — same standing as a number, but
+   not accent-coloured, so BED stays the card's primary readout. */
+.comp-bed-val-alt {
+  color: var(--text-primary);
 }
 
 .comp-bed-unit {
@@ -1500,6 +1515,12 @@ nav.nav-open .nav-toggle span:nth-child(3) {
 .comp-remaining-eq .eq-warning {
   color: var(--danger);
   font-weight: bold;
+}
+
+.comp-remaining-eq .eq-alt {
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .comp-dose-box {

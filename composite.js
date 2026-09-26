@@ -36,10 +36,11 @@ function update() {
 
   var remFx  = parseFloat(document.getElementById('rem-fx').value);
 
-  // Structure tolerance BED
+  // Structure tolerance BED (+ its EQD2 at the same α/β)
   var stBedValid = !isNaN(stDose) && !isNaN(stFx) && !isNaN(stAb) && stDose > 0 && stFx >= 1 && stAb > 0;
   var stBed = stBedValid ? calcBED(stDose, stFx, stAb) : null;
   document.getElementById('st-bed').textContent = fmt(stBed);
+  document.getElementById('st-eqd2').textContent = fmt(bedToEQD2(stBed, stAb));
 
   // Previous dose BED (uses same α/β as structure)
   var pvBedValid = stBedValid && !isNaN(pvDose) && !isNaN(pvFx) && !isNaN(pvTdf) &&
@@ -48,9 +49,14 @@ function update() {
   var pvBedAdj    = (pvBedRaw !== null) ? pvBedRaw * pvTdf : null;
 
   document.getElementById('pv-bed').textContent = fmt(pvBedRaw);
+  document.getElementById('pv-eqd2').textContent = fmt(bedToEQD2(pvBedRaw, stAb));
   var detailEl = document.getElementById('pv-bed-detail');
   if (pvBedRaw !== null && pvTdf !== 1) {
-    detailEl.textContent = '\u00d7 ' + fmt(pvTdf, 2) + ' = ' + fmt(pvBedAdj) + ' Gy (time-adjusted)';
+    // TDF scales BED linearly and EQD2 is linear in BED, so the same factor
+    // applies to both \u2014 the adjusted pair is quoted in full to spare the reader
+    // re-deriving the EQD2 side.
+    detailEl.textContent = '\u00d7 ' + fmt(pvTdf, 2) + ' = ' + fmt(pvBedAdj) + ' Gy BED / ' +
+                           fmt(bedToEQD2(pvBedAdj, stAb)) + ' Gy EQD2 (time-adjusted)';
   } else if (pvBedAdj !== null) {
     detailEl.textContent = '(no time discount)';
   } else {
@@ -88,7 +94,8 @@ function update() {
     '<strong>' + fmt(stBed) + ' Gy</strong> (tolerance BED) &minus; ' +
     '<strong>' + fmt(pvBedAdj) + ' Gy</strong> (' + adjLabel + 'previous BED) = ' +
     '<span class="' + (remBed >= 0 ? 'eq-result' : 'eq-warning') + '">' +
-    fmt(remBed) + ' Gy remaining BED</span>';
+    fmt(remBed) + ' Gy remaining BED</span> ' +
+    '<span class="eq-alt">(' + fmt(bedToEQD2(remBed, stAb)) + ' Gy EQD2)</span>';
 
   if (remBed <= 0) {
     resultEl.innerHTML =
