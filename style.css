@@ -1398,9 +1398,16 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   white-space: nowrap;
 }
 
+/* --text-secondary, not --text-muted. These hints explain how to read the
+   numbers beside them (which α/β governs a card, what the isoeffective table
+   means) — that is content, and --text-muted measured 1.62:1 dark / 2.79:1
+   light on --bg-card, against DESIGN.md's 4.5:1 floor. §2 reserves --text-muted
+   for decoration. Secondary is 6.6:1 dark / 8.8:1 light; tertiary would be
+   2.58:1, which §11's .comp-bed-detail comment already rejects as too low.
+   One swap, three pages: bed.html, rert.html, composite.html. */
 .bed-section-hint {
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin: -10px 0 16px;
   line-height: 1.6;
 }
@@ -1450,7 +1457,10 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 4px 20px;
+  /* Row-gap matches the card's own 10px vertical rhythm: when the BED and EQD2
+     pairs wrap onto separate lines (narrow viewport, 4-decimal preference), two
+     20px display numbers 4px apart read as one crowded block. */
+  gap: 10px 20px;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--border-subtle);

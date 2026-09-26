@@ -93,20 +93,21 @@
       <!-- Previous Dose -->
       <div class="bed-card">
         <h2 class="bed-card-header">Previous Dose</h2>
+        <p class="bed-section-hint" id="pv-ab-note">BED and EQD2 here use the &alpha;/&beta; from Structure Tolerance above &mdash; this card has no &alpha;/&beta; of its own.</p>
         <div class="comp-grid">
           <div class="comp-field">
             <label for="pv-dose">Dose (Gy)</label>
-            <input type="number" id="pv-dose" value="15" min="0" step="0.1">
+            <input type="number" id="pv-dose" aria-describedby="pv-ab-note" value="15" min="0" step="0.1">
             <span class="input-range-warning" id="warn-pv-dose"></span>
           </div>
           <div class="comp-field">
             <label for="pv-fx">Fractions</label>
-            <input type="number" id="pv-fx" value="10" min="1" step="1">
+            <input type="number" id="pv-fx" aria-describedby="pv-ab-note" value="10" min="1" step="1">
             <span class="input-range-warning" id="warn-pv-fx"></span>
           </div>
           <div class="comp-field">
             <label for="pv-tdf">Time Discount Factor</label>
-            <input type="number" id="pv-tdf" value="1" min="0" max="1" step="0.05">
+            <input type="number" id="pv-tdf" aria-describedby="pv-ab-note" value="1" min="0" max="1" step="0.05">
             <span class="input-range-warning" id="warn-pv-tdf"></span>
           </div>
         </div>

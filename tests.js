@@ -205,6 +205,7 @@ var fmt = sandbox.fmt;
 var calcBED = sandbox.calcBED;
 var calcEQD2 = sandbox.calcEQD2;
 var bedToEQD2 = sandbox.bedToEQD2;
+var eqd2ToBED = sandbox.eqd2ToBED;
 var isoeffDose = sandbox.isoeffDose;
 var physicalToEqd2 = sandbox.physicalToEqd2;
 var eqd2ToPhysical = sandbox.eqd2ToPhysical;
@@ -401,6 +402,77 @@ assertEqual(pathMismatch, 0,
 // the discounted BED, for the same reason.
 assertClose(calcEQD2(15, 10, 3) * 0.5, 6.75, 1e-12,
   'time-adjusted EQD2: calcEQD2 x TDF (15Gy/10fx ab=3, TDF 0.5) = 6.75');
+
+section('=== math.js: eqd2ToBED ===');
+
+// BED = EQD2 * (2+ab)/ab. Derived by hand from the identity, then round-tripped.
+// 43.2 Gy EQD2 at ab=3 -> 43.2 * 5/3 = 72
+assertClose(eqd2ToBED(43.2, 3), 72, 1e-9, 'eqd2ToBED: EQD2 43.2 ab=3 = BED 72');
+assertClose(eqd2ToBED(60, 10), 72, 1e-9, 'eqd2ToBED: EQD2 60 ab=10 = BED 72');
+
+// Algebraic inverse of bedToEQD2, round-tripped BED -> EQD2 -> BED. Accurate to
+// ~1e-9, NOT bit-exact: composing the two helpers accumulates the ULP-scale
+// error documented on bedToEQD2.
+[[72, 3], [105.4167, 2], [58.4375, 10], [0.5, 1], [200, 25]].forEach(function (pair) {
+  var bed = pair[0], ab = pair[1];
+  assertClose(eqd2ToBED(bedToEQD2(bed, ab), ab), bed, 1e-9,
+    'eqd2ToBED round-trips bedToEQD2: BED ' + bed + ' ab=' + ab);
+});
+
+// ...and at a display tie the round trip moves the printed digit, exactly as
+// the BED-vs-calcEQD2 path does. Pinned so "inverse" is never read as "safe to
+// compose": no production path chains these two, and none should start. ab 0.5
+// and 0.6 are inside COMP_RANGES/RERT_RANGES (min 0.1), so this is reachable
+// input, not a synthetic extreme. decimals.js offers 0-4 places.
+assertEqual((15.5).toFixed(0), '16', 'round-trip tie: 15.5 prints 16 at 0 decimals');
+assertEqual(eqd2ToBED(bedToEQD2(15.5, 0.6), 0.6).toFixed(0), '15',
+  'round-trip tie: BED 15.5 ab=0.6 comes back printing 15 — composing the helpers moves the digit');
+assertEqual((1.95).toFixed(1), '1.9', 'round-trip tie: 1.95 prints 1.9 at 1 decimal');
+assertEqual(eqd2ToBED(bedToEQD2(1.95, 0.5), 0.5).toFixed(1), '2.0',
+  'round-trip tie: BED 1.95 ab=0.5 comes back printing 2.0');
+
+// At ab=2 the factor ab/(2+ab) is exactly 1/2, so EQD2 is half the BED. (EQD2
+// never equals BED: ab/(2+ab) < 1 for every finite ab. The identity people
+// remember — EQD2 == physical dose — belongs to calcEQD2 at 2 Gy/fx, and is
+// tested in the calcEQD2 section above.)
+assertClose(bedToEQD2(50, 2), 25, 1e-9, 'bedToEQD2: ab=2 halves the BED');
+assertClose(eqd2ToBED(25, 2), 50, 1e-9, 'eqd2ToBED: ab=2 doubles the EQD2');
+
+// Same non-coercing guard as bedToEQD2
+assertEqual(eqd2ToBED(null, 3), null, 'eqd2ToBED: null returns null');
+assertEqual(eqd2ToBED(NaN, 3), null, 'eqd2ToBED: NaN returns null');
+assertEqual(eqd2ToBED('', 3), null, "eqd2ToBED: empty string returns null (not 0)");
+assertEqual(eqd2ToBED('50', 3), null, 'eqd2ToBED: numeric string returns null (no coercion)');
+assertEqual(eqd2ToBED(Infinity, 3), null, 'eqd2ToBED: Infinity returns null');
+assertEqual(eqd2ToBED(50, 0), null, 'eqd2ToBED: ab=0 returns null');
+assertEqual(eqd2ToBED(50, NaN), null, 'eqd2ToBED: NaN ab returns null');
+
+// ab is guarded as strictly as the first argument, because a numeric-string ab
+// is silently catastrophic rather than merely wrong: `2 + ab` concatenates, so
+// eqd2ToBED(50,'3') computed 50*'23'/'3' = 383.33 instead of 83.33, and
+// bedToEQD2(50,'3') computed 50*'3'/'23' = 6.52 instead of 30. Unreachable from
+// today's callers (all parseFloat first) — pinned so it stays that way.
+assertEqual(eqd2ToBED(50, '3'), null, "eqd2ToBED: numeric-string ab returns null (no concatenation)");
+assertEqual(bedToEQD2(50, '3'), null, "bedToEQD2: numeric-string ab returns null (no concatenation)");
+assertEqual(eqd2ToBED(50, true), null, 'eqd2ToBED: boolean ab returns null');
+assertEqual(bedToEQD2(50, null), null, 'bedToEQD2: null ab returns null');
+
+// rert.js eqd2ToPhysical routes through eqd2ToBED. The round-trips and guard
+// cases that pin that rewire already live in the '=== rert.js: eqd2ToPhysical
+// ==='  section below; duplicating them here would add assertions and no
+// coverage. What was genuinely missing is an ABSOLUTE expectation — every other
+// eqd2ToPhysical test is a physicalToEqd2 round-trip, so none pins the
+// magnitude of the intermediate BED. Derived by hand, per this suite's rule
+// that expectations are not copied from the code's own output:
+//   EQD2 20 Gy, ab=3  ->  BED = 20*(2+3)/3 = 33.3333
+//   disc = 3² + 4*33.3333*3/3 = 142.3333;  d = (-3 + √142.3333)/2 = 4.465177
+//   3 fx -> 3d = 13.39553 Gy physical
+assertClose(eqd2ToPhysical(20, 3, 3), 13.39553, 1e-4,
+  'eqd2ToPhysical: EQD2 20 Gy ab=3 in 3 fx = 13.3955 Gy physical (absolute, hand-derived)');
+
+// The same value the long way, to prove the intermediate BED is what we think.
+assertClose(isoeffDose(eqd2ToBED(20, 3), 3, 3), 13.39553, 1e-4,
+  'eqd2ToPhysical decomposes into eqd2ToBED + isoeffDose');
 
 section('=== math.js: isoeffDose ===');
 
