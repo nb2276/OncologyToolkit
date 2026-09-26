@@ -1,4 +1,4 @@
-// calcBED, calcEQD2, isoeffDose, fmt provided by math.js
+// calcBED, calcEQD2, bedToEQD2, isoeffDose, fmt provided by math.js
 // copyToClipboard provided by clipboard.js
 // URL state + history provided by url-state.js, history.js
 
@@ -40,7 +40,11 @@ function update() {
   var stBedValid = !isNaN(stDose) && !isNaN(stFx) && !isNaN(stAb) && stDose > 0 && stFx >= 1 && stAb > 0;
   var stBed = stBedValid ? calcBED(stDose, stFx, stAb) : null;
   document.getElementById('st-bed').textContent = fmt(stBed);
-  document.getElementById('st-eqd2').textContent = fmt(bedToEQD2(stBed, stAb));
+  // Straight from calcEQD2, not via bedToEQD2(stBed): we have D and n here, and
+  // the round trip through BED can round the other way at an exact tie, which
+  // would print a different EQD2 than bed.html for the same regimen.
+  var stEqd2 = stBedValid ? calcEQD2(stDose, stFx, stAb) : null;
+  document.getElementById('st-eqd2').textContent = fmt(stEqd2);
 
   // Previous dose BED (uses same α/β as structure)
   var pvBedValid = stBedValid && !isNaN(pvDose) && !isNaN(pvFx) && !isNaN(pvTdf) &&
@@ -49,14 +53,17 @@ function update() {
   var pvBedAdj    = (pvBedRaw !== null) ? pvBedRaw * pvTdf : null;
 
   document.getElementById('pv-bed').textContent = fmt(pvBedRaw);
-  document.getElementById('pv-eqd2').textContent = fmt(bedToEQD2(pvBedRaw, stAb));
+  // Same reasoning as the tolerance EQD2 above — D and n are in hand, so use
+  // calcEQD2 rather than converting the BED we just computed.
+  var pvEqd2Raw = pvBedValid ? calcEQD2(pvDose, pvFx, stAb) : null;
+  document.getElementById('pv-eqd2').textContent = fmt(pvEqd2Raw);
   var detailEl = document.getElementById('pv-bed-detail');
   if (pvBedRaw !== null && pvTdf !== 1) {
     // TDF scales BED linearly and EQD2 is linear in BED, so the same factor
-    // applies to both \u2014 the adjusted pair is quoted in full to spare the reader
+    // applies to both — the adjusted pair is quoted in full to spare the reader
     // re-deriving the EQD2 side.
     detailEl.textContent = '\u00d7 ' + fmt(pvTdf, 2) + ' = ' + fmt(pvBedAdj) + ' Gy BED / ' +
-                           fmt(bedToEQD2(pvBedAdj, stAb)) + ' Gy EQD2 (time-adjusted)';
+                           fmt(pvEqd2Raw * pvTdf) + ' Gy EQD2 (time-adjusted)';
   } else if (pvBedAdj !== null) {
     detailEl.textContent = '(no time discount)';
   } else {
@@ -95,7 +102,11 @@ function update() {
     '<strong>' + fmt(pvBedAdj) + ' Gy</strong> (' + adjLabel + 'previous BED) = ' +
     '<span class="' + (remBed >= 0 ? 'eq-result' : 'eq-warning') + '">' +
     fmt(remBed) + ' Gy remaining BED</span> ' +
-    '<span class="eq-alt">(' + fmt(bedToEQD2(remBed, stAb)) + ' Gy EQD2)</span>';
+    // Both halves of one result carry the same state — a red BED beside a
+    // neutral EQD2 read as half-alarming. Remaining BED is a derived BED with
+    // no D/n, so bedToEQD2 is the only route here and has no cross-page twin.
+    '<span class="eq-alt' + (remBed >= 0 ? '' : ' eq-alt-warning') + '">(' +
+    fmt(bedToEQD2(remBed, stAb)) + ' Gy EQD2)</span>';
 
   if (remBed <= 0) {
     resultEl.innerHTML =

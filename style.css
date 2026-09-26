@@ -1479,10 +1479,15 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   font-family: var(--font-display);
 }
 
-/* EQD2 sits beside the BED at the same size — same standing as a number, but
-   not accent-coloured, so BED stays the card's primary readout. */
+/* EQD2 sits beside the BED but subordinate to it: smaller and --text-secondary,
+   so the accent BED is unambiguously the card's primary readout. --text-primary
+   at the same 20px lost that contest (12.1:1 dark / 17.4:1 light against the
+   accent's 7.1:1 / 3.9:1 — the neutral number won the eye, worst in light mode).
+   --text-secondary still clears the 4.5:1 floor for a consumed value at 16px:
+   6.6:1 dark, 8.8:1 light. */
 .comp-bed-val-alt {
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  font-size: 16px;
 }
 
 .comp-bed-unit {
@@ -1490,10 +1495,14 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   color: var(--text-tertiary);
 }
 
+/* --text-secondary, not --text-tertiary: when TDF differs from 1 this line
+   carries the time-adjusted BED *and* EQD2, and those are the numbers that
+   drive the remaining-dose result — data, not annotation. Tertiary measured
+   2.58:1 on --bg-card, under the 4.5:1 floor DESIGN.md sets for any consumed
+   value. No margin-left: the row's 20px column-gap already separates it. */
 .comp-bed-detail {
   font-size: 13px;
-  color: var(--text-tertiary);
-  margin-left: 4px;
+  color: var(--text-secondary);
 }
 
 .comp-remaining-eq {
@@ -1521,6 +1530,13 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   color: var(--text-secondary);
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* Over-tolerance: the EQD2 half of the result carries the same warning state as
+   the BED half. Colour is not the only signal — the .comp-error-box below says
+   it in words (DESIGN.md §6). */
+.comp-remaining-eq .eq-alt-warning {
+  color: var(--danger);
 }
 
 .comp-dose-box {
@@ -2766,6 +2782,26 @@ details[open].rert-oar-picker .rert-picker-chevron {
 
   .bed-result-cell {
     color: #222;
+  }
+
+  /* The theme tokens are not reset for print, and dark is the default theme, so
+     any readout that sets its own colour prints light-on-white: the EQD2 value
+     at ~2:1, the accent BED at ~1.9:1, and at --text-primary it was ~1.2:1, i.e.
+     not at all. The .bed-result-cell rule above is the same fix for the BED
+     table. Warning red stays red — it prints and it carries meaning. */
+  .comp-bed-val,
+  .comp-bed-val-alt,
+  .comp-bed-detail,
+  .comp-remaining-eq,
+  .comp-remaining-eq strong,
+  .comp-remaining-eq .eq-result,
+  .comp-remaining-eq .eq-alt {
+    color: #222;
+  }
+
+  .comp-remaining-eq .eq-warning,
+  .comp-remaining-eq .eq-alt-warning {
+    color: #a11;
   }
 
   /* Show page URL for reference */

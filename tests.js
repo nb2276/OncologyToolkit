@@ -353,6 +353,55 @@ assertEqual(bedToEQD2(72, 0), null, 'bedToEQD2: ab=0 returns null');
 assertEqual(bedToEQD2(72, NaN), null, 'bedToEQD2: NaN ab returns null');
 assertClose(bedToEQD2(0, 3), 0, 0.001, 'bedToEQD2: zero BED is zero EQD2');
 
+// Non-numeric input must not coerce. isNaN('') is false and Number('') is 0, so
+// a blank DOM .value would otherwise render a confident "0.00 Gy EQD2" instead
+// of an em dash. math.js is shared by three pages; the guard has to hold for
+// callers other than composite.js.
+assertEqual(bedToEQD2('', 3), null, "bedToEQD2: empty string returns null (not 0)");
+assertEqual(bedToEQD2([], 3), null, 'bedToEQD2: empty array returns null (not 0)');
+assertEqual(bedToEQD2('72', 3), null, 'bedToEQD2: numeric string returns null (no coercion)');
+assertEqual(bedToEQD2(undefined, 3), null, 'bedToEQD2: undefined returns null');
+assertEqual(bedToEQD2(Infinity, 3), null, 'bedToEQD2: Infinity returns null');
+
+// --- Display agreement with calcEQD2 -----------------------------------------
+// bedToEQD2(calcBED(D,n,ab), ab) is algebraically calcEQD2(D,n,ab) but not
+// bit-equal: (1 + d/ab)*ab differs from (ab + d) by up to ~1 ULP, which flips
+// toFixed at an exact .xx5 tie. 19 Gy/2 fx ab=3 printed 47 via the round trip
+// where calcEQD2 prints 48. composite.js therefore uses calcEQD2 directly for
+// the tolerance and previous-dose readouts, so those can never disagree with
+// bed.html. These tests pin the ULP gap as REAL (so nobody "simplifies" the
+// call sites back) and pin the chosen path as exact.
+var tieD = 19, tieN = 2, tieAb = 3;
+assertEqual(calcEQD2(tieD, tieN, tieAb).toFixed(0), '48',
+  'display tie: calcEQD2(19,2,3) prints 48 at 0 decimals');
+assertEqual(bedToEQD2(calcBED(tieD, tieN, tieAb), tieAb).toFixed(0), '47',
+  'display tie: the BED round trip prints 47 — the gap this guards is real');
+assert(calcEQD2(tieD, tieN, tieAb) !== bedToEQD2(calcBED(tieD, tieN, tieAb), tieAb),
+  'display tie: the two paths are not bit-equal at 19Gy/2fx ab=3');
+
+// The path composite.js actually takes is bit-identical to bed.html's across a
+// grid at every supported precision (decimals.js offers 0-4).
+var pathMismatch = 0;
+[1, 2, 2.5, 3, 10].forEach(function (ab) {
+  for (var n = 1; n <= 40; n++) {
+    for (var D = 0.5; D <= 80; D += 0.5) {
+      var direct = calcEQD2(D, n, ab);
+      for (var dec = 0; dec <= 4; dec++) {
+        // composite.js calls calcEQD2(D, n, ab) — the same function bed.html
+        // calls — so this is an identity check on the wiring, not the math.
+        if (direct.toFixed(dec) !== calcEQD2(D, n, ab).toFixed(dec)) pathMismatch++;
+      }
+    }
+  }
+});
+assertEqual(pathMismatch, 0,
+  'display agreement: composite tolerance/previous EQD2 path matches bed.html at 0-4 decimals');
+
+// The time-adjusted EQD2 scales the direct value by TDF rather than converting
+// the discounted BED, for the same reason.
+assertClose(calcEQD2(15, 10, 3) * 0.5, 6.75, 1e-12,
+  'time-adjusted EQD2: calcEQD2 x TDF (15Gy/10fx ab=3, TDF 0.5) = 6.75');
+
 section('=== math.js: isoeffDose ===');
 
 // Round-trip: calcBED then isoeffDose should recover original dose
@@ -2211,6 +2260,53 @@ var inputDose = { value: '2.75' };
 var warnDose  = makeWarn();
 applyRangeWarning(inputDose, warnDose, doseRange);
 assertEqual(warnDose.style.display, 'none', '2.75 Gy (dose, no integer flag) → no warning');
+
+// ============================================================
+// TESTS: composite.html ↔ composite.js id wiring
+// ============================================================
+
+section('=== composite.html: DOM id wiring ===');
+
+// composite.js writes into elements with an unguarded
+// getElementById(...).textContent, and the first of those runs during the
+// initial update() at page load — a missing id throws a TypeError and takes the
+// whole calculator down (tolerance, previous dose, remaining-dose equation, the
+// isoeffective table, validation, and the history save, all at once). The page
+// is not loaded into the sandbox, so check the contract statically instead —
+// same approach as the sw.js precache guard above.
+var compJsSrc = loadFile('composite.js');
+var compHtmlSrc = loadFile('composite.html');
+
+var compHtmlIds = {};
+compHtmlSrc.replace(/\bid="([^"]+)"/g, function (m, id) { compHtmlIds[id] = true; return m; });
+
+var compJsIds = [], seenCompId = {};
+compJsSrc.replace(/getElementById\('([^']+)'\)/g, function (m, id) {
+  // Literals only — the table rows build ids as ('rem-dose-' + n).
+  if (!seenCompId[id]) { seenCompId[id] = true; compJsIds.push(id); }
+  return m;
+});
+
+assert(compJsIds.length > 10,
+  'composite id wiring: scanner found the getElementById literals (got ' + compJsIds.length + ')');
+compJsIds.forEach(function (id) {
+  assertEqual(compHtmlIds[id], true, 'composite.html defines #' + id);
+});
+
+// Negative control: the scanner must actually be capable of failing.
+assertEqual(compHtmlIds['no-such-id-should-exist'], undefined,
+  'composite id wiring: a bogus id is reported absent (scanner is not vacuously true)');
+
+// Named explicitly so a refactor that drops one of the EQD2 spans fails on a
+// message that says what broke.
+assertEqual(compHtmlIds['st-eqd2'], true, 'composite.html: tolerance EQD2 readout #st-eqd2 exists');
+assertEqual(compHtmlIds['pv-eqd2'], true, 'composite.html: previous EQD2 readout #pv-eqd2 exists');
+
+// The remaining-BED EQD2 is styled by '.comp-remaining-eq .eq-alt', so the
+// container class must stay on #rem-eq or the parenthetical silently loses both
+// its styling and its over-tolerance warning colour.
+assert(/class="comp-remaining-eq"[^>]*id="rem-eq"|id="rem-eq"[^>]*class="comp-remaining-eq"/.test(compHtmlSrc),
+  'composite.html: #rem-eq still carries .comp-remaining-eq (CSS hook for .eq-alt)');
 
 // ============================================================
 // Summary
