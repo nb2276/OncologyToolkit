@@ -410,16 +410,26 @@ section('=== math.js: eqd2ToBED ===');
 assertClose(eqd2ToBED(43.2, 3), 72, 1e-9, 'eqd2ToBED: EQD2 43.2 ab=3 = BED 72');
 assertClose(eqd2ToBED(60, 10), 72, 1e-9, 'eqd2ToBED: EQD2 60 ab=10 = BED 72');
 
-// Inverse of bedToEQD2, round-tripped BED -> EQD2 -> BED. To ~1e-9, not
-// exactly: composing the two helpers accumulates the same ULP-scale error
-// documented on bedToEQD2, and at a display tie that can move the last printed
-// digit (EQD2 10.085 -> BED -> EQD2 prints 10.08, not 10.09). No production
-// path composes them, and nothing here should start.
+// Algebraic inverse of bedToEQD2, round-tripped BED -> EQD2 -> BED. Accurate to
+// ~1e-9, NOT bit-exact: composing the two helpers accumulates the ULP-scale
+// error documented on bedToEQD2.
 [[72, 3], [105.4167, 2], [58.4375, 10], [0.5, 1], [200, 25]].forEach(function (pair) {
   var bed = pair[0], ab = pair[1];
   assertClose(eqd2ToBED(bedToEQD2(bed, ab), ab), bed, 1e-9,
     'eqd2ToBED round-trips bedToEQD2: BED ' + bed + ' ab=' + ab);
 });
+
+// ...and at a display tie the round trip moves the printed digit, exactly as
+// the BED-vs-calcEQD2 path does. Pinned so "inverse" is never read as "safe to
+// compose": no production path chains these two, and none should start. ab 0.5
+// and 0.6 are inside COMP_RANGES/RERT_RANGES (min 0.1), so this is reachable
+// input, not a synthetic extreme. decimals.js offers 0-4 places.
+assertEqual((15.5).toFixed(0), '16', 'round-trip tie: 15.5 prints 16 at 0 decimals');
+assertEqual(eqd2ToBED(bedToEQD2(15.5, 0.6), 0.6).toFixed(0), '15',
+  'round-trip tie: BED 15.5 ab=0.6 comes back printing 15 — composing the helpers moves the digit');
+assertEqual((1.95).toFixed(1), '1.9', 'round-trip tie: 1.95 prints 1.9 at 1 decimal');
+assertEqual(eqd2ToBED(bedToEQD2(1.95, 0.5), 0.5).toFixed(1), '2.0',
+  'round-trip tie: BED 1.95 ab=0.5 comes back printing 2.0');
 
 // At ab=2 the factor ab/(2+ab) is exactly 1/2, so EQD2 is half the BED. (EQD2
 // never equals BED: ab/(2+ab) < 1 for every finite ab. The identity people
