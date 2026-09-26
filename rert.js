@@ -70,27 +70,55 @@ function getActiveTrfIdx(oar, months) {
   }
 }
 
-// Serial `trf` arrays carry the first four buckets; the fifth (> 3 yr) is a
-// blanket 0.5 per the UMich document, which is why the arrays are length 4.
-// An OAR can state its own instead via `trfBeyond3yr`, and the kidney does.
+// The > 3 yr bucket (mechanism is in the header comment above).
 //
-// Why the kidney is the exception: it shows no long-term recovery at all. The
-// mouse-kidney work found no recovery of functional damage between 2 and 26
-// weeks, and reirradiation tolerance *falls* with a longer interval rather than
-// rising, because subclinical damage from the first course keeps progressing —
-// Stewart et al., Int J Radiat Biol 1989;56:449 and 1994;66:169. Nieder &
-// Stewart's review (Semin Radiat Oncol 2000;10:200) groups heart, bladder and
-// kidney as the tissues that "do not exhibit long-term recovery at all".
+// THE ACTUAL REASON KIDNEY OPTS OUT is internal to this table, not the
+// literature: kidney's own row declares [0, 0, 0, 0]. A blanket 0.5 at > 3 yr
+// contradicts a value the source table itself states. Heart and bladder declare
+// [0, 0.1, 0.25, 0.5], which continues to 0.5 consistently — so leaving them
+// alone requires overruling nothing, while kidney did. That is the discriminator
+// to reason from if this is ever revisited.
 //
-// So the blanket 0.5 ran backwards for this one OAR: at 3 years and a day it
-// forgave half the prior kidney dose, in the permissive direction, on the organ
-// the literature says recovers least.
+// The radiobiology agrees with the direction:
+//   Stewart FA, Luts A, Lebesque JV. Int J Radiat Biol 1989;56:449. PMID 2571658
+//     — "no evidence for any recovery from functional damage in the interval
+//     between 2 and 26 weeks"; damage progressed, tolerance decreased with time.
+//   Stewart FA, Oussoren Y, Van Tinteren H, Bentzen SM. ibid 1994;66:169.
+//     PMID 8089627 — tolerance "decreased significantly with increasing interval
+//     ... suggesting progression rather than recovery".
+//   Stewart FA, van der Kogel AJ. Semin Radiat Oncol 1994;4:103. PMID 10717096
+//     — "In the kidney, reirradiation tolerance actually decreases with time."
+//     Note this review separates bladder ("independent of retreatment interval,
+//     suggesting permanent residual injury") from kidney; the coarser grouping
+//     in Nieder C, Milas L, Ang KK, Semin Radiat Oncol 2000;10:200 (PMID
+//     11034631) lumps heart, bladder and kidney as tissues that "do not exhibit
+//     long-term recovery at all".
 //
-// Read this before changing it: that same review also names heart and bladder,
-// and this table gives both [0, 0.1, 0.25, 0.5]. That disagreement is between
-// the source table and the review, not a coding slip, so it is left alone.
+// HOW FAR THE EVIDENCE ACTUALLY GOES: both mouse studies used retreatment
+// intervals of 2 or 26 weeks. The longest interval anyone observed is 6 months;
+// this bucket is > 3 years, and human kidney reirradiation data are essentially
+// absent. "No recovery at any interval" is an extrapolation from a falling
+// trend, not an observation at 3 years. It extrapolates in the conservative
+// direction, which is why it is acceptable here — but do not cite these papers
+// as having measured a 3-year interval, because they did not.
+//
+// Why 0 and not negative: the 1994 data have tolerance actively decreasing,
+// which this model could express (trf < 0 in effPrior = eqd2Prior * (1 - trf)
+// inflates the prior above the delivered dose). The UMich table has no negative
+// TRF, so 0 — no credit for elapsed time — is the floor this page takes.
+//
+// The default is the permissive 0.5, so a malformed or misspelled opt-out would
+// silently restore the bug this exists to fix. That is caught by the OAR_DATA
+// contract test in tests.js, not here: the runtime cannot tell a typo from an
+// OAR that legitimately has no opt-out, but the test can, because it knows the
+// whole table. The range check below is the one thing the runtime can do alone.
 function serialTrfBeyond3yr(oar) {
-  return typeof oar.trfBeyond3yr === 'number' ? oar.trfBeyond3yr : 0.5;
+  var declared = oar.trfBeyond3yr;
+  if (typeof declared !== 'number' || !isFinite(declared)) return 0.5;
+  // A value outside [0, 1] is not a recovery fraction; refuse it rather than
+  // forgiving more than the whole prior dose (or inflating it).
+  if (declared < 0 || declared > 1) return 0.5;
+  return declared;
 }
 
 function getActiveTrf(oar, months) {
@@ -349,7 +377,10 @@ function updateAll() {
     const hasDose = !isNaN(dose) && dose > 0;
 
     // TRF chip highlights
-    const numChips  = oar.group === 'serial' ? 5 : 4;
+    // Derived from the label list rather than hardcoded — the serial bucket
+    // count is now load-bearing (the 5th is a per-OAR value), so it should have
+    // exactly one definition.
+    const numChips  = (oar.group === 'serial' ? SERIAL_LABELS : PARALLEL_LABELS).length;
     const activeIdx = timeValid ? getActiveTrfIdx(oar, prMo) : -1;
     for (let i = 0; i < numChips; i++) {
       const chip = $('trf-chip-' + id + '-' + i);

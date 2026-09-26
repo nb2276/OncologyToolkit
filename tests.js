@@ -615,12 +615,10 @@ serialOars.forEach(function(oar) {
 
 section('=== rert.js: serialTrfBeyond3yr (> 3 yr bucket) ===');
 
-// Kidneys is the one serial OAR with no long-term recovery: the mouse-kidney
-// data shows none between 2 and 26 weeks, and reirradiation tolerance falls
-// rather than rises with a longer interval (Stewart, Int J Radiat Biol
-// 1989;56:449 / 1994;66:169; Nieder & Stewart, Semin Radiat Oncol 2000). It
-// therefore keeps 0 past 3 years instead of taking the blanket 0.5, which
-// previously forgave half the prior dose on the organ that recovers least.
+// Kidneys is the one serial OAR with no long-term recovery, so it keeps 0 past
+// 3 years instead of taking the blanket 0.5, which previously forgave half the
+// prior dose on the organ that recovers least. Citations (with PMIDs) live on
+// serialTrfBeyond3yr in rert.js — one copy, so a correction lands once.
 // Fall back to a stand-in if the entry is ever renamed, so the assert below is
 // the single named failure instead of a TypeError that aborts the file and
 // takes the ~300 assertions after this section down with it.
@@ -660,6 +658,43 @@ assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: '0' }), 0.5,
   'serialTrfBeyond3yr: string trfBeyond3yr is ignored -> blanket 0.5');
 assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 0.25 }), 0.25,
   'serialTrfBeyond3yr: a declared value is used as given');
+
+// A value outside [0, 1] is not a recovery fraction. 1.5 would forgive more than
+// the entire prior dose; a negative would inflate it above what was delivered.
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 1.5 }), 0.5,
+  'serialTrfBeyond3yr: > 1 is refused -> blanket 0.5');
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: -0.5 }), 0.5,
+  'serialTrfBeyond3yr: < 0 is refused -> blanket 0.5');
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: NaN }), 0.5,
+  'serialTrfBeyond3yr: NaN is refused -> blanket 0.5');
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 1 }), 1,
+  'serialTrfBeyond3yr: 1 is in range and used as given');
+
+// --- The OAR_DATA contract -------------------------------------------------
+// The helper defaults to the PERMISSIVE 0.5, so a misspelled key (trfBeyond3Yr),
+// a quoted number, or a deleted line would silently restore the exact bug the
+// opt-out exists to prevent — with nothing on screen to show for it. The runtime
+// cannot tell a typo from an OAR that legitimately has no opt-out. This test
+// can, because it sees the whole table.
+OAR_DATA.forEach(function (oar) {
+  Object.keys(oar).forEach(function (key) {
+    if (/^trfbeyond/i.test(key)) {
+      assertEqual(key, 'trfBeyond3yr',
+        'OAR ' + oar.id + ': the opt-out key is spelled exactly trfBeyond3yr (found "' + key + '")');
+    }
+  });
+  if (Object.prototype.hasOwnProperty.call(oar, 'trfBeyond3yr')) {
+    var v = oar.trfBeyond3yr;
+    assert(typeof v === 'number' && isFinite(v),
+      'OAR ' + oar.id + ': trfBeyond3yr is a finite number, not a string or null');
+    assert(v >= 0 && v <= 1,
+      'OAR ' + oar.id + ': trfBeyond3yr is within [0, 1]');
+    // Parallel OARs have no 5th bucket, so an opt-out there would be a silent
+    // no-op — getActiveTrf never reaches index 4 for them.
+    assertEqual(oar.group, 'serial',
+      'OAR ' + oar.id + ': only serial OARs may declare trfBeyond3yr (parallel has no > 3 yr bucket)');
+  }
+});
 
 // Parallel OARs are untouched — they have no 5th bucket at all.
 parallelOars.forEach(function (oar) {
@@ -712,11 +747,17 @@ assertClose(kidneyPriorEqd2 * (1 - getActiveTrf(bladderOar, 60)), 18, 1e-9,
 // in this sandbox. Guard it statically instead: both places that apply the TRF
 // must still scale by (1 - trf), so a mutation to a literal factor cannot slip
 // through green. Same approach as the composite id-wiring check.
-var rertSrc = loadFile('rert.js');
-var trfApplications = rertSrc.match(/eqd2Prior \* \(1 - trf\)/g) || [];
+// Strip whole-line comments first: the helper's own comment block discusses
+// this expression, and a guard that trips when you *document* the code would
+// just get deleted by the next person who hits it.
+var rertCode = loadFile('rert.js')
+  .split('\n')
+  .filter(function (line) { return line.trim().indexOf('//') !== 0; })
+  .join('\n');
+var trfApplications = rertCode.match(/eqd2Prior \* \(1 - trf\)/g) || [];
 assertEqual(trfApplications.length, 2,
   'rert.js applies the TRF as eqd2Prior * (1 - trf) in exactly 2 places (report-only row + remaining EQD2)');
-assert(!/eqd2Prior \* 0?\.\d/.test(rertSrc),
+assert(!/eqd2Prior \* 0?\.\d/.test(rertCode),
   'rert.js never scales the prior EQD2 by a hardcoded factor');
 
 // All parallel OARs have 4-element trf arrays
