@@ -31,10 +31,16 @@ function calcEQD2(D, n, ab) {
 // BED. Whenever D and n are in hand, use calcEQD2 directly so two pages of the
 // site can never disagree about the same regimen. tests.js pins that.
 //
-// Non-numeric input returns null rather than coercing: isNaN('') is false, so a
-// blank DOM .value would otherwise sail through as a confident 0.00.
+// Both arguments must be real numbers — neither is coerced. isNaN('') is false,
+// so a blank DOM .value would otherwise sail through as a confident 0.00. And a
+// numeric-string ab is worse than it looks: `2 + ab` concatenates, so a bare
+// `!(ab > 0)` check let bedToEQD2(50, '3') return 6.52 instead of 30 and
+// eqd2ToBED(50, '3') return 383.33 instead of 83.33. Today's callers all
+// parseFloat first, but this is shared math and a silently 4.6x-wrong dose is
+// exactly what the guards here exist to stop.
 function bedToEQD2(bed, ab) {
-  if (typeof bed !== 'number' || !isFinite(bed) || !(ab > 0)) return null;
+  if (typeof bed !== 'number' || !isFinite(bed)) return null;
+  if (typeof ab !== 'number' || !(ab > 0)) return null;
   return bed * ab / (2 + ab);
 }
 
@@ -43,9 +49,11 @@ function bedToEQD2(bed, ab) {
 // Lives here next to its forward direction so a future change to the α/β
 // convention touches both at once — it was inlined in rert.js, where nothing
 // linked the two halves of the identity.
-// Same non-coercing guard as bedToEQD2, and for the same reason.
+// Same non-coercing guard on both arguments as bedToEQD2, and for the same
+// reason — see the note there.
 function eqd2ToBED(eqd2, ab) {
-  if (typeof eqd2 !== 'number' || !isFinite(eqd2) || !(ab > 0)) return null;
+  if (typeof eqd2 !== 'number' || !isFinite(eqd2)) return null;
+  if (typeof ab !== 'number' || !(ab > 0)) return null;
   return eqd2 * (2 + ab) / ab;
 }
 

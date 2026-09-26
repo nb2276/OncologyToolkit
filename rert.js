@@ -116,14 +116,18 @@ function validateRertInputs() {
   });
 }
 
-// Aliases for readability in reirradiation context
+// physicalToEqd2 is a naming alias only — it adds no logic, and stays because
+// "physical → EQD2" is how the ReRT UI labels the step. eqd2ToPhysical below is
+// not an alias: it guards, converts, and then solves the isoeffective dose.
 function physicalToEqd2(D, n, ab) { return calcEQD2(D, n, ab); }
 
 function eqd2ToPhysical(eqd2, n, ab) {
-  if (eqd2 <= 0 || n < 1 || ab <= 0) return null;
-  // eqd2ToBED lives in math.js alongside bedToEQD2 — the conversion is not
-  // re-implemented here. The guard above is ReRT's own (it also rejects n < 1
-  // and a non-positive EQD2, which the shared helper has no opinion about).
+  // Local guard covers only what the shared helper has no opinion about: a
+  // non-positive EQD2 and n < 1. α/β is not re-checked here — eqd2ToBED rejects
+  // it more strictly than `ab <= 0` could (NaN <= 0 is false; !(NaN > 0) is
+  // true), and the null below propagates that.
+  if (eqd2 <= 0 || n < 1) return null;
+  // The conversion itself lives in math.js next to its inverse, bedToEQD2.
   var bed = eqd2ToBED(eqd2, ab);
   if (bed === null) return null;
   return isoeffDose(bed, n, ab);
