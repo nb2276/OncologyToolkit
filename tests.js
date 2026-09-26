@@ -148,6 +148,7 @@ vm.runInContext(`
   globalThis.OAR_DATA = OAR_DATA;
   globalThis.getActiveTrfIdx = getActiveTrfIdx;
   globalThis.getActiveTrf = getActiveTrf;
+  globalThis.serialTrfBeyond3yr = serialTrfBeyond3yr;
   globalThis.getTimeBucketLabel = getTimeBucketLabel;
   globalThis.physicalToEqd2 = physicalToEqd2;
   globalThis.eqd2ToPhysical = eqd2ToPhysical;
@@ -211,6 +212,7 @@ var physicalToEqd2 = sandbox.physicalToEqd2;
 var eqd2ToPhysical = sandbox.eqd2ToPhysical;
 var getActiveTrfIdx = sandbox.getActiveTrfIdx;
 var getActiveTrf = sandbox.getActiveTrf;
+var serialTrfBeyond3yr = sandbox.serialTrfBeyond3yr;
 var getTimeBucketLabel = sandbox.getTimeBucketLabel;
 var OAR_DATA = sandbox.OAR_DATA;
 var tryParseDate = sandbox.tryParseDate;
@@ -600,9 +602,56 @@ var parallelOars = OAR_DATA.filter(function(o) { return o.group === 'parallel'; 
 assert(serialOars.length === 22, '22 serial OARs');
 assert(parallelOars.length === 2, '2 parallel OARs');
 
-// All serial OARs have 4-element trf arrays
+// All serial OARs have 4-element trf arrays. The 5th bucket (> 3 yr) is not in
+// the array — it comes from serialTrfBeyond3yr, so the shape stays uniform even
+// for the OAR that declares its own value.
 serialOars.forEach(function(oar) {
   assert(oar.trf.length === 4, 'serial OAR ' + oar.id + ' has 4 TRF values');
+});
+
+section('=== rert.js: serialTrfBeyond3yr (> 3 yr bucket) ===');
+
+// Kidneys is the one serial OAR with no long-term recovery: the mouse-kidney
+// data shows none between 2 and 26 weeks, and reirradiation tolerance falls
+// rather than rises with a longer interval (Stewart, Int J Radiat Biol
+// 1989;56:449 / 1994;66:169; Nieder & Stewart, Semin Radiat Oncol 2000). It
+// therefore keeps 0 past 3 years instead of taking the blanket 0.5, which
+// previously forgave half the prior dose on the organ that recovers least.
+var kidneyOar = OAR_DATA.find(function (o) { return o.id === 'kidneys'; });
+assert(kidneyOar !== undefined, 'kidneys OAR exists');
+assertEqual(serialTrfBeyond3yr(kidneyOar), 0, 'kidneys: > 3 yr TRF is 0, not the blanket 0.5');
+assertEqual(getActiveTrf(kidneyOar, 36), 0, 'kidneys: 36 months -> TRF 0');
+assertEqual(getActiveTrf(kidneyOar, 60), 0, 'kidneys: 5 years -> TRF 0');
+assertEqual(getActiveTrf(kidneyOar, 600), 0, 'kidneys: 50 years -> TRF 0');
+
+// Kidneys is 0 in every bucket, so no interval gives it recovery credit.
+[0, 2, 3, 5, 6, 11, 12, 35, 36, 120].forEach(function (m) {
+  assertEqual(getActiveTrf(kidneyOar, m), 0, 'kidneys: ' + m + ' months -> TRF 0 (no recovery at any interval)');
+});
+
+// Every other serial OAR still takes the blanket 0.5 past 3 years.
+var beyondOptOuts = 0;
+serialOars.forEach(function (oar) {
+  if (oar.id === 'kidneys') { beyondOptOuts++; return; }
+  assertEqual(serialTrfBeyond3yr(oar), 0.5, 'serial OAR ' + oar.id + ': > 3 yr TRF is the blanket 0.5');
+  assertEqual(getActiveTrf(oar, 36), 0.5, 'serial OAR ' + oar.id + ': 36 months -> TRF 0.5');
+});
+assertEqual(beyondOptOuts, 1, 'exactly one serial OAR opts out of the blanket > 3 yr value');
+
+// The opt-out is keyed on a real number, so a typo'd property cannot silently
+// zero an OAR: anything non-numeric falls back to the blanket value.
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0] }), 0.5,
+  'serialTrfBeyond3yr: no trfBeyond3yr -> blanket 0.5');
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: undefined }), 0.5,
+  'serialTrfBeyond3yr: undefined trfBeyond3yr -> blanket 0.5');
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: '0' }), 0.5,
+  'serialTrfBeyond3yr: string trfBeyond3yr is ignored -> blanket 0.5');
+assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 0.25 }), 0.25,
+  'serialTrfBeyond3yr: a declared value is used as given');
+
+// Parallel OARs are untouched — they have no 5th bucket at all.
+parallelOars.forEach(function (oar) {
+  assertEqual(getActiveTrfIdx(oar, 600), 3, 'parallel OAR ' + oar.id + ': long interval -> idx 3, no 5th bucket');
 });
 
 // All parallel OARs have 4-element trf arrays
