@@ -38,6 +38,17 @@ function bedToEQD2(bed, ab) {
   return bed * ab / (2 + ab);
 }
 
+// Inverse of bedToEQD2: the BED that yields this EQD2 at the same α/β.
+// EQD2 = BED * ab/(2+ab), so BED = EQD2 * (2+ab)/ab.
+// Lives here next to its forward direction so a future change to the α/β
+// convention touches both at once — it was inlined in rert.js, where nothing
+// linked the two halves of the identity.
+// Same non-coercing guard as bedToEQD2, and for the same reason.
+function eqd2ToBED(eqd2, ab) {
+  if (typeof eqd2 !== 'number' || !isFinite(eqd2) || !(ab > 0)) return null;
+  return eqd2 * (2 + ab) / ab;
+}
+
 // Given a BED, find the isoeffective total dose in nNew fractions.
 // Solves BED = nNew * d * (1 + d/ab) for d, then returns nNew * d.
 function isoeffDose(bed, nNew, ab) {

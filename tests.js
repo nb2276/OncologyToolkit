@@ -205,6 +205,7 @@ var fmt = sandbox.fmt;
 var calcBED = sandbox.calcBED;
 var calcEQD2 = sandbox.calcEQD2;
 var bedToEQD2 = sandbox.bedToEQD2;
+var eqd2ToBED = sandbox.eqd2ToBED;
 var isoeffDose = sandbox.isoeffDose;
 var physicalToEqd2 = sandbox.physicalToEqd2;
 var eqd2ToPhysical = sandbox.eqd2ToPhysical;
@@ -401,6 +402,47 @@ assertEqual(pathMismatch, 0,
 // the discounted BED, for the same reason.
 assertClose(calcEQD2(15, 10, 3) * 0.5, 6.75, 1e-12,
   'time-adjusted EQD2: calcEQD2 x TDF (15Gy/10fx ab=3, TDF 0.5) = 6.75');
+
+section('=== math.js: eqd2ToBED ===');
+
+// BED = EQD2 * (2+ab)/ab. Derived by hand from the identity, then round-tripped.
+// 43.2 Gy EQD2 at ab=3 -> 43.2 * 5/3 = 72
+assertClose(eqd2ToBED(43.2, 3), 72, 1e-9, 'eqd2ToBED: EQD2 43.2 ab=3 = BED 72');
+assertClose(eqd2ToBED(60, 10), 72, 1e-9, 'eqd2ToBED: EQD2 60 ab=10 = BED 72');
+
+// Exact inverse of bedToEQD2 in both directions
+[[72, 3], [105.4167, 2], [58.4375, 10], [0.5, 1], [200, 25]].forEach(function (pair) {
+  var bed = pair[0], ab = pair[1];
+  assertClose(eqd2ToBED(bedToEQD2(bed, ab), ab), bed, 1e-9,
+    'eqd2ToBED round-trips bedToEQD2: BED ' + bed + ' ab=' + ab);
+});
+
+// At ab=2 the factor ab/(2+ab) is exactly 1/2, so EQD2 is half the BED. (EQD2
+// never equals BED: ab/(2+ab) < 1 for every finite ab. The identity people
+// remember — EQD2 == physical dose — belongs to calcEQD2 at 2 Gy/fx, and is
+// tested in the calcEQD2 section above.)
+assertClose(bedToEQD2(50, 2), 25, 1e-9, 'bedToEQD2: ab=2 halves the BED');
+assertClose(eqd2ToBED(25, 2), 50, 1e-9, 'eqd2ToBED: ab=2 doubles the EQD2');
+
+// Same non-coercing guard as bedToEQD2
+assertEqual(eqd2ToBED(null, 3), null, 'eqd2ToBED: null returns null');
+assertEqual(eqd2ToBED(NaN, 3), null, 'eqd2ToBED: NaN returns null');
+assertEqual(eqd2ToBED('', 3), null, "eqd2ToBED: empty string returns null (not 0)");
+assertEqual(eqd2ToBED('50', 3), null, 'eqd2ToBED: numeric string returns null (no coercion)');
+assertEqual(eqd2ToBED(Infinity, 3), null, 'eqd2ToBED: Infinity returns null');
+assertEqual(eqd2ToBED(50, 0), null, 'eqd2ToBED: ab=0 returns null');
+assertEqual(eqd2ToBED(50, NaN), null, 'eqd2ToBED: NaN ab returns null');
+
+// rert.js eqd2ToPhysical now routes through it — behaviour must be unchanged.
+// These mirror the pre-existing round-trip expectations above.
+assertClose(eqd2ToPhysical(physicalToEqd2(45, 25, 2.5), 25, 2.5), 45, 0.001,
+  'eqd2ToPhysical still round-trips after routing through eqd2ToBED (45Gy/25fx ab=2.5)');
+assertClose(eqd2ToPhysical(physicalToEqd2(30, 10, 3), 10, 3), 30, 0.001,
+  'eqd2ToPhysical still round-trips after routing through eqd2ToBED (30Gy/10fx ab=3)');
+assertEqual(eqd2ToPhysical(0, 5, 3), null, 'eqd2ToPhysical: zero EQD2 still returns null');
+assertEqual(eqd2ToPhysical(-5, 5, 3), null, 'eqd2ToPhysical: negative EQD2 still returns null');
+assertEqual(eqd2ToPhysical(50, 0, 3), null, 'eqd2ToPhysical: n<1 still returns null');
+assertEqual(eqd2ToPhysical(50, 5, 0), null, 'eqd2ToPhysical: ab=0 still returns null');
 
 section('=== math.js: isoeffDose ===');
 

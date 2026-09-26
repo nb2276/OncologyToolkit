@@ -1450,7 +1450,10 @@ nav.nav-open .nav-toggle span:nth-child(3) {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 4px 20px;
+  /* Row-gap matches the card's own 10px vertical rhythm: when the BED and EQD2
+     pairs wrap onto separate lines (narrow viewport, 4-decimal preference), two
+     20px display numbers 4px apart read as one crowded block. */
+  gap: 10px 20px;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--border-subtle);

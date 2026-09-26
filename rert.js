@@ -121,7 +121,11 @@ function physicalToEqd2(D, n, ab) { return calcEQD2(D, n, ab); }
 
 function eqd2ToPhysical(eqd2, n, ab) {
   if (eqd2 <= 0 || n < 1 || ab <= 0) return null;
-  var bed = eqd2 * (2 + ab) / ab;
+  // eqd2ToBED lives in math.js alongside bedToEQD2 — the conversion is not
+  // re-implemented here. The guard above is ReRT's own (it also rejects n < 1
+  // and a non-positive EQD2, which the shared helper has no opinion about).
+  var bed = eqd2ToBED(eqd2, ab);
+  if (bed === null) return null;
   return isoeffDose(bed, n, ab);
 }
 
