@@ -2488,21 +2488,25 @@ details[open].rert-oar-picker .rert-picker-chevron {
   #bed1 { grid-area: 2 / 2; } #bed2 { grid-area: 3 / 2; } #bed3 { grid-area: 4 / 2; }
   #eqd1 { grid-area: 2 / 3; } #eqd2 { grid-area: 3 / 3; } #eqd3 { grid-area: 4 / 3; }
 
-  /* Alt fractionation: 5 cols (tissue | 1fx | 3fx | 5fx | Nfx) x 4 rows */
-  .bed-table--alt { grid-template-columns: minmax(0, 1.3fr) repeat(4, minmax(0, 1fr)); }
-  .bed-table--alt thead th:nth-child(1) { grid-area: 1 / 1; }   /* "Fractions" corner */
-  .bed-table--alt thead th:nth-child(2) { grid-area: 2 / 1; }   /* Tumor */
-  .bed-table--alt thead th:nth-child(3) { grid-area: 3 / 1; }   /* Late */
-  .bed-table--alt thead th:nth-child(4) { grid-area: 4 / 1; }   /* Prostate / Spine */
-  .bed-table--alt tbody tr:nth-child(1) > :first-child { grid-area: 1 / 2; }  /* "1 fraction" */
-  .bed-table--alt tbody tr:nth-child(2) > :first-child { grid-area: 1 / 3; }  /* "3 fractions" */
-  .bed-table--alt tbody tr:nth-child(3) > :first-child { grid-area: 1 / 4; }  /* "5 fractions" */
-  .bed-table--alt tbody tr:nth-child(4) > :first-child { grid-area: 1 / 5; white-space: normal; }  /* [N] fractions */
-  #alt1-1 { grid-area: 2 / 2; } #alt1-2 { grid-area: 3 / 2; } #alt1-3 { grid-area: 4 / 2; }
-  #alt3-1 { grid-area: 2 / 3; } #alt3-2 { grid-area: 3 / 3; } #alt3-3 { grid-area: 4 / 3; }
-  #alt5-1 { grid-area: 2 / 4; } #alt5-2 { grid-area: 3 / 4; } #alt5-3 { grid-area: 4 / 4; }
-  #altA-1 { grid-area: 2 / 5; } #altA-2 { grid-area: 3 / 5; } #altA-3 { grid-area: 4 / 5; }
-  .bed-table--alt .alt-fx-input { width: 40px; }
+  /* Alt fractionation does NOT transpose: it keeps its natural orientation of
+     4 cols (Fractions | Tumor | Late | Prostate) x 6 rows.
+
+     It used to transpose like the Rx table, which put each fractionation in its
+     own column. That worked at four preset rows (5 columns) and broke when the
+     10 fx row made it six: at 390 px the headers collided and the custom-fx
+     input was clipped. Upright it is 4 columns however many preset rows exist,
+     so adding one is a <tr> plus a bed.js ALT_FX entry with nothing to do here.
+
+     No grid-area rules on purpose — with display:contents on thead/tbody/tr the
+     cells flow in DOM order, which for an upright table is already row-major. */
+  .bed-table--alt { grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr)); }
+  .bed-table--alt tbody .bed-row-label,
+  .bed-table--alt tbody .alt-fx-cell { white-space: normal; }
+  /* Values wrap ("48.49" / "Gy") rather than nowrap: nowrap measured 339 px
+     against a 336 px container at 390 px and pushed the body itself at 320 px.
+     A wrapped unit is worse-looking than a clipped one is broken. */
+  .bed-table--alt .bed-result-cell { text-align: right; }
+  .bed-table--alt .alt-fx-input { width: 44px; }
 
   /* =====================================================================
      composite — Remaining Dose is only 3 columns: drop min-width, let it fit
