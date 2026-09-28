@@ -148,7 +148,7 @@ vm.runInContext(`
   globalThis.OAR_DATA = OAR_DATA;
   globalThis.getActiveTrfIdx = getActiveTrfIdx;
   globalThis.getActiveTrf = getActiveTrf;
-  globalThis.serialTrfBeyond3yr = serialTrfBeyond3yr;
+  globalThis.SERIAL_TRF_BEYOND_3YR = SERIAL_TRF_BEYOND_3YR;
   globalThis.buildOarCard = buildOarCard;
   globalThis.getTimeBucketLabel = getTimeBucketLabel;
   globalThis.physicalToEqd2 = physicalToEqd2;
@@ -213,7 +213,7 @@ var physicalToEqd2 = sandbox.physicalToEqd2;
 var eqd2ToPhysical = sandbox.eqd2ToPhysical;
 var getActiveTrfIdx = sandbox.getActiveTrfIdx;
 var getActiveTrf = sandbox.getActiveTrf;
-var serialTrfBeyond3yr = sandbox.serialTrfBeyond3yr;
+var SERIAL_TRF_BEYOND_3YR = sandbox.SERIAL_TRF_BEYOND_3YR;
 var buildOarCard = sandbox.buildOarCard;
 var SERIAL_LABELS = sandbox.SERIAL_LABELS;
 var PARALLEL_LABELS = sandbox.PARALLEL_LABELS;
@@ -603,8 +603,8 @@ assert(OAR_DATA.length === 24, 'OAR_DATA has 24 entries');
 
 var serialOars = OAR_DATA.filter(function(o) { return o.group === 'serial'; });
 var parallelOars = OAR_DATA.filter(function(o) { return o.group === 'parallel'; });
-assert(serialOars.length === 22, '22 serial OARs');
-assert(parallelOars.length === 2, '2 parallel OARs');
+assert(serialOars.length === 21, '21 serial OARs');
+assert(parallelOars.length === 3, '3 parallel OARs (lungs, liver, kidneys)');
 
 // All serial OARs have 4-element trf arrays. The 5th bucket (> 3 yr) is not in
 // the array — it comes from serialTrfBeyond3yr, so the shape stays uniform even
@@ -613,90 +613,55 @@ serialOars.forEach(function(oar) {
   assert(oar.trf.length === 4, 'serial OAR ' + oar.id + ' has 4 TRF values');
 });
 
-section('=== rert.js: serialTrfBeyond3yr (> 3 yr bucket) ===');
+section('=== rert.js: kidneys is parallel (no > 3 yr bucket) ===');
 
-// Kidneys is the one serial OAR with no long-term recovery, so it keeps 0 past
-// 3 years instead of taking the blanket 0.5, which previously forgave half the
-// prior dose on the organ that recovers least. Citations (with PMIDs) live on
-// serialTrfBeyond3yr in rert.js — one copy, so a correction lands once.
-// Fall back to a stand-in if the entry is ever renamed, so the assert below is
-// the single named failure instead of a TypeError that aborts the file and
-// takes the ~300 assertions after this section down with it.
+// Kidneys is a mean-dose / critical-volume organ -- its CV23 constraint has the
+// same shape as lungs' V16 and liver's V32 -- so it belongs with them in the
+// parallel group. It was classified serial, which put it on the 5-bucket serial
+// timeline and handed it the blanket SERIAL_TRF_BEYOND_3YR of 0.5, forgiving
+// half the prior dose past 3 years on an organ whose own row declares
+// [0, 0, 0, 0]. Its TRF is 0 in every parallel bucket too, so the numbers are
+// unchanged; what the reclassification removes is the > 3 yr bucket itself.
 var kidneyOar = OAR_DATA.find(function (o) { return o.id === 'kidneys'; });
 assert(kidneyOar !== undefined, 'kidneys OAR exists');
-kidneyOar = kidneyOar || { id: 'kidneys', group: 'serial', trf: [0, 0, 0, 0], trfBeyond3yr: 0 };
-assertEqual(serialTrfBeyond3yr(kidneyOar), 0, 'kidneys: > 3 yr TRF is 0, not the blanket 0.5');
-assertEqual(getActiveTrf(kidneyOar, 36), 0, 'kidneys: 36 months -> TRF 0');
-assertEqual(getActiveTrf(kidneyOar, 60), 0, 'kidneys: 5 years -> TRF 0');
-assertEqual(getActiveTrf(kidneyOar, 600), 0, 'kidneys: 50 years -> TRF 0');
+kidneyOar = kidneyOar || { id: 'kidneys', group: 'parallel', trf: [0, 0, 0, 0] };
+assertEqual(kidneyOar.group, 'parallel', 'kidneys is classified parallel, not serial');
 
-// Kidneys is 0 in every bucket, so no interval gives it recovery credit.
-[0, 2, 3, 5, 6, 11, 12, 35, 36, 120].forEach(function (m) {
-  assertEqual(getActiveTrf(kidneyOar, m), 0, 'kidneys: ' + m + ' months -> TRF 0 (no recovery at any interval)');
+// Parallel OARs top out at index 3, so kidneys can never reach the serial-only
+// 5th bucket where the 0.5 lived. This is what makes the override unnecessary.
+assertEqual(getActiveTrfIdx(kidneyOar, 36), 3, 'kidneys at 36 months -> idx 3 (parallel tops out at 3)');
+assertEqual(getActiveTrfIdx(kidneyOar, 600), 3, 'kidneys at 50 years -> idx 3, never idx 4');
+
+// No recovery credit at any interval, which was the point.
+[0, 2, 3, 5, 6, 11, 18, 23, 24, 30, 36, 60, 120, 600].forEach(function (m) {
+  assertEqual(getActiveTrf(kidneyOar, m), 0,
+    'kidneys: ' + m + ' months -> TRF 0 (no recovery at any interval)');
 });
 
-// Every other serial OAR still takes the blanket 0.5 past 3 years. Count the
-// PROPERTY, not the id — counting `oar.id === 'kidneys'` would only ever catch
-// kidneys being deleted or duplicated, which the assert above already covers.
-// What this needs to pin is that no second OAR quietly acquires an opt-out.
-var beyondOptOuts = 0;
-serialOars.forEach(function (oar) {
-  if (typeof oar.trfBeyond3yr === 'number') beyondOptOuts++;
-  if (oar.id === 'kidneys') return;
-  assertEqual(serialTrfBeyond3yr(oar), 0.5, 'serial OAR ' + oar.id + ': > 3 yr TRF is the blanket 0.5');
-  assertEqual(getActiveTrf(oar, 36), 0.5, 'serial OAR ' + oar.id + ': 36 months -> TRF 0.5');
-});
-assertEqual(beyondOptOuts, 1, 'exactly one serial OAR declares trfBeyond3yr');
+// The regression this guards: as a serial OAR, kidneys picked up 0.5 past 3
+// years. Pin that a serial OAR with the same all-zero array still would, so the
+// reason kidneys is safe is visibly its group and not luck.
+assertEqual(getActiveTrf({ group: 'serial', trf: [0, 0, 0, 0] }, 60), 0.5,
+  'a SERIAL OAR with an all-zero array still takes the blanket 0.5 past 3 years');
+assertEqual(getActiveTrf({ group: 'parallel', trf: [0, 0, 0, 0] }, 60), 0,
+  'a PARALLEL OAR with an all-zero array stays 0 -- the group is what protects kidneys');
 
-// The opt-out is keyed on a real number, so a typo'd property cannot silently
-// zero an OAR: anything non-numeric falls back to the blanket value.
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0] }), 0.5,
-  'serialTrfBeyond3yr: no trfBeyond3yr -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: undefined }), 0.5,
-  'serialTrfBeyond3yr: undefined trfBeyond3yr -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: '0' }), 0.5,
-  'serialTrfBeyond3yr: string trfBeyond3yr is ignored -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 0.25 }), 0.25,
-  'serialTrfBeyond3yr: a declared value is used as given');
-
-// A value outside [0, 1] is not a recovery fraction. 1.5 would forgive more than
-// the entire prior dose; a negative would inflate it above what was delivered.
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 1.5 }), 0.5,
-  'serialTrfBeyond3yr: > 1 is refused -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: -0.5 }), 0.5,
-  'serialTrfBeyond3yr: < 0 is refused -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: NaN }), 0.5,
-  'serialTrfBeyond3yr: NaN is refused -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 1 }), 1,
-  'serialTrfBeyond3yr: 1 is in range and used as given');
-
-// --- The OAR_DATA contract -------------------------------------------------
-// The helper defaults to the PERMISSIVE 0.5, so a misspelled key (trfBeyond3Yr),
-// a quoted number, or a deleted line would silently restore the exact bug the
-// opt-out exists to prevent — with nothing on screen to show for it. The runtime
-// cannot tell a typo from an OAR that legitimately has no opt-out. This test
-// can, because it sees the whole table.
+// Nothing declares a per-OAR override any more; the workaround is gone.
 OAR_DATA.forEach(function (oar) {
   Object.keys(oar).forEach(function (key) {
-    if (/^trfbeyond/i.test(key)) {
-      assertEqual(key, 'trfBeyond3yr',
-        'OAR ' + oar.id + ': the opt-out key is spelled exactly trfBeyond3yr (found "' + key + '")');
-    }
+    assert(!/^trfbeyond/i.test(key),
+      'OAR ' + oar.id + ': no per-OAR > 3 yr override remains (found "' + key + '")');
   });
-  if (Object.prototype.hasOwnProperty.call(oar, 'trfBeyond3yr')) {
-    var v = oar.trfBeyond3yr;
-    assert(typeof v === 'number' && isFinite(v),
-      'OAR ' + oar.id + ': trfBeyond3yr is a finite number, not a string or null');
-    assert(v >= 0 && v <= 1,
-      'OAR ' + oar.id + ': trfBeyond3yr is within [0, 1]');
-    // Parallel OARs have no 5th bucket, so an opt-out there would be a silent
-    // no-op — getActiveTrf never reaches index 4 for them.
-    assertEqual(oar.group, 'serial',
-      'OAR ' + oar.id + ': only serial OARs may declare trfBeyond3yr (parallel has no > 3 yr bucket)');
-  }
 });
 
-// Parallel OARs are untouched — they have no 5th bucket at all.
+// Every serial OAR takes the shared constant past 3 years.
+assertEqual(SERIAL_TRF_BEYOND_3YR, 0.5, 'SERIAL_TRF_BEYOND_3YR is 0.5');
+serialOars.forEach(function (oar) {
+  assertEqual(getActiveTrf(oar, 36), SERIAL_TRF_BEYOND_3YR,
+    'serial OAR ' + oar.id + ': 36 months -> the shared > 3 yr constant');
+});
+
+// Parallel OARs have no 5th bucket at all.
 parallelOars.forEach(function (oar) {
   assertEqual(getActiveTrfIdx(oar, 600), 3, 'parallel OAR ' + oar.id + ': long interval -> idx 3, no 5th bucket');
 });
@@ -709,10 +674,16 @@ parallelOars.forEach(function (oar) {
 // applied — a card printing "0.5 / > 3 yr" beside a number computed with TRF 0
 // tells the reader a recovery credit was given that wasn't.
 var kidneyCardHtml = buildOarCard(kidneyOar).innerHTML;
-assert(kidneyCardHtml.indexOf('id="trf-chip-kidneys-4"><span class="rert-trf-val">0<') !== -1,
-  'kidneys card: the > 3 yr chip renders 0');
+// Four chips, not five: as a parallel OAR kidneys has no > 3 yr bucket, which is
+// precisely why it can no longer inherit the serial 0.5.
+assert(kidneyCardHtml.indexOf('id="trf-chip-kidneys-3"') !== -1,
+  'kidneys card: renders the 4th parallel chip');
+assert(kidneyCardHtml.indexOf('id="trf-chip-kidneys-4"') === -1,
+  'kidneys card: renders NO 5th chip (parallel has no > 3 yr bucket)');
 assert(kidneyCardHtml.indexOf('rert-trf-val">0.5<') === -1,
   'kidneys card: no chip anywhere renders 0.5');
+assert(kidneyCardHtml.indexOf('> 2 yr<') !== -1,
+  'kidneys card: uses the parallel bucket labels (> 2 yr, not > 3 yr)');
 
 var bladderOar = OAR_DATA.find(function (o) { return o.id === 'bladder'; });
 var bladderCardHtml = bladderOar ? buildOarCard(bladderOar).innerHTML : '';

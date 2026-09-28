@@ -3,8 +3,7 @@
 // Report-only OARs (Body, PTV, Brain, Larynx, Musc_Constrict)
 // are excluded per clinical preference.
 // trf arrays correspond to the document time columns:
-//   Serial:   [< 3 mo, 3–6 mo, 6 mo–1 yr, 1–3 yr]  +  > 3 yr → 0.5 unless the
-//             OAR declares its own via trfBeyond3yr (kidneys does: 0)
+//   Serial:   [< 3 mo, 3–6 mo, 6 mo–1 yr, 1–3 yr]  +  > 3 yr → SERIAL_TRF_BEYOND_3YR
 //   Parallel: [< 3 mo, 3–6 mo, 6 mo–2 yr, > 2 yr]
 // ============================================================
 
@@ -25,10 +24,6 @@ const OAR_DATA = [
   { id: 'esophagus',   name: 'Esophagus',                      group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'greatves',    name: 'GreatVes / Aorta',               group: 'serial',   constraint: 100,  trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'heart',       name: 'Heart',                          group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
-  // trfBeyond3yr: 0 — the kidney is the one serial OAR that does not recover at
-  // any interval, so it opts out of the blanket > 3 yr value. Citations are on
-  // serialTrfBeyond3yr below.
-  { id: 'kidneys',     name: 'Kidneys',                        group: 'serial',   constraint: null, constraintText: 'CV23 EQD2 ≥ 200 cc', trf: [0, 0, 0, 0], trfBeyond3yr: 0 },
   { id: 'opticchiasm', name: 'OpticChiasm',                    group: 'serial',   constraint: 54,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'opticnrv',    name: 'OpticNrv',                       group: 'serial',   constraint: 54,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'rectum',      name: 'Rectum',                         group: 'serial',   constraint: 80,   trf: [0, 0.1, 0.25, 0.5]  },
@@ -39,6 +34,14 @@ const OAR_DATA = [
   { id: 'stomach',     name: 'Stomach',                        group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.4]  },
   { id: 'trachea',     name: 'Trachea',                        group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   // ---- Parallel ----
+  // Parallel, not serial: the kidney is a mean-dose / critical-volume organ, and
+  // its CV23 constraint has the same shape as lungs' V16 and liver's V32. It was
+  // classified serial, which put it on the 5-bucket serial timeline and handed it
+  // a blanket > 3 yr TRF of 0.5 — forgiving half the prior dose on an organ whose
+  // own row says it recovers at no interval. TRF is 0 in every parallel bucket
+  // too, so the numbers are unchanged; what changes is that the > 3 yr bucket no
+  // longer exists for it, and the special case that worked around it is gone.
+  { id: 'kidneys', name: 'Kidneys',               group: 'parallel', constraint: null, constraintText: 'CV23 EQD2 ≥ 200 cc', trf: [0, 0, 0, 0] },
   { id: 'lungs',  name: 'Lungs-GTV / Lungs-ITV', group: 'parallel', constraint: null, unit: 'cc', constraintCc: 1000, constraintText: 'V16 EQD2 (cc) ≥ 1000', doseLabel: 'Prior V16 volume (cc)', trf: [0, 0, 0.25, 0.5] },
   { id: 'liver',  name: 'Liver',                group: 'parallel', constraint: null, unit: 'cc', constraintCc: 700,  constraintText: 'V32 EQD2 (cc) ≥ 700',  doseLabel: 'Prior V32 volume (cc)', trf: [0, 0, 0.5,  1]   },
 ];
@@ -61,7 +64,7 @@ function getActiveTrfIdx(oar, months) {
     if (months < 6)  return 1;
     if (months < 12) return 2;
     if (months < 36) return 3;
-    return 4; // > 3 yr — value comes from serialTrfBeyond3yr, not oar.trf
+    return 4; // > 3 yr — value is SERIAL_TRF_BEYOND_3YR, not from oar.trf
   } else {
     if (months < 3)  return 0;
     if (months < 6)  return 1;
@@ -70,60 +73,22 @@ function getActiveTrfIdx(oar, months) {
   }
 }
 
-// The > 3 yr bucket (mechanism is in the header comment above).
+// The > 3 yr serial bucket. Serial trf arrays hold four values and this is the
+// fifth, so it lives here as one named constant rather than being written out at
+// each use — it used to be hardcoded separately in getActiveTrf and in the chip
+// rendering, which is how the two could have drifted apart.
 //
-// THE ACTUAL REASON KIDNEY OPTS OUT is internal to this table, not the
-// literature: kidney's own row declares [0, 0, 0, 0]. A blanket 0.5 at > 3 yr
-// contradicts a value the source table itself states. Heart and bladder declare
-// [0, 0.1, 0.25, 0.5], which continues to 0.5 consistently — so leaving them
-// alone requires overruling nothing, while kidney did. That is the discriminator
-// to reason from if this is ever revisited.
-//
-// The radiobiology agrees with the direction:
-//   Stewart FA, Luts A, Lebesque JV. Int J Radiat Biol 1989;56:449. PMID 2571658
-//     — "no evidence for any recovery from functional damage in the interval
-//     between 2 and 26 weeks"; damage progressed, tolerance decreased with time.
-//   Stewart FA, Oussoren Y, Van Tinteren H, Bentzen SM. ibid 1994;66:169.
-//     PMID 8089627 — tolerance "decreased significantly with increasing interval
-//     ... suggesting progression rather than recovery".
-//   Stewart FA, van der Kogel AJ. Semin Radiat Oncol 1994;4:103. PMID 10717096
-//     — "In the kidney, reirradiation tolerance actually decreases with time."
-//     Note this review separates bladder ("independent of retreatment interval,
-//     suggesting permanent residual injury") from kidney; the coarser grouping
-//     in Nieder C, Milas L, Ang KK, Semin Radiat Oncol 2000;10:200 (PMID
-//     11034631) lumps heart, bladder and kidney as tissues that "do not exhibit
-//     long-term recovery at all".
-//
-// HOW FAR THE EVIDENCE ACTUALLY GOES: both mouse studies used retreatment
-// intervals of 2 or 26 weeks. The longest interval anyone observed is 6 months;
-// this bucket is > 3 years, and human kidney reirradiation data are essentially
-// absent. "No recovery at any interval" is an extrapolation from a falling
-// trend, not an observation at 3 years. It extrapolates in the conservative
-// direction, which is why it is acceptable here — but do not cite these papers
-// as having measured a 3-year interval, because they did not.
-//
-// Why 0 and not negative: the 1994 data have tolerance actively decreasing,
-// which this model could express (trf < 0 in effPrior = eqd2Prior * (1 - trf)
-// inflates the prior above the delivered dose). The UMich table has no negative
-// TRF, so 0 — no credit for elapsed time — is the floor this page takes.
-//
-// The default is the permissive 0.5, so a malformed or misspelled opt-out would
-// silently restore the bug this exists to fix. That is caught by the OAR_DATA
-// contract test in tests.js, not here: the runtime cannot tell a typo from an
-// OAR that legitimately has no opt-out, but the test can, because it knows the
-// whole table. The range check below is the one thing the runtime can do alone.
-function serialTrfBeyond3yr(oar) {
-  var declared = oar.trfBeyond3yr;
-  if (typeof declared !== 'number' || !isFinite(declared)) return 0.5;
-  // A value outside [0, 1] is not a recovery fraction; refuse it rather than
-  // forgiving more than the whole prior dose (or inflating it).
-  if (declared < 0 || declared > 1) return 0.5;
-  return declared;
-}
+// Historical note, because it cost a bug: kidneys was classified serial, so it
+// picked up this 0.5 and the page forgave half the prior kidney dose past 3
+// years, on an organ whose own row declares [0, 0, 0, 0]. The fix was the
+// classification (kidney is a mean-dose / critical-volume organ, parallel, with
+// no > 3 yr bucket at all), not a per-OAR override of this value. If a serial
+// OAR ever genuinely needs its own, add the override then — don't add it now.
+const SERIAL_TRF_BEYOND_3YR = 0.5;
 
 function getActiveTrf(oar, months) {
   const idx = getActiveTrfIdx(oar, months);
-  if (oar.group === 'serial' && idx === 4) return serialTrfBeyond3yr(oar);
+  if (oar.group === 'serial' && idx === 4) return SERIAL_TRF_BEYOND_3YR;
   return oar.trf[idx];
 }
 
@@ -284,7 +249,7 @@ function buildOarCard(oar) {
   const labels  = oar.group === 'serial' ? SERIAL_LABELS : PARALLEL_LABELS;
   // The displayed chips must agree with getActiveTrf, so the > 3 yr chip comes
   // from the same helper rather than a second hardcoded 0.5.
-  const trfVals = oar.group === 'serial' ? [...oar.trf, serialTrfBeyond3yr(oar)] : [...oar.trf];
+  const trfVals = oar.group === 'serial' ? [...oar.trf, SERIAL_TRF_BEYOND_3YR] : [...oar.trf];
 
   const constraintLabel = oar.constraintText || (oar.constraint + ' Gy EQD2');
 
