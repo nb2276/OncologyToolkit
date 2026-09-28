@@ -148,7 +148,7 @@ vm.runInContext(`
   globalThis.OAR_DATA = OAR_DATA;
   globalThis.getActiveTrfIdx = getActiveTrfIdx;
   globalThis.getActiveTrf = getActiveTrf;
-  globalThis.serialTrfBeyond3yr = serialTrfBeyond3yr;
+  globalThis.SERIAL_TRF_BEYOND_3YR = SERIAL_TRF_BEYOND_3YR;
   globalThis.buildOarCard = buildOarCard;
   globalThis.getTimeBucketLabel = getTimeBucketLabel;
   globalThis.physicalToEqd2 = physicalToEqd2;
@@ -213,7 +213,7 @@ var physicalToEqd2 = sandbox.physicalToEqd2;
 var eqd2ToPhysical = sandbox.eqd2ToPhysical;
 var getActiveTrfIdx = sandbox.getActiveTrfIdx;
 var getActiveTrf = sandbox.getActiveTrf;
-var serialTrfBeyond3yr = sandbox.serialTrfBeyond3yr;
+var SERIAL_TRF_BEYOND_3YR = sandbox.SERIAL_TRF_BEYOND_3YR;
 var buildOarCard = sandbox.buildOarCard;
 var SERIAL_LABELS = sandbox.SERIAL_LABELS;
 var PARALLEL_LABELS = sandbox.PARALLEL_LABELS;
@@ -613,90 +613,46 @@ serialOars.forEach(function(oar) {
   assert(oar.trf.length === 4, 'serial OAR ' + oar.id + ' has 4 TRF values');
 });
 
-section('=== rert.js: serialTrfBeyond3yr (> 3 yr bucket) ===');
+section('=== rert.js: the > 3 yr serial bucket ===');
 
-// Kidneys is the one serial OAR with no long-term recovery, so it keeps 0 past
-// 3 years instead of taking the blanket 0.5, which previously forgave half the
-// prior dose on the organ that recovers least. Citations (with PMIDs) live on
-// serialTrfBeyond3yr in rert.js — one copy, so a correction lands once.
-// Fall back to a stand-in if the entry is ever renamed, so the assert below is
-// the single named failure instead of a TypeError that aborts the file and
-// takes the ~300 assertions after this section down with it.
+// Kidneys declares [0, 0, 0, 0] and still takes the blanket 0.5 past 3 years.
+// That reads like a bug and is not: retreatmentcalc.web.app, an independent
+// implementation citing the same Paradis 2019 paper, gives kidneys
+// 0 / 0 / 0 / 0 / 50 across the same intervals, and 14 of our 17 serial OARs
+// match its values exactly. Pinned here so the next person to notice the jump
+// finds the reason instead of re-deriving it from radiobiology that only
+// studied 26-week intervals. Full note on SERIAL_TRF_BEYOND_3YR in rert.js.
 var kidneyOar = OAR_DATA.find(function (o) { return o.id === 'kidneys'; });
 assert(kidneyOar !== undefined, 'kidneys OAR exists');
-kidneyOar = kidneyOar || { id: 'kidneys', group: 'serial', trf: [0, 0, 0, 0], trfBeyond3yr: 0 };
-assertEqual(serialTrfBeyond3yr(kidneyOar), 0, 'kidneys: > 3 yr TRF is 0, not the blanket 0.5');
-assertEqual(getActiveTrf(kidneyOar, 36), 0, 'kidneys: 36 months -> TRF 0');
-assertEqual(getActiveTrf(kidneyOar, 60), 0, 'kidneys: 5 years -> TRF 0');
-assertEqual(getActiveTrf(kidneyOar, 600), 0, 'kidneys: 50 years -> TRF 0');
+kidneyOar = kidneyOar || { id: 'kidneys', group: 'serial', trf: [0, 0, 0, 0] };
+assertEqual(kidneyOar.group, 'serial', 'kidneys is on the serial timeline');
+assertEqual(JSON.stringify(kidneyOar.trf), '[0,0,0,0]', 'kidneys: no recovery in any listed bucket');
 
-// Kidneys is 0 in every bucket, so no interval gives it recovery credit.
-[0, 2, 3, 5, 6, 11, 12, 35, 36, 120].forEach(function (m) {
-  assertEqual(getActiveTrf(kidneyOar, m), 0, 'kidneys: ' + m + ' months -> TRF 0 (no recovery at any interval)');
+// 0 through 36 months, then the shared constant.
+[0, 2, 3, 5, 6, 11, 12, 35].forEach(function (m) {
+  assertEqual(getActiveTrf(kidneyOar, m), 0, 'kidneys: ' + m + ' months -> TRF 0');
+});
+[36, 60, 120, 600].forEach(function (m) {
+  assertEqual(getActiveTrf(kidneyOar, m), 0.5,
+    'kidneys: ' + m + ' months -> TRF 0.5 (the table value, matching retreatmentcalc)');
 });
 
-// Every other serial OAR still takes the blanket 0.5 past 3 years. Count the
-// PROPERTY, not the id — counting `oar.id === 'kidneys'` would only ever catch
-// kidneys being deleted or duplicated, which the assert above already covers.
-// What this needs to pin is that no second OAR quietly acquires an opt-out.
-var beyondOptOuts = 0;
-serialOars.forEach(function (oar) {
-  if (typeof oar.trfBeyond3yr === 'number') beyondOptOuts++;
-  if (oar.id === 'kidneys') return;
-  assertEqual(serialTrfBeyond3yr(oar), 0.5, 'serial OAR ' + oar.id + ': > 3 yr TRF is the blanket 0.5');
-  assertEqual(getActiveTrf(oar, 36), 0.5, 'serial OAR ' + oar.id + ': 36 months -> TRF 0.5');
-});
-assertEqual(beyondOptOuts, 1, 'exactly one serial OAR declares trfBeyond3yr');
-
-// The opt-out is keyed on a real number, so a typo'd property cannot silently
-// zero an OAR: anything non-numeric falls back to the blanket value.
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0] }), 0.5,
-  'serialTrfBeyond3yr: no trfBeyond3yr -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: undefined }), 0.5,
-  'serialTrfBeyond3yr: undefined trfBeyond3yr -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: '0' }), 0.5,
-  'serialTrfBeyond3yr: string trfBeyond3yr is ignored -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 0.25 }), 0.25,
-  'serialTrfBeyond3yr: a declared value is used as given');
-
-// A value outside [0, 1] is not a recovery fraction. 1.5 would forgive more than
-// the entire prior dose; a negative would inflate it above what was delivered.
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 1.5 }), 0.5,
-  'serialTrfBeyond3yr: > 1 is refused -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: -0.5 }), 0.5,
-  'serialTrfBeyond3yr: < 0 is refused -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: NaN }), 0.5,
-  'serialTrfBeyond3yr: NaN is refused -> blanket 0.5');
-assertEqual(serialTrfBeyond3yr({ trf: [0, 0, 0, 0], trfBeyond3yr: 1 }), 1,
-  'serialTrfBeyond3yr: 1 is in range and used as given');
-
-// --- The OAR_DATA contract -------------------------------------------------
-// The helper defaults to the PERMISSIVE 0.5, so a misspelled key (trfBeyond3Yr),
-// a quoted number, or a deleted line would silently restore the exact bug the
-// opt-out exists to prevent — with nothing on screen to show for it. The runtime
-// cannot tell a typo from an OAR that legitimately has no opt-out. This test
-// can, because it sees the whole table.
+// No per-OAR override exists any more — the one that was added is gone.
 OAR_DATA.forEach(function (oar) {
   Object.keys(oar).forEach(function (key) {
-    if (/^trfbeyond/i.test(key)) {
-      assertEqual(key, 'trfBeyond3yr',
-        'OAR ' + oar.id + ': the opt-out key is spelled exactly trfBeyond3yr (found "' + key + '")');
-    }
+    assert(!/^trfbeyond/i.test(key),
+      'OAR ' + oar.id + ': no per-OAR > 3 yr override (found "' + key + '")');
   });
-  if (Object.prototype.hasOwnProperty.call(oar, 'trfBeyond3yr')) {
-    var v = oar.trfBeyond3yr;
-    assert(typeof v === 'number' && isFinite(v),
-      'OAR ' + oar.id + ': trfBeyond3yr is a finite number, not a string or null');
-    assert(v >= 0 && v <= 1,
-      'OAR ' + oar.id + ': trfBeyond3yr is within [0, 1]');
-    // Parallel OARs have no 5th bucket, so an opt-out there would be a silent
-    // no-op — getActiveTrf never reaches index 4 for them.
-    assertEqual(oar.group, 'serial',
-      'OAR ' + oar.id + ': only serial OARs may declare trfBeyond3yr (parallel has no > 3 yr bucket)');
-  }
 });
 
-// Parallel OARs are untouched — they have no 5th bucket at all.
+// Every serial OAR takes the shared constant past 3 years.
+assertEqual(SERIAL_TRF_BEYOND_3YR, 0.5, 'SERIAL_TRF_BEYOND_3YR is 0.5');
+serialOars.forEach(function (oar) {
+  assertEqual(getActiveTrf(oar, 36), SERIAL_TRF_BEYOND_3YR,
+    'serial OAR ' + oar.id + ': 36 months -> the shared > 3 yr constant');
+});
+
+// Parallel OARs have no 5th bucket at all.
 parallelOars.forEach(function (oar) {
   assertEqual(getActiveTrfIdx(oar, 600), 3, 'parallel OAR ' + oar.id + ': long interval -> idx 3, no 5th bucket');
 });
@@ -709,10 +665,10 @@ parallelOars.forEach(function (oar) {
 // applied — a card printing "0.5 / > 3 yr" beside a number computed with TRF 0
 // tells the reader a recovery credit was given that wasn't.
 var kidneyCardHtml = buildOarCard(kidneyOar).innerHTML;
-assert(kidneyCardHtml.indexOf('id="trf-chip-kidneys-4"><span class="rert-trf-val">0<') !== -1,
-  'kidneys card: the > 3 yr chip renders 0');
-assert(kidneyCardHtml.indexOf('rert-trf-val">0.5<') === -1,
-  'kidneys card: no chip anywhere renders 0.5');
+assert(kidneyCardHtml.indexOf('id="trf-chip-kidneys-4"><span class="rert-trf-val">0.5<') !== -1,
+  'kidneys card: the > 3 yr chip renders 0.5, agreeing with getActiveTrf');
+assert(kidneyCardHtml.indexOf('id="trf-chip-kidneys-3"><span class="rert-trf-val">0<') !== -1,
+  'kidneys card: the 1-3 yr chip renders 0');
 
 var bladderOar = OAR_DATA.find(function (o) { return o.id === 'bladder'; });
 var bladderCardHtml = bladderOar ? buildOarCard(bladderOar).innerHTML : '';
@@ -732,15 +688,14 @@ assertEqual(PARALLEL_LABELS.length, 4, 'PARALLEL_LABELS has 4 buckets');
 // 18 on screen — half the real prior burden, understating risk.
 var kidneyPriorEqd2 = physicalToEqd2(30, 10, 3);
 assertClose(kidneyPriorEqd2, 36, 1e-9, 'kidney prior: 30 Gy/10 fx ab=3 = 36 Gy EQD2');
-[36, 60, 120, 600].forEach(function (m) {
+[0, 11, 35].forEach(function (m) {
   assertClose(kidneyPriorEqd2 * (1 - getActiveTrf(kidneyOar, m)), 36, 1e-9,
-    'kidneys at ' + m + ' months: effective prior EQD2 stays the full 36.00 Gy, never 18.00');
+    'kidneys at ' + m + ' months: effective prior EQD2 is the full 36.00 Gy');
 });
-
-// The contrast case: a recovering OAR does get half forgiven past 3 years, so
-// this pins that the fix is scoped to kidneys and did not flatten everyone.
-assertClose(kidneyPriorEqd2 * (1 - getActiveTrf(bladderOar, 60)), 18, 1e-9,
-  'bladder at 60 months: effective prior EQD2 is halved to 18.00 Gy (blanket 0.5 still applies)');
+[36, 60, 600].forEach(function (m) {
+  assertClose(kidneyPriorEqd2 * (1 - getActiveTrf(kidneyOar, m)), 18, 1e-9,
+    'kidneys at ' + m + ' months: effective prior EQD2 is 18.00 Gy (half, per the table)');
+});
 
 // The assertions above pin the composition, but the line that actually puts the
 // number on screen lives inside updateAll(), which needs a real DOM and is not
