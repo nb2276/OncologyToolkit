@@ -1,5 +1,14 @@
 // ============================================================
-// OAR data from UMich ReRT guidelines
+// OAR data from UMich ReRT guidelines — Appendix E2 of
+//   Paradis KC, Mayo C, Owen D, et al. The Special Medical Physics Consult
+//   Process for Reirradiation Patients. Adv Radiat Oncol. 2019;4(4):559-565.
+//   PMID 31681862, doi 10.1016/j.adro.2019.05.007
+// E2 is the SMPC form; its two tables are the source for every row below.
+// Reconciled against it on 2026-09-28: all dose limits matched, 18 of 21 rows
+// matched outright, and duodenum / small bowel / stomach were corrected (each
+// had been forgiving more prior dose than the table allows). ChestWall was
+// missing and was added. Cochlea is in this list but not in E2 — see its note.
+// E2 combines Trachea/Bronchus in one row; kept split here, identical values.
 // Report-only OARs (Body, PTV, Brain, Larynx, Musc_Constrict)
 // are excluded per clinical preference.
 // trf arrays correspond to the document time columns:
@@ -13,14 +22,18 @@ const PARALLEL_LABELS = ['< 3 mo', '3–6 mo', '6 mo–2 yr', '> 2 yr'];
 const OAR_DATA = [
   // ---- Serial ----
   { id: 'bladder',     name: 'Bladder',                        group: 'serial',   constraint: 85,   trf: [0, 0.1, 0.25, 0.5]  },
-  { id: 'bowel_small', name: 'Bowel_Small',                    group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.4]  },
+  { id: 'bowel_small', name: 'Bowel_Small',                    group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.25] },
   { id: 'brachial',    name: 'BrachialPlex',                   group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'brainstem',   name: 'Brainstem',                      group: 'serial',   constraint: 64,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'bronchus',    name: 'Bronchus',                       group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'cauda',       name: 'CaudaEquina',                    group: 'serial',   constraint: 60,   trf: [0, 0.1, 0.25, 0.5]  },
+  { id: 'chestwall',   name: 'ChestWall',                      group: 'serial',   constraint: 100,  trf: [0, 0.1, 0.25, 0.5]  },
+  // Cochlea is NOT in Appendix E2 — every other row here is. Kept because
+  // removing a constraint someone may rely on needs a positive reason, not the
+  // absence of one; provenance unverified, check before trusting it.
   { id: 'cochlea',     name: 'Cochlea',                        group: 'serial',   constraint: 45,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'colon',       name: 'Colon / Sigmoid / Bowel_Large',  group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
-  { id: 'duodenum',    name: 'Duodenum',                       group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.25] },
+  { id: 'duodenum',    name: 'Duodenum',                       group: 'serial',   constraint: 54,   trf: [0, 0,   0.1,  0.25] },
   { id: 'esophagus',   name: 'Esophagus',                      group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'greatves',    name: 'GreatVes / Aorta',               group: 'serial',   constraint: 100,  trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'heart',       name: 'Heart',                          group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
@@ -35,7 +48,7 @@ const OAR_DATA = [
   { id: 'sacralplex',  name: 'SacralPlex',                     group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'spinalcord',  name: 'SpinalCord',                     group: 'serial',   constraint: 50,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'spinalcord2', name: 'SpinalCord (< 2mm from target)', group: 'serial',   constraint: 55,   trf: [0, 0.1, 0.25, 0.5]  },
-  { id: 'stomach',     name: 'Stomach',                        group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.4]  },
+  { id: 'stomach',     name: 'Stomach',                        group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.25] },
   { id: 'trachea',     name: 'Trachea',                        group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   // ---- Parallel ----
   { id: 'lungs',  name: 'Lungs-GTV / Lungs-ITV', group: 'parallel', constraint: null, unit: 'cc', constraintCc: 1000, constraintText: 'V16 EQD2 (cc) ≥ 1000', doseLabel: 'Prior V16 volume (cc)', trf: [0, 0, 0.25, 0.5] },
