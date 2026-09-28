@@ -1,5 +1,28 @@
 // ============================================================
-// OAR data from UMich ReRT guidelines
+// OAR data from UMich ReRT guidelines — Appendix E2 of
+//   Paradis KC, Mayo C, Owen D, et al. The Special Medical Physics Consult
+//   Process for Reirradiation Patients. Adv Radiat Oncol. 2019;4(4):559-565.
+//   PMID 31681862, doi 10.1016/j.adro.2019.05.007
+// E2 is the SMPC form; its two tables are the source for every row below.
+// Reconciled 2026-09-28. Every NUMERIC dose limit matched; 18 of the 22 rows we
+// map to E2 matched outright; duodenum / small bowel / stomach were corrected
+// (each had been forgiving more prior dose than E2 allows); ChestWall was
+// missing and was added. Cochlea is in this list but not in E2 — see its note.
+// E2 combines Trachea/Bronchus in one row; kept split here, identical values.
+//
+// Three limits are NOT from E2, which declines to give a number for them:
+// kidneys "ALARA", liver "NTCP limited", lungs "Customized per case". This page
+// shows CV23 ≥ 200 cc / V32 ≥ 700 cc / V16 ≥ 1000 cc instead, and for liver and
+// lungs those cc values drive real arithmetic. Provenance unstated — tests pin
+// them as change-detectors, not as verified values.
+//
+// E2 prints "For >3 years, 50% discount suggested" above BOTH tables. It is
+// applied to the serial table only. That is deliberate: the parallel table's
+// own "> 2 yr" column already covers intervals past 3 years, and applying the
+// note there would *reduce* liver from 100% to 50% at a longer interval, which
+// runs backwards. Noted so the next reader knows it was read, not missed.
+// (E1's worked example quotes 40% lung recovery beyond 2 years where E2's table
+// says 50%; we follow E2. The source disagrees with itself there.)
 // Report-only OARs (Body, PTV, Brain, Larynx, Musc_Constrict)
 // are excluded per clinical preference.
 // trf arrays correspond to the document time columns:
@@ -13,14 +36,18 @@ const PARALLEL_LABELS = ['< 3 mo', '3–6 mo', '6 mo–2 yr', '> 2 yr'];
 const OAR_DATA = [
   // ---- Serial ----
   { id: 'bladder',     name: 'Bladder',                        group: 'serial',   constraint: 85,   trf: [0, 0.1, 0.25, 0.5]  },
-  { id: 'bowel_small', name: 'Bowel_Small',                    group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.4]  },
+  { id: 'bowel_small', name: 'Bowel_Small',                    group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.25] },
   { id: 'brachial',    name: 'BrachialPlex',                   group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'brainstem',   name: 'Brainstem',                      group: 'serial',   constraint: 64,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'bronchus',    name: 'Bronchus',                       group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'cauda',       name: 'CaudaEquina',                    group: 'serial',   constraint: 60,   trf: [0, 0.1, 0.25, 0.5]  },
+  { id: 'chestwall',   name: 'ChestWall',                      group: 'serial',   constraint: 100,  trf: [0, 0.1, 0.25, 0.5]  },
+  // Cochlea is NOT in Appendix E2 — every other row here is. Kept because
+  // removing a constraint someone may rely on needs a positive reason, not the
+  // absence of one; provenance unverified, check before trusting it.
   { id: 'cochlea',     name: 'Cochlea',                        group: 'serial',   constraint: 45,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'colon',       name: 'Colon / Sigmoid / Bowel_Large',  group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
-  { id: 'duodenum',    name: 'Duodenum',                       group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.25] },
+  { id: 'duodenum',    name: 'Duodenum',                       group: 'serial',   constraint: 54,   trf: [0, 0,   0.1,  0.25] },
   { id: 'esophagus',   name: 'Esophagus',                      group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'greatves',    name: 'GreatVes / Aorta',               group: 'serial',   constraint: 100,  trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'heart',       name: 'Heart',                          group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
@@ -35,7 +62,7 @@ const OAR_DATA = [
   { id: 'sacralplex',  name: 'SacralPlex',                     group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'spinalcord',  name: 'SpinalCord',                     group: 'serial',   constraint: 50,   trf: [0, 0.1, 0.25, 0.5]  },
   { id: 'spinalcord2', name: 'SpinalCord (< 2mm from target)', group: 'serial',   constraint: 55,   trf: [0, 0.1, 0.25, 0.5]  },
-  { id: 'stomach',     name: 'Stomach',                        group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.4]  },
+  { id: 'stomach',     name: 'Stomach',                        group: 'serial',   constraint: 54,   trf: [0, 0,   0.25, 0.25] },
   { id: 'trachea',     name: 'Trachea',                        group: 'serial',   constraint: 70,   trf: [0, 0.1, 0.25, 0.5]  },
   // ---- Parallel ----
   { id: 'lungs',  name: 'Lungs-GTV / Lungs-ITV', group: 'parallel', constraint: null, unit: 'cc', constraintCc: 1000, constraintText: 'V16 EQD2 (cc) ≥ 1000', doseLabel: 'Prior V16 volume (cc)', trf: [0, 0, 0.25, 0.5] },
