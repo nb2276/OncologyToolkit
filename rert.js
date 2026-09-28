@@ -4,11 +4,25 @@
 //   Process for Reirradiation Patients. Adv Radiat Oncol. 2019;4(4):559-565.
 //   PMID 31681862, doi 10.1016/j.adro.2019.05.007
 // E2 is the SMPC form; its two tables are the source for every row below.
-// Reconciled against it on 2026-09-28: all dose limits matched, 18 of 21 rows
-// matched outright, and duodenum / small bowel / stomach were corrected (each
-// had been forgiving more prior dose than the table allows). ChestWall was
+// Reconciled 2026-09-28. Every NUMERIC dose limit matched; 18 of the 22 rows we
+// map to E2 matched outright; duodenum / small bowel / stomach were corrected
+// (each had been forgiving more prior dose than E2 allows); ChestWall was
 // missing and was added. Cochlea is in this list but not in E2 — see its note.
 // E2 combines Trachea/Bronchus in one row; kept split here, identical values.
+//
+// Three limits are NOT from E2, which declines to give a number for them:
+// kidneys "ALARA", liver "NTCP limited", lungs "Customized per case". This page
+// shows CV23 ≥ 200 cc / V32 ≥ 700 cc / V16 ≥ 1000 cc instead, and for liver and
+// lungs those cc values drive real arithmetic. Provenance unstated — tests pin
+// them as change-detectors, not as verified values.
+//
+// E2 prints "For >3 years, 50% discount suggested" above BOTH tables. It is
+// applied to the serial table only. That is deliberate: the parallel table's
+// own "> 2 yr" column already covers intervals past 3 years, and applying the
+// note there would *reduce* liver from 100% to 50% at a longer interval, which
+// runs backwards. Noted so the next reader knows it was read, not missed.
+// (E1's worked example quotes 40% lung recovery beyond 2 years where E2's table
+// says 50%; we follow E2. The source disagrees with itself there.)
 // Report-only OARs (Body, PTV, Brain, Larynx, Musc_Constrict)
 // are excluded per clinical preference.
 // trf arrays correspond to the document time columns:

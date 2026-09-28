@@ -573,7 +573,7 @@ assertEqual(getActiveTrf(parallelOar, 4), 0, 'parallel TRF: 4 months → 0');
 assertEqual(getActiveTrf(parallelOar, 12), 0.25, 'parallel TRF: 12 months → 0.25');
 assertEqual(getActiveTrf(parallelOar, 30), 0.5, 'parallel TRF: 30 months → 0.5');
 
-// Duodenum has different TRF: [0, 0, 0.25, 0.25]
+// Duodenum has different TRF: [0, 0, 0.1, 0.25] (6mo-1yr corrected to 0.1 per E2)
 var duodenum = OAR_DATA.find(function(o) { return o.id === 'duodenum'; });
 assertEqual(getActiveTrf(duodenum, 18), 0.25, 'duodenum TRF: 18 months → 0.25');
 assertEqual(getActiveTrf(duodenum, 40), 0.5, 'duodenum TRF: 40 months → 0.5 (> 3yr hardcoded)');
@@ -653,9 +653,14 @@ var E2_SERIAL = {
 // < 3 mo | 3-6 mo | 6 mo-2 yr | > 2 yr, and has no 5th bucket. This two-table
 // shape is the serial/parallel split — retreatmentcalc.web.app flattens both
 // onto one 5-bucket timeline, which is why its liver row disagrees with ours.
+// E2 gives no numeric D0.1cc limit for these two ("NTCP limited" / "Customized
+// per case"). The cc thresholds below are NOT from E2 — they are this site's
+// own, of unstated provenance — but they drive real arithmetic
+// (remCc = constraintCc - effVol), so they are pinned here as change-detectors.
+// Format: [constraint, constraintCc, <3mo, 3-6mo, 6mo-2yr, >2yr]
 var E2_PARALLEL = {
-  liver: [null, 0, 0, 50, 100],   // E2 limit "NTCP limited"
-  lungs: [null, 0, 0, 25, 50]     // E2 limit "Customized per case"
+  liver: [null, 700,  0, 0, 50, 100],
+  lungs: [null, 1000, 0, 0, 25, 50]
 };
 
 Object.keys(E2_SERIAL).forEach(function (id) {
@@ -665,8 +670,10 @@ Object.keys(E2_SERIAL).forEach(function (id) {
   var e = E2_SERIAL[id];
   assertEqual(oar.group, 'serial', 'E2 ' + id + ': serial group');
   assertEqual(oar.constraint, e[0], 'E2 ' + id + ': dose limit');
+  // assertClose against the exact fraction, not Math.round(x*100): rounding
+  // accepted 0.1049 as "10%", i.e. real extra forgiveness slipping through.
   for (var i = 0; i < 4; i++) {
-    assertEqual(Math.round(oar.trf[i] * 100), e[i + 1],
+    assertClose(oar.trf[i], e[i + 1] / 100, 1e-9,
       'E2 ' + id + ': bucket ' + i + ' discount = ' + e[i + 1] + '%');
   }
 });
@@ -678,27 +685,62 @@ Object.keys(E2_PARALLEL).forEach(function (id) {
   var e = E2_PARALLEL[id];
   assertEqual(oar.group, 'parallel', 'E2 ' + id + ': parallel group (its own time columns)');
   assertEqual(oar.constraint, e[0], 'E2 ' + id + ': no numeric D0.1cc limit');
+  assertEqual(oar.constraintCc, e[1], 'E2 ' + id + ': cc limit ' + e[1] + ' (drives remCc, not from E2)');
+  // unit is a MATH SWITCH, not a label: rert.js branches on oar.unit === 'cc'
+  // to take the volumetric path instead of the Gy path, and to pick the
+  // validation range. Flipping it silently reroutes the whole calculation.
+  assertEqual(oar.unit, 'cc', 'E2 ' + id + ": unit 'cc' selects the volumetric branch");
   for (var i = 0; i < 4; i++) {
-    assertEqual(Math.round(oar.trf[i] * 100), e[i + 1],
-      'E2 ' + id + ': bucket ' + i + ' discount = ' + e[i + 1] + '%');
+    assertClose(oar.trf[i], e[i + 2] / 100, 1e-9,
+      'E2 ' + id + ': bucket ' + i + ' discount = ' + e[i + 2] + '%');
   }
 });
+
+// No serial OAR may acquire a unit — it would send a Gy dose down the cc path.
+serialOars.forEach(function (oar) {
+  assertEqual(oar.unit, undefined, 'serial OAR ' + oar.id + ' has no unit (stays on the Gy path)');
+});
+
+// Mirror of the serial membership guard: no parallel OAR outside the E2 second
+// table, and neither transcription may be quietly trimmed.
+parallelOars.forEach(function (oar) {
+  assert(E2_PARALLEL[oar.id] !== undefined,
+    'parallel OAR ' + oar.id + ' is in the E2 second table');
+});
+// Names must be unique. Renaming one row to another's name is the dangerous
+// mislabel — it presents one organ's dose limit under a different organ's
+// heading on the card, and nothing else in the suite would notice.
+var oarNames = OAR_DATA.map(function (o) { return o.name; });
+assertEqual(new Set(oarNames).size, oarNames.length, 'every OAR name is unique (a duplicate mislabels a limit)');
+assertEqual(oarNames.filter(function (n) { return !n || !n.trim(); }).length, 0, 'no OAR has an empty name');
+// The row this diff added, pinned by name as well as by value.
+assertEqual((OAR_DATA.find(function (o) { return o.id === 'chestwall'; }) || {}).name, 'ChestWall',
+  'chestwall row is named ChestWall');
+
+assertEqual(Object.keys(E2_SERIAL).length, 22, 'E2_SERIAL transcription still has 22 rows');
+assertEqual(Object.keys(E2_PARALLEL).length, 2, 'E2_PARALLEL transcription still has 2 rows');
 
 // The three values corrected on 2026-09-28, each named so a revert is obvious.
 // All three had been forgiving MORE prior dose than E2 allows.
 function e2oar(id) { return OAR_DATA.find(function (o) { return o.id === id; }) || { trf: [] }; }
-assertEqual(Math.round(e2oar('duodenum').trf[2] * 100), 10,
+assertClose(e2oar('duodenum').trf[2], 0.10, 1e-9,
   'duodenum 6mo-1yr is 10% (was 25% — E2 says 10)');
-assertEqual(Math.round(e2oar('bowel_small').trf[3] * 100), 25,
+assertClose(e2oar('bowel_small').trf[3], 0.25, 1e-9,
   'small bowel 1-3yr is 25% (was 40% — E2 and the E1 worked example both say 25)');
-assertEqual(Math.round(e2oar('stomach').trf[3] * 100), 25,
+assertClose(e2oar('stomach').trf[3], 0.25, 1e-9,
   'stomach 1-3yr is 25% (was 40% — E2 says 25)');
 
-// Cochlea is deliberately retained despite not appearing in E2.
-assert(OAR_DATA.some(function (o) { return o.id === 'cochlea'; }),
-  'cochlea retained (not in E2; provenance unverified)');
-assertEqual(Object.keys(E2_SERIAL).indexOf('cochlea'), -1,
-  'cochlea is correctly absent from the E2 transcription');
+// Cochlea is retained despite not appearing in E2. Precisely because no
+// appendix can ever vindicate it, its values are pinned here as a
+// change-detector — NOT as a truth claim. A future edit to this row cannot be
+// caught by re-reading the source, so it has to be caught here.
+var cochleaOar = OAR_DATA.find(function (o) { return o.id === 'cochlea'; });
+assert(cochleaOar !== undefined, 'cochlea retained (not in E2; provenance unverified)');
+if (cochleaOar) {
+  assertEqual(cochleaOar.constraint, 45, 'cochlea: 45 Gy — unverified provenance, pinned so a change is deliberate');
+  assertEqual(JSON.stringify(cochleaOar.trf), '[0,0.1,0.25,0.5]', 'cochlea: trf pinned (no source to check it against)');
+  assertEqual(cochleaOar.group, 'serial', 'cochlea: serial');
+}
 
 // Every serial OAR is either in E2 or knowingly extra — no silent additions.
 serialOars.forEach(function (oar) {

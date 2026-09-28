@@ -18,7 +18,7 @@ Computes Biologically Effective Dose (BED) and Equivalent Dose in 2 Gy fractions
 
 ### Reirradiation Dose Calculator
 Estimates remaining organ-at-risk dose tolerance for reirradiation using University of Michigan ReRT guidelines.
-- 22 serial OARs and 2 parallel OARs (Lungs, Liver)
+- 23 serial OARs and 2 parallel OARs (Lungs, Liver)
 - Tissue Recovery Factor (TRF) columns for all documented time intervals; active time bucket highlighted automatically
 - Results table shows remaining EQD2 and isoeffective physical doses for 1, 3, 5, and a custom number of fractions
 - Toggleable columns, copy results, and print support
