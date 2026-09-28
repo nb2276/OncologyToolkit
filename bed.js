@@ -5,6 +5,11 @@
 
 var BED_INPUT_IDS = ['bd-dose', 'bd-fx', 'ab1', 'ab2', 'ab3', 'arb-fx'];
 
+// Preset rows in the Alternative Fractionation table, in display order. Each
+// needs a matching <tr> in bed.html (ids alt<n>-1..3) and, because the ≤700 px
+// tier transposes that table into a CSS grid, a grid-area in style.css §10.
+var ALT_FX = [1, 3, 5, 10];
+
 // Input validation ranges. Max fractions is 80 — beyond that is essentially
 // always a fat-finger error (max real-world regimen we'd expect is ~45 fx).
 // `integer: true` on fractions because you can't deliver 25.5 sessions.
@@ -64,12 +69,13 @@ function update() {
     var a = ab[i];
     var goodBed = b !== null && !isNaN(a) && a > 0;
 
-    document.getElementById('alt1-' + (i + 1)).textContent =
-      goodBed ? fmt(isoeffDose(b, 1, a)) + ' Gy' : '—';
-    document.getElementById('alt3-' + (i + 1)).textContent =
-      goodBed ? fmt(isoeffDose(b, 3, a)) + ' Gy' : '—';
-    document.getElementById('alt5-' + (i + 1)).textContent =
-      goodBed ? fmt(isoeffDose(b, 5, a)) + ' Gy' : '—';
+    // One list, so adding a preset row is a change here plus the matching <tr>
+    // (and its mobile grid-area in style.css §10) rather than a fourth copy of
+    // the same line. Matches the composite page's defaultFx.
+    ALT_FX.forEach(function (n) {
+      document.getElementById('alt' + n + '-' + (i + 1)).textContent =
+        goodBed ? fmt(isoeffDose(b, n, a)) + ' Gy' : '—';
+    });
     document.getElementById('altA-' + (i + 1)).textContent =
       (goodBed && arbOk) ? fmt(isoeffDose(b, arbFx, a)) + ' Gy' : '—';
   }
